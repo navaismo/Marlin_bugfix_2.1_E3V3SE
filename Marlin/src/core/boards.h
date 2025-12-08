@@ -498,7 +498,7 @@
 #define BOARD_MKS_NEPTUNE_X                 5261  // Elegoo Neptune X
 #define BOARD_MKS_NEPTUNE_3                 5262  // Elegoo Neptune 3
 
-//
+//  
 // Other ARM Cortex-M4
 //
 #define BOARD_CREALITY_CR4NS          5300  // Creality CR4NS200320C13 (GD32F303RET6) as found in the Ender-3 V3 SE

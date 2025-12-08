@@ -13,7 +13,7 @@
 //
 // Machine
 //
-#define MOTHERBOARD                              BOARD_CREALITY_V3_GD303
+#define MOTHERBOARD                              BOARD_CREALITY_F401RE
 #define CUSTOM_MACHINE_NAME                      "Ender-3 V3 SE"
 
 //
