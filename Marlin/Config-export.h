@@ -2,7 +2,7 @@
  * Config.h - Marlin Firmware distilled configuration
  * Usage: Place this file in the 'Marlin' folder with the name 'Config.h'.
  *
- * Exported by Marlin build on 2025-12-11 at 17:30:24.
+ * Exported by Marlin build on 2025-12-16 at 19:43:51.
  */
 
 //
@@ -384,6 +384,7 @@
 #define DWIN_LCD_BEEP
 #define SHOW_PROGRESS_PERCENT
 #define EVENT_GCODE_SD_ABORT                     "G28XY\nG1 X0 Y215\nM84"
+#define NO_SD_AUTOSTART
 #define SDCARD_RATHERRECENTFIRST
 #define POWER_LOSS_MIN_Z_CHANGE                  0.05
 #define POWER_LOSS_ZRAISE                        5
