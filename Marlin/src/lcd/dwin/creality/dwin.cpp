@@ -3814,6 +3814,7 @@ void Goto_MainMenu()
   #endif
 
   #if ENABLED(ONE_CLICK_PRINT)
+    reset_flag = false;
     my_short_fn[0] = '\0'; // clear my_short_fn to avoid caching issues
     select_print.reset();  // Reset select_print to avoid issues
     select_file.reset();  // Reset select_file to avoid issues

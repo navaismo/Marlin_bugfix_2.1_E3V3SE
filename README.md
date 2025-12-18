@@ -164,8 +164,8 @@ With a Memory cost of:
 
 ``` c++
 Advanced Memory Usage is available via "PlatformIO Home > Project Inspect"
-RAM:   [===       ]  31.3% (used 20536 bytes from 65536 bytes)
-Flash: [====      ]  42.8% (used 220100 bytes from 514288 bytes)
+RAM:   [===       ]  31.3% (used 20540 bytes from 65536 bytes)
+Flash: [====      ]  42.8% (used 220244 bytes from 514288 bytes)
 ``` 
 
 
