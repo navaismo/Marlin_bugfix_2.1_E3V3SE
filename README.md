@@ -164,8 +164,8 @@ With a Memory cost of:
 
 ``` c++
 Advanced Memory Usage is available via "PlatformIO Home > Project Inspect"
-RAM:   [===       ]  31.3% (used 20540 bytes from 65536 bytes)
-Flash: [====      ]  42.8% (used 220244 bytes from 514288 bytes)
+RAM:   [===       ]  31.4% (used 20604 bytes from 65536 bytes)
+Flash: [=====     ]  45.6% (used 234484 bytes from 514288 bytes)
 ``` 
 
 
@@ -510,7 +510,10 @@ Enable by default in Configuration_adv.h
 
 You can explore the new features on the Marlin 2.1 like:
 
-### * **FT_MOTION** Which enables different filters of Shapers for the machine, like Klipper does. 
+### * **FT_MOTION** 
+
+Which enables different filters of Shapers for the machine, like Klipper does. 
+
 ```c++
 #define FT_MOTION
 #if ENABLED(FT_MOTION)
