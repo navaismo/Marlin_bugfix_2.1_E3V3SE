@@ -510,10 +510,7 @@ Enable by default in Configuration_adv.h
 
 You can explore the new features on the Marlin 2.1 like:
 
-### * **FT_MOTION** 
-
-Which enables different filters of Shapers for the machine, like Klipper does. 
-
+### * **FT_MOTION** Which enables different filters of Shapers for the machine, like Klipper does. 
 ```c++
 #define FT_MOTION
 #if ENABLED(FT_MOTION)

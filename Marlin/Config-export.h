@@ -2,7 +2,7 @@
  * Config.h - Marlin Firmware distilled configuration
  * Usage: Place this file in the 'Marlin' folder with the name 'Config.h'.
  *
- * Exported by Marlin build on 2025-12-27 at 21:44:11.
+ * Exported by Marlin build on 2026-01-06 at 15:28:41.
  */
 
 //
