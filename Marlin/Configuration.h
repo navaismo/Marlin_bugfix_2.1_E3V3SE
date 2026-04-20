@@ -273,7 +273,7 @@
 #define ENABLE_AUTO_OFF_DISPLAY             // Enable automatic turn-off display function & brightness adjustment function
 #if ENABLED(ENABLE_AUTO_OFF_DISPLAY)
 
-  // #define DWIN_DIMM_MENU                    // Enable LCD Menu to Configure Brightness & DIMM parameters
+#define DWIN_DIMM_MENU                    // Enable LCD Menu to Configure Brightness & DIMM parameters
 
   extern int16_t TURN_OFF_TIME;             // turn-off time: 5min
   extern int16_t DIMM_SCREEN_BRIGHTNESS;    // brightness 0x00-0xff:0
