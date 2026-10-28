@@ -3510,7 +3510,7 @@ void Stepper::init() {
     const bool was_on = hal.isr_state();
     hal.isr_off();
 
-    const shaping_time_t delay = freq ? float(uint32_t(STEPPER_TIMER_RATE) / 2) / freq : shaping_time_t(-1);
+    const shaping_time_t delay = freq ? shaping_time_t(float(uint32_t(STEPPER_TIMER_RATE) / 2) / freq) : shaping_time_t(-1);
     #define SHAPING_SET_FREQ_FOR_AXIS(AXISN, AXISL)                                 \
       if (axis == AXISN) {                                                          \
         ShapingQueue::set_delay(AXISN, delay);                                      \
