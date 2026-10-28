@@ -812,6 +812,11 @@
   #define HAS_ZV_SHAPING 1
 #endif
 
+// This DWIN menu edits the legacy X/Y stepper shapers, not FT_Motion's shapers.
+#if ENABLED(FT_MOTION) || !ALL(INPUT_SHAPING_X, INPUT_SHAPING_Y)
+  #undef DWIN_INPUT_SHAPING_MENU
+#endif
+
 // Use Junction Deviation for motion if Jerk is disabled
 #if DISABLED(CLASSIC_JERK)
   #define HAS_JUNCTION_DEVIATION 1
