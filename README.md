@@ -177,7 +177,7 @@ Some options depend on others. For example, `ONE_CLICK_PRINT` requires `NO_SD_AU
 | Filled 3D bed mesh viewer | `BED_LEVEL_VISUALIZER` | `Configuration_adv.h` |
 | FT_Motion and input shaping | `FT_MOTION` | `Configuration_adv.h` |
 | Ignore bed MINTEMP (off by default) | `E3V3SE_IGNORE_BED_MINTEMP` | `Configuration.h` |
-| Input shaping menu | `DWIN_INPUT_SHAPING_MENU` | `Configuration_adv.h` |
+| Input shaping menu (legacy X/Y) | `DWIN_INPUT_SHAPING_MENU` | `Configuration_adv.h` |
 | Linear Advance | `LIN_ADVANCE` | `Configuration_adv.h` |
 | MeatPack on serial port 1 | `MEATPACK_ON_SERIAL_PORT_1` | `Configuration_adv.h` (on in `c13_octoprint`) |
 | OctoPrint plugin layer | `OCTOPRINT_PLUGIN` | `Configuration.h` (`c13_octoprint` only) |
@@ -211,7 +211,9 @@ Missing measurements appear gray and receive `INCOMPLETE` instead of a quality r
 
 ## Input shaping with FT_Motion (`M493`)
 
-Input shaping uses the **FT_Motion advanced shapers** (`FTM_SHAPER_*`), not the legacy `INPUT_SHAPING_X/Y` feature, which stays off. All shaper types are compiled in, and the shapers are configured at runtime with `M493`, so no LCD menu is needed (the LCD menu `DWIN_INPUT_SHAPING_MENU` is a separate, later step).
+The default profile uses **FT_Motion advanced shapers** (`FTM_SHAPER_*`). **Configure FT_Motion with `M493`, using the commands in the table below.** The LCD **Input Shaping menu applies only to legacy standard motion (`M593`)** and cannot configure FT_Motion. It is automatically disabled whenever `FT_MOTION` is compiled in. In GitHub Actions, selecting FT_Motion forces the legacy menu off even if its checkbox is also selected.
+
+To use **Control → Motion → Input Shaping**, disable `FT_MOTION` and enable `DWIN_INPUT_SHAPING_MENU` in `Configuration_adv.h` or the workflow. The menu enables legacy `INPUT_SHAPING_X/Y` together, using the configured frequency and damping defaults. It adjusts X/Y frequency (0 to disable an axis, otherwise up to 999.99 Hz within the timer's valid range) and damping ratio (0.00–1.00). Accepted values update the stepper's shaping delay and damping factors through the same setters as `M593`; no reboot is needed. `M593` reports the current values. Use **Control → Store Settings** or `M500` to persist them; `M501` reloads them. This LCD menu does not configure FT_Motion.
 
 | Command | Effect |
 | --- | --- |
@@ -309,7 +311,7 @@ The `c13_sd` branch (C13 SD card) ships a manual workflow, [`build-marlin.yml`](
 4. Click **Run workflow** and wait for the job to finish. The log ends with a RAM and flash usage report.
 5. Download the `firmware-c13_sd-STM32F103RET6_creality` artifact from the run summary. It contains the `firmware*.bin` file and is kept for 7 days.
 
-Each toggle only overrides the matching define for that single build; nothing is committed back to the repository. To make a choice permanent, edit the profile as described in [Configuration profiles](#configuration-profiles). Check the reported memory usage against the [Memory budget](#memory-budget) before flashing, and enable `DWIN_INPUT_SHAPING_MENU` only together with `FT_MOTION`, and `DWIN_SKEW_MENU` only together with `SKEW_CORRECTION`.
+Each toggle only overrides the matching define for that single build; nothing is committed back to the repository. To make a choice permanent, edit the profile as described in [Configuration profiles](#configuration-profiles). Check the reported memory usage against the [Memory budget](#memory-budget) before flashing, and enable `DWIN_INPUT_SHAPING_MENU` only with `FT_MOTION` disabled, and `DWIN_SKEW_MENU` only together with `SKEW_CORRECTION`. Selecting FT_Motion forces the legacy input shaping menu off for that build.
 
 ## Memory budget
 
