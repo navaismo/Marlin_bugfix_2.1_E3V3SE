@@ -716,7 +716,7 @@ typedef struct
   float Move_X_scaled     = 0;
   float Move_Y_scaled     = 0;
   float Move_Z_scaled     = 0;
-  float InputShaping_scaled = 0;
+  int32_t InputShaping_scaled = 0; // Hundredths of Hz or damping ratio
   uint8_t Curve_index = 0;
   uint16_t Auto_PID_Temp  = 0;
   uint16_t Auto_PID_Value[3] = {0, 100, 260}; // 1: Hot bed temperature; 2 Nozzle temperature

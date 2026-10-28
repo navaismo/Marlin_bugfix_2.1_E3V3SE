@@ -31,7 +31,7 @@ on:
         type: boolean
         default: true
       dwin_input_shaping_menu:
-        description: "DWIN_INPUT_SHAPING_MENU (requires FT_MOTION)"
+        description: "DWIN_INPUT_SHAPING_MENU (legacy motion only; disabled with FT_MOTION)"
         type: boolean
         default: false
       dwin_render_thumbnail:
@@ -55,7 +55,7 @@ on:
         type: boolean
         default: true
       ft_motion:
-        description: "FT_MOTION (fixed-time motion and shapers)"
+        description: "FT_MOTION (configure with M493; disables legacy shaping menu)"
         type: boolean
         default: true
       meatpack:
@@ -113,7 +113,7 @@ jobs:
             D_ROUTINE_AUTO_OFFSET=${{ inputs.d_routine_auto_offset }} \
             DWIN_CUSTOM_EXTRUDE=${{ inputs.dwin_custom_extrude }} \
             DWIN_DIMM_MENU=${{ inputs.dwin_dimm_menu }} \
-            DWIN_INPUT_SHAPING_MENU=${{ inputs.dwin_input_shaping_menu }} \
+            DWIN_INPUT_SHAPING_MENU=${{ inputs.dwin_input_shaping_menu && !inputs.ft_motion }} \
             DWIN_PLR_MENU=${{ inputs.power_loss_recovery }} \
             DWIN_RENDER_THUMBNAIL=${{ inputs.dwin_render_thumbnail }} \
             DWIN_SKEW_MENU=${{ inputs.dwin_skew_menu }} \
