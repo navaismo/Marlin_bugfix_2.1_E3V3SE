@@ -202,8 +202,8 @@ def plugin_checks(path):
     plugin = SimpleNamespace(_printer=printer, _plugin_logger=Mock(), bedscale_warn=False)
     namespace['gcode_received_handler'](plugin, None, 'M9000 pause-job-bs')
     printer.pause_print.assert_called_once()
-    print('Plugin: pause accepted; specific warning ' +
-          ('enabled' if plugin.bedscale_warn else 'unreachable (existing generic-token ordering bug)'))
+    assert plugin.bedscale_warn, 'Bed Scale pause must enable its specific warning before pausing'
+    print('Plugin: pause accepted and Bed Scale warning enabled')
 
 
 def build_option_checks():

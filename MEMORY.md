@@ -142,3 +142,12 @@ The Makefile/test runner supports `GIT_RESET_HARD`, which can run `git reset --h
   acquisition filtering. ARM C13 build: RAM 29,992 B, flash 235,448 B, versus
   current host 28,708 / 232,300 B. The experiment retains a ProbeAcq object with
   its existing buffers; no calibration, thermal compensation or detection redesign.
+
+### Bed Scale plugin pause correction (2026-11-01)
+
+- Follow-up in the companion plugin's `main_bed_scale` branch handles
+  `pause-job-bs` before `pause-job`. The specific warning is set before the
+  pause call. Five native Python tests exercise the production receive and
+  state-change handlers, including the Bed Scale popup, regular pause, idle
+  behavior and disabled purge popups. The firmware's optional plugin check now
+  asserts the warning instead of only reporting the previously known defect.

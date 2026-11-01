@@ -52,20 +52,22 @@ thumbnail rendering disabled.
 
 The local plugin at `OctoPrint-LCD_E3V3SE`, branch `main_bed_scale`, recognizes
 the retained `BedScale` log prefix, `M9000 pause-job-bs`, and the existing
-`M9000` / `M9001` LCD protocol. The plugin repository is not modified here.
+`M9000` / `M9001` LCD protocol.
 
-There is an existing plugin ordering bug in `gcode_received_handler`: its
-`"pause-job" in line` case returns before `"pause-job-bs" in line` can run.
-Thus the request pauses an active print, but does not set `bedscale_warn` or show
-the specific weight-change message. Handle the more specific token first when
-resuming plugin development.
+The companion plugin fix handles `pause-job-bs` before the generic `pause-job`
+token. It sets `bedscale_warn` before requesting the pause, so the `PAUSED`
+event selects the weight-change message when purge popups are enabled and the
+pause gate is inactive. Regular pauses retain their usual popup, and idle
+printers do not receive a pause request. The fix and five regression tests live
+in the plugin repository on `main_bed_scale`; no firmware protocol change is needed.
 
 ## Verification
 
 Run `python3 test/test_bed_scale.py` for command, calibration, layer reporting,
 host / SD pause routing, the production HX711 timeout/filter path, and invalid-acquisition checks. The optional argument
 `--plugin /path/to/octoprint_LCD_E3V3SE/__init__.py` exercises the real Python
-receive handler without starting OctoPrint and reports the known warning issue.
+receive handler without starting OctoPrint and requires the Bed Scale warning
+to be enabled by the pause request.
 
 Build C13 with `pio run -e STM32F103RET6_creality`. The migration needs physical
 validation with the HX711, LCD and plugin before treating weight/drop detection
