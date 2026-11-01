@@ -104,6 +104,10 @@ relative_t GcodeSuite::axis_relative; // Init in constructor
   xyz_pos_t GcodeSuite::coordinate_system[MAX_COORDINATE_SYSTEMS];
 #endif
 
+#if ENABLED(GCODE_MACROS)
+  char GcodeSuite::macros[GCODE_MACROS_SLOTS][GCODE_MACROS_SLOT_SIZE + 1] = {{ 0 }};
+#endif
+
 void GcodeSuite::report_echo_start(const bool forReplay) { if (!forReplay) SERIAL_ECHO_START(); }
 void GcodeSuite::report_heading(const bool forReplay, FSTR_P const fstr, const bool eol/*=true*/) {
   if (forReplay) return;
@@ -122,7 +126,7 @@ void GcodeSuite::say_units() {
 }
 
 /**
- * Get the target extruder from the T parameter or the active_extruder
+ * Get the target extruder from the T parameter or the motion.extruder
  * Return -1 if the T parameter is out of range
  */
 int8_t GcodeSuite::get_target_extruder_from_command() {
@@ -133,7 +137,7 @@ int8_t GcodeSuite::get_target_extruder_from_command() {
     SERIAL_ECHOLN(C('M'), parser.codenum, F(" " STR_INVALID_EXTRUDER " "), e);
     return -1;
   }
-  return active_extruder;
+  return motion.extruder;
 }
 
 /**
@@ -175,24 +179,25 @@ void GcodeSuite::get_destination_from_command() {
   // Get new XYZ position, whether absolute or relative
   LOOP_NUM_AXES(i) {
     if ( (seen[i] = parser.seenval(AXIS_CHAR(i))) ) {
-      const float v = parser.value_axis_units((AxisEnum)i);
       if (skip_move)
-        destination[i] = current_position[i];
-      else
-        destination[i] = axis_is_relative((AxisEnum)i) ? current_position[i] + v : LOGICAL_TO_NATIVE(v, i);
+        motion.destination[i] = motion.position[i];
+      else {
+        const float v = parser.value_axis_units((AxisEnum)i);
+        motion.destination[i] = axis_is_relative((AxisEnum)i) ? motion.position[i] + v : motion.logical_to_native(v, (AxisEnum)i);
+      }
     }
     else
-      destination[i] = current_position[i];
+      motion.destination[i] = motion.position[i];
   }
 
   #if HAS_EXTRUDERS
     // Get new E position, whether absolute or relative
     if ( (seen.e = parser.seenval('E')) ) {
       const float v = parser.value_axis_units(E_AXIS);
-      destination.e = axis_is_relative(E_AXIS) ? current_position.e + v : v;
+      motion.destination.e = axis_is_relative(E_AXIS) ? motion.position.e + v : v;
     }
     else
-      destination.e = current_position.e;
+      motion.destination.e = motion.position.e;
   #endif
 
   #if ENABLED(POWER_LOSS_RECOVERY) && !PIN_EXISTS(POWER_LOSS)
@@ -203,14 +208,14 @@ void GcodeSuite::get_destination_from_command() {
 
   if (parser.floatval('F') > 0) {
     const float fr_mm_min = parser.value_linear_units();
-    feedrate_mm_s = MMM_TO_MMS(fr_mm_min);
+    motion.feedrate_mm_s = MMM_TO_MMS(fr_mm_min);
     // Update the cutter feed rate for use by M4 I set inline moves.
     TERN_(LASER_FEATURE, cutter.feedrate_mm_m = fr_mm_min);
   }
 
   #if ALL(PRINTCOUNTER, HAS_EXTRUDERS)
     if (!DEBUGGING(DRYRUN) && !skip_move)
-      print_job_timer.incFilamentUsed(destination.e - current_position.e);
+      print_job_timer.incFilamentUsed(motion.destination.e - motion.position.e);
   #endif
 
   // Get ABCDHI mixing factors
@@ -248,7 +253,7 @@ void GcodeSuite::get_destination_from_command() {
  */
 void GcodeSuite::dwell(const millis_t time) {
   const millis_t start_ms = millis();
-  while (PENDING(millis(), start_ms, time)) idle();
+  while (PENDING(millis(), start_ms, time)) marlin.idle();
 }
 
 /**
@@ -282,7 +287,7 @@ void GcodeSuite::dwell(const millis_t time) {
       #ifdef ACTION_ON_CANCEL
         hostui.cancel();
       #endif
-      kill(GET_TEXT_F(MSG_LCD_PROBING_FAILED));
+      marlin.kill(GET_TEXT_F(MSG_LCD_PROBING_FAILED));
     #endif
   }
 
@@ -597,19 +602,11 @@ void GcodeSuite::process_parsed_command(bool no_ok/*=false*/) {
       case 110: M110(); break;                                    // M110: Set Current Line Number
       case 111: M111(); break;                                    // M111: Set debug level
 
-      #if DISABLED(EMERGENCY_PARSER)
-        case 108: M108(); break;                                  // M108: Cancel Waiting
-        case 112: M112(); break;                                  // M112: Full Shutdown
-        case 410: M410(); break;                                  // M410: Quickstop - Abort all the planned moves.
-        #if ENABLED(HOST_PROMPT_SUPPORT)
-          case 876: M876(); break;                                // M876: Handle Host prompt responses
-        #endif
-      #else
-        case 108: case 112: case 410:
-        // TERN_(HOST_PROMPT_SUPPORT, case 876:)
-        case 876:
-          M876();
-        break;
+      case 108: M108(); break;                                    // M108: Cancel Waiting
+      case 112: M112(); break;                                    // M112: Full Shutdown
+      case 410: M410(); break;                                    // M410: Quickstop - Abort all the planned moves.
+      #if ENABLED(HOST_PROMPT_SUPPORT)
+        case 876: M876(); break;                                  // M876: Handle Host prompt responses
       #endif
 
       #if ENABLED(HOST_KEEPALIVE_FEATURE)
@@ -723,7 +720,7 @@ void GcodeSuite::process_parsed_command(bool no_ok/*=false*/) {
         #endif
       #endif
 
-      #if DISABLED(NO_VOLUMETRICS)
+      #if HAS_VOLUMETRIC_EXTRUSION
         case 200: M200(); break;                                  // M200: Set filament diameter, E to cubic units
       #endif
 
@@ -856,7 +853,7 @@ void GcodeSuite::process_parsed_command(bool no_ok/*=false*/) {
         case 360: M360(); break;                                  // M360: Firmware settings
       #endif
 
-      #if ENABLED(MORGAN_SCARA)
+      #if ENABLED(SCARA_CALIBRATION)
         case 360: if (M360()) return; break;                      // M360: SCARA Theta pos1
         case 361: if (M361()) return; break;                      // M361: SCARA Theta pos2
         case 362: if (M362()) return; break;                      // M362: SCARA Psi pos1
@@ -912,7 +909,7 @@ void GcodeSuite::process_parsed_command(bool no_ok/*=false*/) {
       #endif
 
       #if HAS_HOME_OFFSET
-        case 428: M428(); break;                                  // M428: Apply current_position to home_offset
+        case 428: M428(); break;                                  // M428: Apply position to home_offset
       #endif
 
       #if HAS_POWER_MONITOR
@@ -928,9 +925,13 @@ void GcodeSuite::process_parsed_command(bool no_ok/*=false*/) {
       #endif
 
       #if ENABLED(FT_MOTION)
-        case 493: M493(); break;                                  // M493: Fixed-Time Motion control
-        #if ENABLED(FTM_SMOOTHING)
+          case 493: M493(); break;                                // M493: Fixed-Time Motion control
+        #if ANY(FTM_SMOOTHING, FTM_POLYS)
           case 494: M494(); break;                                // M494: Fixed-Time Motion extras
+        #endif
+        #if ENABLED(RESONANCE_TEST)
+          case 495: M495(); break;                                // M495: Resonance test for Input Shaping
+          case 496: M496(); break;                                // M496: Abort resonance test
         #endif
       #endif
 
@@ -1019,12 +1020,6 @@ void GcodeSuite::process_parsed_command(bool no_ok/*=false*/) {
         case 707: M707(); break;                                  // M707: Read from MMU register
         case 708: M708(); break;                                  // M708: Write to MMU register
         case 709: M709(); break;                                  // M709: MMU power & reset
-      #endif
-
-      #if ENABLED(BED_SCALE)
-        case 770: M770(); break;                                  // M770: Bed scale read
-        case 771: M771(); break;                                  // M771: Bed scale tare
-        case 772: M772(); break;                                  // M772: Bed scale calibrate
       #endif
 
       #if ENABLED(CONTROLLER_FAN_EDITABLE)
@@ -1174,12 +1169,18 @@ void GcodeSuite::process_parsed_command(bool no_ok/*=false*/) {
       #endif
 
       // #if ENABLED(USE_AUTOZ_TOOL_2)
-        case 8015: M8015(); break;                                // M8015: One key to obtain the Z offset value
+        case 8015: M8015(); break; // M8015: One key to obtain the Z offset value
       // #endif
 
+      #if ENABLED(BED_SCALE)
+        case 770: M770(); break; // Bed scale read
+        case 771: M771(); break; // Bed scale tare
+        case 772: M772(); break; // Bed scale calibration point
+      #endif
+
       #if ENABLED(OCTOPRINT_PLUGIN)
-        case 9000: M9000(); break;                                // M9000: OctoPrint Plugin Command to render LCD Data
-        case 9001: M9001(); break;                                // M9001: OctoPrint Plugin Command to render thumbnail
+        case 9000: M9000(); break;                                // M9000: OctoPrint plugin connection and print details
+        case 9001: M9001(); break;                                // M9001: OctoPrint plugin thumbnail transfer
       #endif
 
       default: parser.unknown_command_warning(); break;
@@ -1200,7 +1201,7 @@ void GcodeSuite::process_parsed_command(bool no_ok/*=false*/) {
       #if ENABLED(WIFI_CUSTOM_COMMAND)
         if (wifi_custom_command(parser.command_ptr)) break;
       #endif
-      parser.unknown_command_warning();
+      parser.unknown_command_warning();                           // Other unknown, including > 65535
   }
 
   if (!no_ok) queue.ok_to_send();
@@ -1257,7 +1258,7 @@ void GcodeSuite::process_subcommands_now(FSTR_P fgcode) {
     if (!delim) break;                                // Last command?
     pgcode = delim + 1;                               // Get the next command
   }
-  parser.parse(saved_cmd);                            // Restore the parser state
+  if (saved_cmd) parser.parse(saved_cmd);             // Restore the parser state (if any)
 }
 
 #pragma GCC diagnostic pop
@@ -1273,7 +1274,7 @@ void GcodeSuite::process_subcommands_now(char * gcode) {
     *delim = '\n';                                    // Put back the newline
     gcode = delim + 1;                                // Get the next command
   }
-  parser.parse(saved_cmd);                            // Restore the parser state
+  if (saved_cmd) parser.parse(saved_cmd);             // Restore the parser state (if any)
 }
 
 #if ENABLED(HOST_KEEPALIVE_FEATURE)
@@ -1292,15 +1293,15 @@ void GcodeSuite::process_subcommands_now(char * gcode) {
         case IN_HANDLER:
         case IN_PROCESS:
           SERIAL_ECHO_MSG(STR_BUSY_PROCESSING);
-          TERN_(FULL_REPORT_TO_HOST_FEATURE, report_current_position_moving());
+          TERN_(FULL_REPORT_TO_HOST_FEATURE, motion.report_position_moving());
           break;
         case PAUSED_FOR_USER:
           SERIAL_ECHO_MSG(STR_BUSY_PAUSED_FOR_USER);
-          TERN_(FULL_REPORT_TO_HOST_FEATURE, set_and_report_grblstate(M_HOLD));
+          TERN_(FULL_REPORT_TO_HOST_FEATURE, motion.set_and_report_grblstate(M_HOLD));
           break;
         case PAUSED_FOR_INPUT:
           SERIAL_ECHO_MSG(STR_BUSY_PAUSED_FOR_INPUT);
-          TERN_(FULL_REPORT_TO_HOST_FEATURE, set_and_report_grblstate(M_HOLD));
+          TERN_(FULL_REPORT_TO_HOST_FEATURE, motion.set_and_report_grblstate(M_HOLD));
           break;
         default:
           break;

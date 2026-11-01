@@ -22,10 +22,10 @@
 #include "../../inc/MarlinConfig.h"
 
 #if ENABLED(DWIN_CREALITY_LCD)
-  #include "../../lcd/e3v2/creality/dwin.h"
 
 #include "../gcode.h"
 #include "../../lcd/marlinui.h"
+#include "../../lcd/dwin/creality/dwin.h"
 
 
 

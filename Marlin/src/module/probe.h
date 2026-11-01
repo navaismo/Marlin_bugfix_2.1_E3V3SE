@@ -63,15 +63,6 @@
 // In BLTOUCH HS mode, the probe travels in a deployed state.
 #define Z_TWEEN_SAFE_CLEARANCE SUM_TERN(BLTOUCH, Z_CLEARANCE_BETWEEN_PROBES, bltouch.z_extra_clearance())
 
-#if ENABLED(PREHEAT_BEFORE_LEVELING)
-  #ifndef LEVELING_NOZZLE_TEMP
-    #define LEVELING_NOZZLE_TEMP 0
-  #endif
-  #ifndef LEVELING_BED_TEMP
-    #define LEVELING_BED_TEMP 0
-  #endif
-#endif
-
 #if ENABLED(SENSORLESS_PROBING)
   extern abc_float_t offset_sensorless_adj;
 #endif
@@ -87,10 +78,6 @@ public:
   #if HAS_BED_PROBE
 
     static xyz_pos_t offset;
-
-    #if ANY(PREHEAT_BEFORE_PROBING, PREHEAT_BEFORE_LEVELING)
-      static void preheat_for_probing(const celsius_t hotend_temp, const celsius_t bed_temp, const bool early=false);
-    #endif
 
     static void probe_error_stop();
 
@@ -155,14 +142,14 @@ public:
        */
       static bool can_reach(const float rx, const float ry, const bool probe_relative=true) {
         if (probe_relative) {
-          return position_is_reachable(rx - offset_xy.x, ry - offset_xy.y)
+          return motion.can_reach(rx - offset_xy.x, ry - offset_xy.y)
               && COORDINATE_OKAY(rx, min_x() - fslop, max_x() + fslop)
               && COORDINATE_OKAY(ry, min_y() - fslop, max_y() + fslop)
               && obstacle_check(rx, ry)
               && obstacle_check(rx - offset_xy.x, ry - offset_xy.y);
         }
         else {
-          return position_is_reachable(rx, ry)
+          return motion.can_reach(rx, ry)
               && COORDINATE_OKAY(rx + offset_xy.x, min_x() - fslop, max_x() + fslop)
               && COORDINATE_OKAY(ry + offset_xy.y, min_y() - fslop, max_y() + fslop)
               && obstacle_check(rx, ry)
@@ -209,16 +196,16 @@ public:
 
   static void use_probing_tool(const bool=true) IF_DISABLED(DO_TOOLCHANGE_FOR_PROBING, {});
 
-  static void move_z_after_probing() {
-    DEBUG_SECTION(mzah, "move_z_after_probing", DEBUGGING(LEVELING));
-    #ifdef Z_AFTER_PROBING
-      #if ENABLED(DWIN_ZHOME_MENU)     
-        do_z_clearance(CZ_AFTER_HOMING, true, true); // Move down still permitted
-      #else
-        do_z_clearance(Z_AFTER_PROBING, true, true); // Move down still
+    static void move_z_after_probing() {
+      DEBUG_SECTION(mzah, "move_z_after_probing", DEBUGGING(LEVELING));
+      #ifdef Z_AFTER_PROBING
+        #if ENABLED(DWIN_ZHOME_MENU)     
+          motion.do_z_clearance(CZ_AFTER_HOMING, true, true); // Move down still permitted
+        #else
+          motion.do_z_clearance(Z_AFTER_PROBING, true, true); // Move down still
+        #endif
       #endif
-    #endif
-  }
+    }
 
   static bool can_reach(const xy_pos_t &pos, const bool probe_relative=true) { return can_reach(pos.x, pos.y, probe_relative); }
 
@@ -331,10 +318,10 @@ public:
             points[0] = xy_float_t({ (X_CENTER) + probe_radius() * COS0,   (Y_CENTER) + probe_radius() * SIN0 });
             points[1] = xy_float_t({ (X_CENTER) + probe_radius() * COS120, (Y_CENTER) + probe_radius() * SIN120 });
             points[2] = xy_float_t({ (X_CENTER) + probe_radius() * COS240, (Y_CENTER) + probe_radius() * SIN240 });
-          #elif ENABLED(AUTO_BED_LEVELING_UBL)
-            points[0] = xy_float_t({ _MAX(float(MESH_MIN_X), min_x()), _MAX(float(MESH_MIN_Y), min_y()) });
-            points[1] = xy_float_t({ _MIN(float(MESH_MAX_X), max_x()), _MAX(float(MESH_MIN_Y), min_y()) });
-            points[2] = xy_float_t({ (_MAX(float(MESH_MIN_X), min_x()) + _MIN(float(MESH_MAX_X), max_x())) / 2, _MIN(float(MESH_MAX_Y), max_y()) });
+          #elif ENABLED(AUTO_BED_LEVELING_UBL) && !HAS_PROUI_MESH_EDIT
+            points[0] = xy_float_t({ _MAX(mesh_min.x, min_x()), _MAX(mesh_min.y, min_y()) });
+            points[1] = xy_float_t({ _MIN(mesh_max.x, max_x()), _MAX(mesh_min.y, min_y()) });
+            points[2] = xy_float_t({ (_MAX(mesh_min.x, min_x()) + _MIN(mesh_max.x, max_x())) / 2, _MIN(mesh_max.y, max_y()) });
           #else
             points[0] = xy_float_t({ min_x(), min_y() });
             points[1] = xy_float_t({ max_x(), min_y() });

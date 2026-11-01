@@ -1,0 +1,372 @@
+--- Configuration.h
++++ Configuration.h
+@@ -70,6 +70,7 @@
+ #ifndef MOTHERBOARD
+   #define MOTHERBOARD BOARD_CREALITY_V3_GD303
+ #endif
++#define CUSTOM_MACHINE_NAME "Ender-3 V3 SE"
+ 
+ // @section serial
+ 
+@@ -119,21 +120,62 @@
+  * :[-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+  */
+ //#define RS485_SERIAL_PORT 1
+-#ifdef RS485_SERIAL_PORT
+   //#define M485_PROTOCOL 1   // Check your host for protocol compatibility
+   //#define RS485_BUS_BUFFER_SIZE 128
+-#endif
+ 
+ // Enable the Bluetooth serial interface on AT90USB devices
+ //#define BLUETOOTH
+ 
+ // Name displayed in the LCD "Ready" message and Info menu
+-#define CUSTOM_MACHINE_NAME "Ender-3 V3 SE"
++//#define CUSTOM_MACHINE_NAME "3D Printer"
+ //#define CONFIGURABLE_MACHINE_NAME // Add G-code M550 to set/report the machine name
+ 
+ // Printer's unique ID, used by some programs to differentiate between machines.
+ // Choose your own or use a service like https://www.uuidgenerator.net/version4
+ //#define MACHINE_UUID "00000000-0000-0000-0000-000000000000"
++#define DWIN_RENDER_THUMBNAIL  // Enable the Rendering of the Thumbnail Image from Gcode Script for E3V3SE
++
++
++// |                |
++// |  *          *  |   
++// |                |
++// |       *        |
++// |                |
++// |  *          *  |
++// #define X_ROUTINE_AUTO_OFFSET  // Enable this to calculate the Z offset automatically using the 5 points of the bed, (X) pattern
++
++// |                |
++// |  *             |   
++// |                |
++// |       *        |
++// |                |
++// |  *          *  |
++#define D_ROUTINE_AUTO_OFFSET  // Enable this to calculate the Z offset automatically using the 4 points of the bed, (Delta) pattern
++
++
++#define USE_SWITCH_POWER_200W  0 //Default 1: Using a 200W power supply, the nozzle and heating bed cannot be heated at the same time. 0: The >200w power supply used has sufficient power and can be heated at the same time.
++// #define CREALITY_LEVEL_COMPENSATION_ALGORITHM   1 //1 Use algorithm 0 Algorithm not applicable
++// #if ENABLED(CREALITY_LEVEL_COMPENSATION_ALGORITHM)
++//   // #define COMPEN_FACTOR_15   0.15
++//   // #define COMPEN_FACTOR_10   0.10
++//   // #define COMPEN_FACTOR_8    0.08
++//   // #define COMPEN_FACTOR_5    0.05
++//   // #define COMPEN_FACTOR_3    0.03
++//   // #define COMPEN_FACTOR_2    0.02
++//   // #define COMPEN_FACTOR_1    0.01
++//   // #define ALGORITHM_INFO_PRINT  0   //Print leveling algorithm information
++//   // #define LEVEL_ALGORITHM_MIN  -0.7 //Use auto-leveling algorithm lower bound
++//   // #define LEVEL_ALGORITHM_MAX   0.7 //Use the upper boundary of the automatic leveling algorithm
++// #endif
++// #define USE_BEEPER 1
++#define PLATFORM_OFFSET         1 //1: The structural part backplate is 2.5mm, and the firmware needs to be offset. 0: The structural part backplate is not offset.
++#define HIGH_SPEED              1 //High speed mode 1: Turn on high speed mode 150mm/s; 0: Low speed mode 80mm/s
++#define HIGH_SPEED_1            1 //Only switch high-speed macros
++#define SHOW_GRID_VALUES        1 //1 displays the automatic leveling grid value 0 does not display the automatic leveling grid value
++#define COMPACT_GRID_VALUES     1 // 0 - original Creality style, 1 - compact style for tight grids
++// #define K8_EXTRUDER             0 //1 is K8 extruder 0 is Elf extruder
++#define USER_LEVEL_CHECK        1 //Leveling calibration enable
++#define WUHAN_CHENGE_PLATFORM   1 //Wuhan changed platform board 20230913_Rock
+ 
+ // @section stepper drivers
+ 
+@@ -192,30 +234,18 @@
+  *
+  * Regardless of these settings the axes are internally named I, J, K, U, V, W.
+  */
+-#ifdef I_DRIVER_TYPE
+   //#define AXIS4_NAME 'A' // :['A', 'B', 'C', 'U', 'V', 'W']
+   //#define AXIS4_ROTATES
+-#endif
+-#ifdef J_DRIVER_TYPE
+   //#define AXIS5_NAME 'B' // :['B', 'C', 'U', 'V', 'W']
+   //#define AXIS5_ROTATES
+-#endif
+-#ifdef K_DRIVER_TYPE
+   //#define AXIS6_NAME 'C' // :['C', 'U', 'V', 'W']
+   //#define AXIS6_ROTATES
+-#endif
+-#ifdef U_DRIVER_TYPE
+   //#define AXIS7_NAME 'U' // :['U', 'V', 'W']
+   //#define AXIS7_ROTATES
+-#endif
+-#ifdef V_DRIVER_TYPE
+   //#define AXIS8_NAME 'V' // :['V', 'W']
+   //#define AXIS8_ROTATES
+-#endif
+-#ifdef W_DRIVER_TYPE
+   //#define AXIS9_NAME 'W' // :['W']
+   //#define AXIS9_ROTATES
+-#endif
+ 
+ // @section extruder
+ 
+@@ -236,6 +266,17 @@
+   //#define SINGLENOZZLE_STANDBY_FAN
+ #endif
+ 
++
++#define ENABLE_AUTO_OFF_DISPLAY             // Enable automatic turn-off display function & brightness adjustment function
++#if ENABLED(ENABLE_AUTO_OFF_DISPLAY)
++
++  // #define DWIN_DIMM_MENU                    // Enable LCD Menu to Configure Brightness & DIMM parameters
++
++  extern int16_t TURN_OFF_TIME;             // turn-off time: 5min
++  extern int16_t DIMM_SCREEN_BRIGHTNESS;    // brightness 0x00-0xff:0
++  extern int16_t MAX_SCREEN_BRIGHTNESS;     // brightness 0x00-0xff:0
++#endif
++
+ // A dual extruder that uses a single stepper motor
+ //#define SWITCHING_EXTRUDER
+ #if ENABLED(SWITCHING_EXTRUDER)
+@@ -303,7 +344,6 @@
+ 
+   #endif
+ 
+-#endif
+ 
+ /**
+  * Differential Extruder
+@@ -313,7 +353,6 @@
+  * Balanced: E steps = X + E/2 ; X steps = X - E/2  (Dual loop system)
+  */
+ //#define DIFFERENTIAL_EXTRUDER
+-#if ENABLED(DIFFERENTIAL_EXTRUDER)
+   //#define BALANCED_DIFFERENTIAL_EXTRUDER
+ #endif
+ 
+@@ -667,6 +706,8 @@
+ #define HEATER_7_MINTEMP   5
+ #define BED_MINTEMP        0
+ #define CHAMBER_MINTEMP    5
++#define FLOW_MINVAL 10     // Minimum flow rate for extruder
++#define FLOW_MAXVAL 200   // Maximum flow rate for extruder
+ 
+ // Above this temperature the heater will be switched off.
+ // This can protect components from overheating, but NOT from shorts and failures.
+@@ -911,6 +952,9 @@
+   //#define DEFAULT_CHAMBER_KP  37.04
+   //#define DEFAULT_CHAMBER_KI   1.40
+   //#define DEFAULT_CHAMBER_KD 655.17
++  #define DEFAULT_chamberKp  37.04
++  #define DEFAULT_chamberKi   1.40
++  #define DEFAULT_chamberKd 655.17
+   // M309 P37.04 I1.04 D655.17
+ 
+   // FIND YOUR OWN: "M303 E-2 C8 S50" to run autotune on the chamber at 50 degreesC for 8 cycles.
+@@ -946,6 +990,7 @@
+  */
+ #define PREVENT_LENGTHY_EXTRUDE
+ #define EXTRUDE_MAXLENGTH 1000
++#define EXTRUDE_MAXLENGTH_e 999.9
+ 
+ //===========================================================================
+ //======================== Thermal Runaway Protection =======================
+@@ -966,6 +1011,7 @@
+ 
+ #define THERMAL_PROTECTION_HOTENDS // Enable thermal protection for all extruders
+ #define THERMAL_PROTECTION_BED     // Enable thermal protection for the heated bed
++//#define E3V3SE_IGNORE_BED_MINTEMP // E3V3SE: Do not halt on a bed MINTEMP reading (flaky/missing bed sensor). Thermal runaway and heating-failed protection stay active.
+ #define THERMAL_PROTECTION_CHAMBER // Enable thermal protection for the heated chamber
+ #define THERMAL_PROTECTION_COOLER  // Enable thermal protection for the laser cooling
+ 
+@@ -983,6 +1029,17 @@
+ //#define COREYX
+ //#define COREZX
+ //#define COREZY
++// #define USE_XMIN_PLUG
++// #define USE_YMIN_PLUG
++// #define USE_ZMIN_PLUG
++
++#define X_MIN_ENDSTOP_HIT_STATE LOW
++#define Y_MIN_ENDSTOP_HIT_STATE LOW
++#define Z_MIN_ENDSTOP_HIT_STATE HIGH
++#define X_MAX_ENDSTOP_HIT_STATE HIGH
++#define Y_MAX_ENDSTOP_HIT_STATE HIGH
++#define Z_MAX_ENDSTOP_HIT_STATE HIGH
++#define Z_MIN_PROBE_ENDSTOP_HIT_STATE HIGH
+ 
+ //
+ // MarkForged Kinematics
+@@ -1286,12 +1343,12 @@
+  * Endstop "Hit" State
+  * Set to the state (HIGH or LOW) that applies to each endstop.
+  */
+-#define X_MIN_ENDSTOP_HIT_STATE LOW
+-#define X_MAX_ENDSTOP_HIT_STATE HIGH
+-#define Y_MIN_ENDSTOP_HIT_STATE LOW
+-#define Y_MAX_ENDSTOP_HIT_STATE HIGH
+-#define Z_MIN_ENDSTOP_HIT_STATE HIGH
+-#define Z_MAX_ENDSTOP_HIT_STATE HIGH
++// #define X_MIN_ENDSTOP_HIT_STATE HIGH
++// #define X_MAX_ENDSTOP_HIT_STATE HIGH
++// #define Y_MIN_ENDSTOP_HIT_STATE HIGH
++// #define Y_MAX_ENDSTOP_HIT_STATE HIGH
++// #define Z_MIN_ENDSTOP_HIT_STATE HIGH
++// #define Z_MAX_ENDSTOP_HIT_STATE HIGH
+ //#define I_MIN_ENDSTOP_HIT_STATE HIGH
+ //#define I_MAX_ENDSTOP_HIT_STATE HIGH
+ //#define J_MIN_ENDSTOP_HIT_STATE HIGH
+@@ -1304,7 +1361,7 @@
+ //#define V_MAX_ENDSTOP_HIT_STATE HIGH
+ //#define W_MIN_ENDSTOP_HIT_STATE HIGH
+ //#define W_MAX_ENDSTOP_HIT_STATE HIGH
+-#define Z_MIN_PROBE_ENDSTOP_HIT_STATE HIGH
++// #define Z_MIN_PROBE_ENDSTOP_HIT_STATE HIGH
+ 
+ // Enable this feature if all enabled endstop pins are interrupt-capable.
+ // This will remove the need to poll the interrupt pins, saving many CPU cycles.
+@@ -1424,6 +1481,11 @@
+     #define MAX_JERK_EDIT_VALUES { 20, 20, 0.6, 10 } // ...or, set your own edit limits
+   #endif
+ #endif
++#if ENABLED(HIGH_SPEED_1)
++#define DEFAULT_EJERK 10.0  // May be used by Linear Advance
++#else
++#define DEFAULT_EJERK 12  // May be used by Linear Advance
++#endif
+ 
+ /**
+  * Junction Deviation Factor
+@@ -1524,12 +1586,10 @@
+  * Z Servo Probe, such as an endstop switch on a rotating arm.
+  */
+ //#define Z_PROBE_SERVO_NR 0
+-#ifdef Z_PROBE_SERVO_NR
+   //#define Z_SERVO_ANGLES { 70, 0 }      // Z Servo Deploy and Stow angles
+   //#define Z_SERVO_MEASURE_ANGLE 45      // Use if the servo must move to a "free" position for measuring after deploy
+   //#define Z_SERVO_INTERMEDIATE_STOW     // Stow the probe between points
+   //#define Z_SERVO_DEACTIVATE_AFTER_STOW // Deactivate the servo when probe is stowed
+-#endif
+ 
+ /**
+  * The BLTouch probe uses a Hall effect sensor and emulates a servo.
+@@ -1724,12 +1784,13 @@
+  *     O-- FRONT --+
+  */
+ //#define NOZZLE_TO_PROBE_OFFSET { 10, 10, 0 } // (mm) X, Y, Z distance from Nozzle tip to Probe trigger-point
++#if ENABLED(PLATFORM_OFFSET)
++ #define NOZZLE_TO_PROBE_OFFSET { -24.25, -15, 0 }
++#endif 
+ 
+ // Enable and set to use a specific tool for probing. Disable to allow any tool.
+ //#define PROBING_TOOL 0
+-#ifdef PROBING_TOOL
+   //#define PROBE_TOOLCHANGE_NO_MOVE  // Suppress motion on probe tool-change
+-#endif
+ 
+ //#define PROBE_WAKEUP_TIME_MS  30    // (ms) Time for the probe to wake up
+ 
+@@ -1885,6 +1946,7 @@
+ //#define DISABLE_U
+ //#define DISABLE_V
+ //#define DISABLE_W
++//#define DISABLE_REDUCED_ACCURACY_WARNING
+ 
+ // @section extruder
+ 
+@@ -1930,6 +1992,10 @@
+                                       // You'll need this much clearance above Z_MAX_POS to avoid grinding.
+ 
+ #define Z_AFTER_HOMING         10   // (mm) Height to move to after homing (if Z was homed)
++//#define DWIN_ZHOME_MENU             // Enable LCD Menu to Configure Z Height after Homing 
++#if ENABLED(DWIN_ZHOME_MENU)
++  extern uint8_t CZ_AFTER_HOMING; 
++#endif
+ //#define XY_AFTER_HOMING { 10, 10 }  // (mm) Move to an XY position after homing (and raising Z)
+ 
+ //#define EVENT_GCODE_AFTER_HOMING "M300 P440 S200"  // Commands to run after G28 (and move to XY_AFTER_HOMING)
+@@ -1966,14 +2032,38 @@
+ // The size of the printable area
+ #define X_BED_SIZE 220
+ #define Y_BED_SIZE 220
++#define XY_BED_MIN_ZERO 0
++// Travel limits (mm) after homing, corresponding to endstop positions.
++#if ENABLED(PLATFORM_OFFSET)  //Requires platform offset
+ 
+ // Travel limits (linear=mm, rotational=°) after homing, corresponding to endstop positions.
+ //#define X_MIN_POS 0
+ //#define Y_MIN_POS 0
++  #if ENABLED(WUHAN_CHENGE_PLATFORM)  //Wuhan modified structure
++    #define X_MIN_POS    -13    //Platform moves left
++    #define  Y_MIN_POS   -15
++  #else
++    #define X_MIN_POS -11    //Platform moves left
++    #define  Y_MIN_POS   -18 //Platform moves forward rock_20220927
++  #endif
++#else   //
++#define X_MIN_POS -4
++#define Y_MIN_POS -17
++#endif
+ #define Z_MIN_POS 0
++#if ENABLED(WUHAN_CHENGE_PLATFORM)  //Wuhan modified structure
+ #define X_MAX_POS X_BED_SIZE
++#else
++  #define X_MAX_POS X_BED_SIZE + 5
++#endif
+ #define Y_MAX_POS Y_BED_SIZE + 7
+ #define Z_MAX_POS 250
++// #define X_MIN_POS 0
++// #define Y_MIN_POS 0
++// #define Z_MIN_POS 0
++// #define X_MAX_POS X_BED_SIZE
++// #define Y_MAX_POS Y_BED_SIZE
++// #define Z_MAX_POS 200
+ //#define I_MIN_POS 0
+ //#define I_MAX_POS 50
+ //#define J_MIN_POS 0
+@@ -2486,6 +2576,14 @@
+   #define XY_DIAG_AC 282.84
+   #define XY_DIAG_BD 282.84
+   #define XY_SIDE_AD 200.69
++  // #define DWIN_SKEW_MENU     // Enable LCD Menu to Configure Skew Factor Parameters
++  
++  #if ENABLED(DWIN_SKEW_MENU)
++    extern float xyskew_d_ac;
++    extern float xyskew_d_bd;
++    extern float xyskew_s_ad;
++    extern float skew_factor;
++  #endif
+ 
+   // Or, set the XY skew factor directly:
+   //#define XY_SKEW_FACTOR 0.0
+@@ -2571,6 +2669,23 @@
+ #define PREHEAT_2_TEMP_BED    70
+ #define PREHEAT_2_TEMP_CHAMBER 35
+ #define PREHEAT_2_FAN_SPEED     0 // Value from 0 to 255
++// #define EXTRA_PREHEAT_LABELS   // Enable LCD Menu to Configure 2 Extra Preheat Materials
++#if ENABLED(EXTRA_PREHEAT_LABELS)
++  #define PREHEAT_3_LABEL       "PETG"
++  #define PREHEAT_3_TEMP_HOTEND 240
++  #define PREHEAT_3_TEMP_BED     90
++  #define PREHEAT_3_TEMP_CHAMBER 35
++  #define PREHEAT_3_FAN_SPEED    0//255 // Value from 0 to 255
++
++  #define PREHEAT_4_LABEL       "ABS"
++  #define PREHEAT_4_TEMP_HOTEND 260
++  #define PREHEAT_4_TEMP_BED    110
++  #define PREHEAT_4_TEMP_CHAMBER 35
++  #define PREHEAT_4_FAN_SPEED    0//255 // Value from 0 to 255
++#endif
++
++//  #define PREHEAT_ALERT           // Enable an alert when preheating is complete
++// #define DWIN_CUSTOM_EXTRUDE     // Enable LCD Menu for Custom Extrude Functions
+ 
+ /**
+  * @section nozzle park
+@@ -3621,10 +3736,9 @@
+ //#define DWIN_MARLINUI_PORTRAIT      // MarlinUI (portrait orientation)
+ //#define DWIN_MARLINUI_LANDSCAPE     // MarlinUI (landscape orientation)
+ 
+-#if ENABLED(DWIN_CREALITY_LCD)
+   //#define USE_STRING_HEADINGS       // Use string headings for Creality UI instead of images
+   //#define USE_STRING_TITLES         // Use string titles for Creality UI instead of images
+-#endif
++#define DWIN_CREALITY_LCD
+ 
+ //
+ // Touch Screen Settings

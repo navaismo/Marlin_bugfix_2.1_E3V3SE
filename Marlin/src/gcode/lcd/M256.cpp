@@ -25,7 +25,7 @@
 
 #include "../gcode.h"
 #include "../../lcd/marlinui.h"
-#include "../../lcd/e3v2/creality/dwin.h"
+#include "../../lcd/dwin/creality/dwin.h"
 
 void GcodeSuite::M256_report() {
     SERIAL_ECHOLNPGM("Display Max Brightness: ", ((MAX_SCREEN_BRIGHTNESS-164)*100)/66);

@@ -1,110 +1,88 @@
 #!/usr/bin/env python3
-import argparse
+"""Toggle Marlin feature defines in the checked-out configuration (used by the build workflow).
+
+Usage: apply_marlin_options.py NAME=true|false [NAME=true|false ...]
+
+The macro is searched in Configuration.h and Configuration_adv.h. Disabling a macro that does
+not exist is a no-op; enabling one that does not exist is an error (for example OCTOPRINT_PLUGIN
+only exists on the c13_octoprint branch).
+"""
 import re
+import sys
 from pathlib import Path
 
-def set_define(path: Path, macro: str, enabled: bool):
-    text = path.read_text()
-        
-    #   #define MACRO
-    #   //#define MACRO
-    #   // #define MACRO
-    #   #define MACRO //comentario...
-    pattern = re.compile(
-        r'^(\s*)(//\s*)?#define\s+' + re.escape(macro) + r'(\b.*)$',
-        re.MULTILINE
-    )
+FILES = [Path("Marlin/Configuration.h"), Path("Marlin/Configuration_adv.h")]
 
-    def repl(m: re.Match):
-        indent = m.group(1) or ""
-        rest = m.group(3) or ""
-        if enabled:
-            # Activa: #define MACRO...
-            return f"{indent}#define {macro}{rest}"
+# A feature can only be enabled if the feature it depends on is enabled too.
+DEPENDS = {
+    "DWIN_PLR_MENU": "POWER_LOSS_RECOVERY",
+    "DWIN_SKEW_MENU": "SKEW_CORRECTION",
+}
+
+
+def to_bool(v: str) -> bool:
+    return v.strip().lower() in ("1", "true", "yes", "on")
+
+
+def set_define(macro: str, enabled: bool) -> bool:
+    pattern = re.compile(r"^(\s*)(//\s*)?#define\s+" + re.escape(macro) + r"(\b.*)$", re.MULTILINE)
+    for path in FILES:
+        text = path.read_text()
+        if not pattern.search(text):
+            continue
+        prefix = "" if enabled else "//"
+
+        def replacement(match):
+            tail = match.group(3)
+            if enabled:
+                # An explicit false value must not survive an enable request.
+                tail = re.sub(r"^\s+(?:0|0x0|false)(?=\s*(?://|/\*|$))", "", tail)
+            return f"{match.group(1)}{prefix}#define {macro}{tail}"
+
+        text = pattern.sub(replacement, text, count=1)
+        path.write_text(text)
+        return True
+    return False
+
+
+def define_enabled(macro: str) -> bool:
+    pattern = re.compile(r"^\s*#define\s+" + re.escape(macro) + r"\b([^\n]*)", re.MULTILINE)
+    for path in FILES:
+        match = pattern.search(path.read_text())
+        if match:
+            value = re.sub(r"/\*.*?\*/|//.*", "", match.group(1)).strip()
+            return value in ("", "1", "0x1", "true")
+    return False
+
+
+def main() -> int:
+    wanted = {}
+    for arg in sys.argv[1:]:
+        name, _, value = arg.partition("=")
+        wanted[name] = to_bool(value)
+
+    for macro, dep in DEPENDS.items():
+        if wanted.get(macro) and not wanted.get(dep, False):
+            print(f"{macro} requires {dep}; forcing {macro}=false")
+            wanted[macro] = False
+
+    # Respect FT_MOTION in the existing configuration when no override is given.
+    # The legacy menu enables X/Y shaping in Configuration_adv.h when FTM is off.
+    if wanted.get("FT_MOTION", define_enabled("FT_MOTION")):
+        if wanted.get("DWIN_INPUT_SHAPING_MENU", define_enabled("DWIN_INPUT_SHAPING_MENU")):
+            print("DWIN_INPUT_SHAPING_MENU is legacy-only; FT_MOTION forces it off")
+        wanted["DWIN_INPUT_SHAPING_MENU"] = False
+
+    status = 0
+    for macro, enabled in wanted.items():
+        found = set_define(macro, enabled)
+        if not found and enabled:
+            print(f"ERROR: {macro} not found in the configuration of this branch", file=sys.stderr)
+            status = 1
         else:
-            # Disable: //#define MACRO...
-            return f"{indent}//#define {macro}{rest}"
+            print(f"{macro} -> {'enabled' if enabled else 'disabled'}{'' if found else ' (not present, skipped)'}")
+    return status
 
-    if pattern.search(text):
-        text = pattern.sub(repl, text)
-   
-
-    path.write_text(text)
-
-def str_to_bool(v: str) -> bool:
-    return str(v).lower() in ("1", "true", "yes", "on")
-
-def main():
-    parser = argparse.ArgumentParser(
-        description="Toggle Marlin feature flags from GitHub Actions inputs."
-    )
-    # Inputs that will come from workflow_dispatch
-    parser.add_argument("--x_routine_auto_offset", required=True)
-    parser.add_argument("--d_routine_auto_offset", required=True)
-    parser.add_argument("--dwin_render_thumbnail", required=True)
-    parser.add_argument("--dwin_dimm_menu", required=True)
-    parser.add_argument("--dwin_zhome_menu", required=True)
-    parser.add_argument("--extra_preheat_labels", required=True)
-    parser.add_argument("--dwin_custom_extrude", required=True)
-    parser.add_argument("--skew_correction", required=True)
-    parser.add_argument("--dwin_skew_menu", required=True)
-    parser.add_argument("--input_shaping_x", required=True)
-    parser.add_argument("--input_shaping_y", required=True)
-    parser.add_argument("--dwin_input_shaping_menu", required=True)
-    parser.add_argument("--one_click_print", required=True)
-
-    args = parser.parse_args()
-
-    # Routes
-    cfg_base = Path("Marlin/Configuration.h")
-    cfg_adv_base = Path("Marlin/Configuration_adv.h")
-    cfg = Path("Marlin/Configuration.h")
-    cfg_adv = Path("Marlin/Configuration_adv.h")
-
-    # We ALWAYS start from the base templates
-    cfg.write_text(cfg_base.read_text())
-    cfg_adv.write_text(cfg_adv_base.read_text())
-
-    # Booleans from inputs
-    x_routine = str_to_bool(args.x_routine_auto_offset)
-    d_routine = str_to_bool(args.d_routine_auto_offset)
-    dwin_render = str_to_bool(args.dwin_render_thumbnail)
-    dwin_dimm = str_to_bool(args.dwin_dimm_menu)
-    dwin_zhome = str_to_bool(args.dwin_zhome_menu)
-    extra_preheat = str_to_bool(args.extra_preheat_labels)
-    dwin_custom_extrude = str_to_bool(args.dwin_custom_extrude)
-    skew = str_to_bool(args.skew_correction)
-    dwin_skew_menu = str_to_bool(args.dwin_skew_menu)
-    ish_x = str_to_bool(args.input_shaping_x)
-    ish_y = str_to_bool(args.input_shaping_y)
-    dwin_ish_menu = str_to_bool(args.dwin_input_shaping_menu)
-    one_click_print = str_to_bool(args.one_click_print)
-
-    # Dependencies:
-    # DWIN_SKEW_MENU only if SKEW_CORRECTION is active
-    if not skew:
-        dwin_skew_menu = False
-
-    # DWIN_INPUT_SHAPING_MENU only if X and Y are active
-    if not (ish_x and ish_y):
-        dwin_ish_menu = False
-
-    # ---Configuration.h ---
-    set_define(cfg, "X_ROUTINE_AUTO_OFFSET", x_routine)
-    set_define(cfg, "D_ROUTINE_AUTO_OFFSET", d_routine)
-    set_define(cfg, "DWIN_RENDER_THUMBNAIL", dwin_render)
-    set_define(cfg, "DWIN_DIMM_MENU", dwin_dimm)
-    set_define(cfg, "DWIN_ZHOME_MENU", dwin_zhome)
-    set_define(cfg, "EXTRA_PREHEAT_LABELS", extra_preheat)
-    set_define(cfg, "DWIN_CUSTOM_EXTRUDE", dwin_custom_extrude)
-    set_define(cfg, "SKEW_CORRECTION", skew)
-    set_define(cfg, "DWIN_SKEW_MENU", dwin_skew_menu)
-
-    # ---Configuration_adv.h ---
-    set_define(cfg_adv, "INPUT_SHAPING_X", ish_x)
-    set_define(cfg_adv, "INPUT_SHAPING_Y", ish_y)
-    set_define(cfg_adv, "DWIN_INPUT_SHAPING_MENU", dwin_ish_menu)
-    set_define(cfg_adv, "ONE_CLICK_PRINT", one_click_print)
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

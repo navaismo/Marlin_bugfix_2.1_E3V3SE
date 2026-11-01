@@ -25,12 +25,6 @@
   #define __has_include(...) 1
 #endif
 
-#define ABCE 4
-#define XYZE 4
-#define ABC  3
-#define XYZ  3
-#define XY   2
-
 #define _AXIS(A) (A##_AXIS)
 
 #define _FORCE_INLINE_ __attribute__((__always_inline__)) __inline__
@@ -215,7 +209,10 @@
 // "Ternary" that emits or omits the given content
 #define EMIT(V...) V
 #define OMIT(...)
-#define TERN_(O,A)          _TERN(_ENA_1(O),OMIT,EMIT)(A) // OPTION ? 'A' : '<nul>'
+#define TERN_(O,A)          TERF(O,EMIT)(A)         // OPTION ? 'A' : '<nul>'   ; Usage: TERN_(OPTION, EMITTHIS)
+
+// Call G(...) or swallow with OMIT(...)
+#define TERF(O,G)           _TERN(_ENA_1(O),OMIT,G) // OPTION ? 'G' : 'OMIT'    ; Usage: TERF(OPTION, CALLTHIS)(ARGS...)
 
 // Macros to conditionally emit array items and function arguments
 #define _OPTITEM(A...)      A,
@@ -259,6 +256,7 @@
 // Array shorthand
 #define COUNT(a)            (sizeof(a)/sizeof(*a))
 #define ZERO(a)             memset((void*)a,0,sizeof(a))
+#define OBJZERO(a)          memset(&a,0,sizeof(a))
 #define COPY(a,b) do{ \
     static_assert(sizeof(a[0]) == sizeof(b[0]), "COPY: '" STRINGIFY(a) "' and '" STRINGIFY(b) "' types (sizes) don't match!"); \
     memcpy(&a[0],&b[0],_MIN(sizeof(a),sizeof(b))); \
@@ -318,7 +316,7 @@
 #define LIST_31(A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,BB,CC,DD,EE,...) A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,BB,CC,DD,EE
 #define LIST_30(A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,BB,CC,DD,...) A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,BB,CC,DD
 #define LIST_29(A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,BB,CC,...) A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,BB,CC
-#define LIST_28(A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,BB,...) A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,TU,V,W,X,Y,Z,AA,BB
+#define LIST_28(A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,BB,...) A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,BB
 #define LIST_27(A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,...) A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA
 #define LIST_26(A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,...) A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z
 #define LIST_25(A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,...) A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y
@@ -808,5 +806,7 @@
 #define _UI_RELOADED    105
 #define _UI_IA_CREALITY 106
 #define _UI_E3S1PRO     107
+#define _UI_CR10SPROV2  108
+#define _UI_SERMOON_D1  109
 #define _DGUS_UI_IS(N) || (CAT(_UI_, DGUS_LCD_UI) == CAT(_UI_, N))
 #define DGUS_UI_IS(V...) (0 MAP(_DGUS_UI_IS, V))

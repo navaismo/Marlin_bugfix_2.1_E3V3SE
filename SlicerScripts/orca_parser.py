@@ -19,6 +19,42 @@ def rgb888_to_565(r, g, b):
     return (r5 << 11) | (g6 << 5) | b5
 
 
+QUANTIZE_COLORS = 32  # cap on distinct colours after resize; see PHASE_1_2_HANDOFF.md
+
+
+def quantize_foreground(img):
+    """Median-cut quantize `img` (RGB) to <=QUANTIZE_COLORS colours, without
+    touching which pixels are background.
+
+    The firmware treats RGB565 0x0000 (pure black) as a transparent/skip
+    sentinel (DWIN_RenderThumb: `if (color == 0) continue;`). Quantizing the
+    whole image naively can (a) pull a black foreground pixel onto some other
+    bucket's black-ish mean, silently un-skipping background-colored fill, or
+    (b) pull a near-black foreground pixel onto exact (0,0,0), punching a
+    hole in the model silhouette. Both are avoided by quantizing only the
+    non-background pixels and leaving (0,0,0) pixels untouched, then, when
+    converting to RGB565, clamping any accidental 0x0000 result on a
+    foreground pixel back to 0x0001 (visually indistinguishable, never
+    skipped).
+    """
+    w, h = img.size
+    src = img.load()
+    fg_mask = [[src[x, y] != (0, 0, 0) for x in range(w)] for y in range(h)]
+
+    if not any(any(row) for row in fg_mask):
+        return img  # all background, nothing to quantize
+
+    quantized = img.quantize(colors=QUANTIZE_COLORS, method=Image.MEDIANCUT).convert("RGB")
+    qpx = quantized.load()
+
+    out = Image.new("RGB", (w, h))
+    dst = out.load()
+    for y in range(h):
+        for x in range(w):
+            dst[x, y] = qpx[x, y] if fg_mask[y][x] else (0, 0, 0)
+    return out
+
+
 def extract_thumbnail_b64(lines):
     """
     Supports:
@@ -65,28 +101,43 @@ def extract_thumbnail_b64(lines):
     return b64_string, width, height
 
 
+def decode_and_resize(b64_string, force_size=(96, 96)):
+    """Decodes a base64 PNG/JPG thumbnail and resizes it to force_size,
+    WITHOUT quantizing -- shared by build_raw16_block_from_b64 (which then
+    quantizes for embedding) and any caller that wants the plain resized
+    image (e.g. to re-derive a thumbnail directly from a .gcode file's
+    embedded base64, matching what orca_parser would produce fresh)."""
+    img_bytes = base64.b64decode(b64_string)
+    img = Image.open(io.BytesIO(img_bytes))
+    img = img.convert("RGB")
+
+    target_w, target_h = force_size
+    if img.size != (target_w, target_h):
+        # LANCZOS interpolation blends edge pixels between the model's flat
+        # shaded facets, which is what manufactures ~69 distinct colours out
+        # of what should be a handful -- quantizing below undoes that.
+        img = img.resize((target_w, target_h), Image.LANCZOS)
+    return img
+
+
 def build_raw16_block_from_b64(b64_string, width, height, force_size=(96, 96)):
     """
     Decodes the B64 (PNG/JPG), converts it to RGB565, and generates
     the RAW16 block as a list of G-code lines (comments).
     """
-    img_bytes = base64.b64decode(b64_string)
-    img = Image.open(io.BytesIO(img_bytes))
-
-    # Normalize to RGB
-    img = img.convert("RGB")
-
-    # Resize if necessary
     target_w, target_h = force_size
-    if img.size != (target_w, target_h):
-        img = img.resize((target_w, target_h), Image.LANCZOS)
+    img = decode_and_resize(b64_string, force_size)
+    img = quantize_foreground(img)
 
     rows = []
     for y in range(target_h):
         hex_row = []
         for x in range(target_w):
             r, g, b = img.getpixel((x, y))
+            is_background = (r, g, b) == (0, 0, 0)
             c565 = rgb888_to_565(r, g, b)
+            if not is_background and c565 == 0:
+                c565 = 1  # never let a foreground pixel collide with the skip sentinel
             hex_row.append(f"{c565:04X}")
         rows.append("".join(hex_row))
 

@@ -74,7 +74,7 @@ namespace ExtUI {
   #if ENABLED(MPC_AUTOTUNE)
     enum mpcresult_t : uint8_t { MPC_STARTED, MPC_TEMP_ERROR, MPC_INTERRUPTED, MPC_DONE };
   #endif
-  struct probe_limits_t { float xmin, ymin, xmax, ymax; };
+  typedef struct { float xmin, ymin, xmax, ymax; } probe_limits_t;
 
   constexpr uint8_t extruderCount = EXTRUDERS;
   constexpr uint8_t hotendCount   = HOTENDS;
@@ -132,6 +132,8 @@ namespace ExtUI {
   inline void injectCommands(FSTR_P const fstr) { injectCommands_P(FTOP(fstr)); }
   void injectCommands(char * const);
   bool commandsInQueue();
+  inline void executeCommands(FSTR_P const fstr) { gcode.process_subcommands_now(fstr); }
+  inline void executeCommands(char * const cstr) { gcode.process_subcommands_now(cstr); }
 
   #if ENABLED(HOST_KEEPALIVE_FEATURE)
     GcodeSuite::MarlinBusyState getHostKeepaliveState();
@@ -238,9 +240,22 @@ namespace ExtUI {
     bool getLevelingIsValid();
     void onLevelingStart();
     void onLevelingDone();
+
     #if ENABLED(PREHEAT_BEFORE_LEVELING)
-      celsius_t getLevelingBedTemp();
+      #if HAS_HOTEND
+        celsius_t getLevelingNozzleTemp();
+        #if HAS_LEVELING_TEMP_EDIT
+          void setLevelingNozzleTemp(const celsius_t);
+        #endif
+      #endif
+      #if HAS_HEATED_BED
+        celsius_t getLevelingBedTemp();
+        #if HAS_LEVELING_TEMP_EDIT
+          void setLevelingBedTemp(const celsius_t);
+        #endif
+      #endif
     #endif
+
     #if HAS_MESH
       // Mesh data, utilities, events
       bed_mesh_t& getMeshArray();
@@ -325,7 +340,7 @@ namespace ExtUI {
     PauseMode getPauseMode();
   #endif
 
-  #if ENABLED(LIN_ADVANCE)
+  #if HAS_LIN_ADVANCE_K
     // Linear Advance Control
     float getLinearAdvance_mm_mm_s(const extruder_t);
     void setLinearAdvance_mm_mm_s(const float, const extruder_t);
@@ -497,7 +512,9 @@ namespace ExtUI {
 
   /**
    * Event callback routines
-   * Must be defined, and will be called by Marlin as needed
+   *
+   * Called by Marlin as needed. Weak no-op defaults are provided in
+   * ui_api.cpp, so a display only needs to define the handlers it uses.
    */
   void onStartup();
   void onIdle();
@@ -532,8 +549,8 @@ namespace ExtUI {
   #if ENABLED(ADVANCED_PAUSE_FEATURE)
     // Standard stdOnPauseMode sets pauseModeStatus and calls onUserConfirmRequired
     extern PauseMessage pauseModeStatus;
-    void stdOnPauseMode(const PauseMessage message, const PauseMode mode=PAUSE_MODE_SAME, const uint8_t extruder=active_extruder);
-    void onPauseMode(const PauseMessage message, const PauseMode mode=PAUSE_MODE_SAME, const uint8_t extruder=active_extruder);
+    void stdOnPauseMode(const PauseMessage message, const PauseMode mode=PAUSE_MODE_SAME, const uint8_t extruder=motion.extruder);
+    void onPauseMode(const PauseMessage message, const PauseMode mode=PAUSE_MODE_SAME, const uint8_t extruder=motion.extruder);
   #endif
 
   void onStatusChanged_P(PGM_P const msg);

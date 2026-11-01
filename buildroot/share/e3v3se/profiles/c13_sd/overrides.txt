@@ -1,0 +1,234 @@
+# Define-level overrides on top of 9861a96f3bdc11330b8ff111dc8468252e11c48a. Regenerate with: config_profile.py derive
+Configuration.h E STRING_CONFIG_H_AUTHOR "Marlin, Creality, Kraplax & Navaismo"
+Configuration.h E MOTHERBOARD BOARD_CREALITY_V3_GD303
+Configuration.h E SERIAL_PORT 1
+Configuration.h E BAUDRATE 115200
+Configuration.h E CUSTOM_MACHINE_NAME "Ender-3 V3 SE"
+Configuration.h E X_DRIVER_TYPE TMC2208
+Configuration.h E Y_DRIVER_TYPE TMC2208
+Configuration.h E Z_DRIVER_TYPE TMC2208
+Configuration.h E E0_DRIVER_TYPE TMC2208
+Configuration.h D AXIS4_NAME
+Configuration.h D AXIS4_ROTATES
+Configuration.h D AXIS5_NAME
+Configuration.h D AXIS5_ROTATES
+Configuration.h D AXIS6_NAME
+Configuration.h D AXIS6_ROTATES
+Configuration.h D AXIS7_NAME
+Configuration.h D AXIS8_NAME
+Configuration.h D AXIS9_NAME
+Configuration.h E TEMP_SENSOR_BED 14
+Configuration.h D TEMP_SENSOR_BOARD
+Configuration.h D TEMP_SENSOR_SOC
+Configuration.h D TEMP_SENSOR_REDUNDANT
+Configuration.h E HEATER_0_MINTEMP 0
+Configuration.h E BED_MINTEMP 0
+Configuration.h E HEATER_0_MAXTEMP 310
+Configuration.h E HEATER_1_MAXTEMP 310
+Configuration.h E HEATER_2_MAXTEMP 310
+Configuration.h E HEATER_3_MAXTEMP 310
+Configuration.h E HEATER_4_MAXTEMP 310
+Configuration.h E HEATER_5_MAXTEMP 310
+Configuration.h E HEATER_6_MAXTEMP 310
+Configuration.h E HEATER_7_MAXTEMP 310
+Configuration.h E BED_MAXTEMP 125
+Configuration.h E HOTEND_OVERSHOOT 10
+Configuration.h E DEFAULT_KP 20.49
+Configuration.h E DEFAULT_KI 3.93
+Configuration.h E DEFAULT_KD 26.68
+Configuration.h E PIDTEMPBED
+Configuration.h E DEFAULT_BED_KP 123.71
+Configuration.h E DEFAULT_BED_KI 14.29
+Configuration.h E DEFAULT_BED_KD 713.77
+Configuration.h D DEFAULT_CHAMBER_KP
+Configuration.h D DEFAULT_CHAMBER_KI
+Configuration.h D DEFAULT_CHAMBER_KD
+Configuration.h E PID_FUNCTIONAL_RANGE 10
+Configuration.h E EXTRUDE_MAXLENGTH 1000
+Configuration.h D TPARA_SHOULDER_AXIS_HEIGHT
+Configuration.h D TPARA_ARM_X_HOME_POS
+Configuration.h D TPARA_ARM_Y_HOME_POS
+Configuration.h D TPARA_ARM_Z_HOME_POS
+Configuration.h E TPARA_OFFSET_X 0
+Configuration.h E TPARA_OFFSET_Y 0
+Configuration.h E TPARA_OFFSET_Z 0
+Configuration.h D TPARA_TCP_OFFSET_X
+Configuration.h D TPARA_TCP_OFFSET_Y
+Configuration.h D TPARA_TCP_OFFSET_Z
+Configuration.h E MIDDLE_DEAD_ZONE_R#2 0
+Configuration.h D TPARA_MAX_L1L2_ANGLE
+Configuration.h E X_MIN_ENDSTOP_HIT_STATE LOW
+Configuration.h E Y_MIN_ENDSTOP_HIT_STATE LOW
+Configuration.h D I_MIN_ENDSTOP_HIT_STATE
+Configuration.h D I_MAX_ENDSTOP_HIT_STATE
+Configuration.h D J_MIN_ENDSTOP_HIT_STATE
+Configuration.h D J_MAX_ENDSTOP_HIT_STATE
+Configuration.h D K_MIN_ENDSTOP_HIT_STATE
+Configuration.h D K_MAX_ENDSTOP_HIT_STATE
+Configuration.h D U_MIN_ENDSTOP_HIT_STATE
+Configuration.h D U_MAX_ENDSTOP_HIT_STATE
+Configuration.h D V_MIN_ENDSTOP_HIT_STATE
+Configuration.h D V_MAX_ENDSTOP_HIT_STATE
+Configuration.h D W_MIN_ENDSTOP_HIT_STATE
+Configuration.h D W_MAX_ENDSTOP_HIT_STATE
+Configuration.h E ENDSTOP_INTERRUPTS_FEATURE
+Configuration.h E DEFAULT_AXIS_STEPS_PER_UNIT { 80, 80, 400, 715.12 }
+Configuration.h E DEFAULT_MAX_FEEDRATE { 500, 500, 20, 30 }
+Configuration.h E LIMITED_MAX_FR_EDITING
+Configuration.h E MAX_FEEDRATE_EDIT_VALUES { 1000, 1000, 40, 60 }
+Configuration.h E DEFAULT_MAX_ACCELERATION { 5000, 5000, 5000, 5000 }
+Configuration.h E LIMITED_MAX_ACCEL_EDITING
+Configuration.h E MAX_ACCEL_EDIT_VALUES { 8000, 8000, 8000, 8000 }
+Configuration.h E LIMITED_JERK_EDITING
+Configuration.h E JUNCTION_DEVIATION_MM 0.1
+Configuration.h E USE_PROBE_FOR_Z_HOMING
+Configuration.h E BLTOUCH
+Configuration.h D NOZZLE_TO_PROBE_OFFSET
+Configuration.h D PROBING_TOOL
+Configuration.h E PROBING_MARGIN 3
+Configuration.h E XY_PROBE_FEEDRATE (160*60)
+Configuration.h E Z_PROBE_FEEDRATE_FAST (10*60)
+Configuration.h E MULTIPLE_PROBING 2
+Configuration.h E EXTRA_PROBING 0
+Configuration.h E Z_CLEARANCE_BETWEEN_PROBES 3
+Configuration.h E Z_CLEARANCE_MULTI_PROBE 3
+Configuration.h E Z_AFTER_PROBING 10
+Configuration.h E PROBE_OFFSET_ZMIN -10
+Configuration.h E PROBE_OFFSET_ZMAX 10
+Configuration.h E INVERT_X_DIR true
+Configuration.h E INVERT_Y_DIR false
+Configuration.h E INVERT_Z_DIR true
+Configuration.h E Z_CLEARANCE_FOR_HOMING 10
+Configuration.h E Z_AFTER_HOMING 10
+Configuration.h E X_BED_SIZE 220
+Configuration.h E Y_BED_SIZE 220
+Configuration.h D X_MIN_POS
+Configuration.h D Y_MIN_POS
+Configuration.h E Y_MAX_POS Y_BED_SIZE + 7
+Configuration.h E Z_MAX_POS 250
+Configuration.h E FILAMENT_RUNOUT_SENSOR
+Configuration.h E FIL_RUNOUT_STATE HIGH
+Configuration.h E AUTO_BED_LEVELING_BILINEAR
+Configuration.h E ENABLE_LEVELING_AFTER_G28
+Configuration.h E PREHEAT_BEFORE_LEVELING
+Configuration.h E LEVELED_SEGMENT_LENGTH 1.0
+Configuration.h E G26_MESH_VALIDATION
+Configuration.h E GRID_MAX_POINTS_X 6
+Configuration.h E EXTRAPOLATE_BEYOND_GRID
+Configuration.h E ABL_BILINEAR_SUBDIVISION
+Configuration.h E BILINEAR_SUBDIVISIONS 4
+Configuration.h E Z_SAFE_HOMING
+Configuration.h E HOMING_FEEDRATE_MM_M { (50*60), (50*60), (12*60) }
+Configuration.h E XY_DIAG_AC 282.84
+Configuration.h E XY_DIAG_BD 282.84
+Configuration.h E XY_SIDE_AD 200.69
+Configuration.h E SKEW_CORRECTION_GCODE
+Configuration.h E EEPROM_SETTINGS
+Configuration.h D EEPROM_CHITCHAT
+Configuration.h E EEPROM_AUTO_INIT
+Configuration.h E PREHEAT_1_TEMP_HOTEND 200
+Configuration.h E PREHEAT_1_TEMP_BED 60
+Configuration.h E PREHEAT_2_LABEL "TPU"
+Configuration.h E PREHEAT_2_TEMP_HOTEND 230
+Configuration.h E PREHEAT_2_TEMP_BED 70
+Configuration.h E NOZZLE_PARK_FEATURE
+Configuration.h E NOZZLE_PARK_POINT { (0), (0), 0 }
+Configuration.h D NOZZLE_PARK_MOVE
+Configuration.h E NOZZLE_PARK_Z_RAISE_MIN 5
+Configuration.h E NOZZLE_PARK_Z_FEEDRATE 15
+Configuration.h E PRINTCOUNTER
+Configuration.h E SDSUPPORT
+Configuration.h E ENCODER_PULSES_PER_STEP 4
+Configuration.h E ENCODER_STEPS_PER_MENU_ITEM 1
+Configuration.h E LCD_FEEDBACK_FREQUENCY_DURATION_MS 2
+Configuration.h E LCD_FEEDBACK_FREQUENCY_HZ 5000
+Configuration_adv.h E CONFIG_EXPORT 101
+Configuration_adv.h E THERMAL_PROTECTION_BED_PERIOD 180
+Configuration_adv.h E WATCH_BED_TEMP_PERIOD 180
+Configuration_adv.h D DEFAULT_KC
+Configuration_adv.h D DEFAULT_KC_LIST
+Configuration_adv.h D DEFAULT_KF
+Configuration_adv.h E PID_FAN_SCALING_LIN_FACTOR (PID_FAN_SCALING_AT_FULL_SPEED-DEFAULT_Kf)/255.0
+Configuration_adv.h D DEFAULT_KF#2
+Configuration_adv.h D DEFAULT_KF_LIST
+Configuration_adv.h E EXTRUDER_RUNOUT_MINTEMP 170
+Configuration_adv.h E FAN_MIN_PWM 50
+Configuration_adv.h E E0_AUTO_FAN_PIN PC1
+Configuration_adv.h E BLTOUCH_DELAY 350
+Configuration_adv.h E BLTOUCH_HS_MODE true
+Configuration_adv.h E FT_MOTION
+Configuration_adv.h E FTM_IS_DEFAULT_MOTION
+Configuration_adv.h E FTM_DEFAULT_SHAPER_Y ftMotionShaper_3HEI
+Configuration_adv.h E FTM_SHAPING_DEFAULT_FREQ_Y 42.0f
+Configuration_adv.h E SHAPING_FREQ_X 42.0
+Configuration_adv.h E DEFAULT_STEPPER_TIMEOUT_SEC 1200
+Configuration_adv.h E DISABLE_IDLE_X false
+Configuration_adv.h E DISABLE_IDLE_Y false
+Configuration_adv.h E DISABLE_IDLE_Z false
+Configuration_adv.h E DISABLE_IDLE_E false
+Configuration_adv.h E ADAPTIVE_STEP_SMOOTHING
+Configuration_adv.h E ENCODER_10X_STEPS_PER_SEC 80
+Configuration_adv.h E ENCODER_100X_STEPS_PER_SEC 130
+Configuration_adv.h E SET_PROGRESS_MANUALLY
+Configuration_adv.h E SET_INTERACTION_TIME
+Configuration_adv.h E M73_REPORT
+Configuration_adv.h E SHOW_REMAINING_TIME
+Configuration_adv.h D REINIT_NOISY_LCD
+Configuration_adv.h E SD_FINISHED_RELEASECOMMAND "G1 X0 Y215\nM84"
+Configuration_adv.h E NO_SD_AUTOSTART
+Configuration_adv.h E ONE_CLICK_PRINT
+Configuration_adv.h E EVENT_GCODE_SD_ABORT "G28XY\nG1 X0 Y215\nM84"
+Configuration_adv.h E PLR_ENABLED_DEFAULT true
+Configuration_adv.h E POWER_LOSS_ZRAISE 5
+Configuration_adv.h E LONG_FILENAME_HOST_SUPPORT
+Configuration_adv.h E LONG_FILENAME_WRITE_SUPPORT
+Configuration_adv.h E SCROLL_LONG_FILENAMES
+Configuration_adv.h E BABYSTEPPING
+Configuration_adv.h E BABYSTEP_INVERT_Z false
+Configuration_adv.h E BABYSTEP_MILLIMETER_UNITS
+Configuration_adv.h E BABYSTEP_MULTIPLICATOR_Z 0.01
+Configuration_adv.h E BABYSTEP_ZPROBE_OFFSET
+Configuration_adv.h E ADVANCE_K#2 0.0
+Configuration_adv.h E PROBING_MARGIN_LEFT PROBING_MARGIN
+Configuration_adv.h E PROBING_MARGIN_RIGHT PROBING_MARGIN+10
+Configuration_adv.h E PROBING_MARGIN_FRONT PROBING_MARGIN
+Configuration_adv.h E PROBING_MARGIN_BACK PROBING_MARGIN+10
+Configuration_adv.h E G29_RETRY_AND_RECOVER
+Configuration_adv.h D G29_SUCCESS_COMMANDS
+Configuration_adv.h E MIN_ARC_SEGMENT_MM 1
+Configuration_adv.h E MIN_CIRCLE_SEGMENTS 24
+Configuration_adv.h E MIN_STEPS_PER_SEGMENT 4
+Configuration_adv.h E MINIMUM_STEPPER_POST_DIR_DELAY 50000
+Configuration_adv.h E BUFSIZE 16
+Configuration_adv.h E TX_BUFFER_SIZE 64
+Configuration_adv.h E EMERGENCY_PARSER
+Configuration_adv.h E ADVANCED_PAUSE_FEATURE
+Configuration_adv.h E PAUSE_PARK_NOZZLE_TIMEOUT 60
+Configuration_adv.h E FILAMENT_CHANGE_ALERT_BEEPS 15
+Configuration_adv.h E PARK_HEAD_ON_PAUSE
+Configuration_adv.h E FILAMENT_LOAD_UNLOAD_GCODES
+Configuration_adv.h D CONFIGURE_FILAMENT_CHANGE
+Configuration_adv.h E INTERPOLATE false
+Configuration_adv.h E X_CURRENT 600
+Configuration_adv.h E X_RSENSE 0.15
+Configuration_adv.h E X_INTERPOLATE false
+Configuration_adv.h E X_HOLD_MULTIPLIER 0.5
+Configuration_adv.h E Y_CURRENT 600
+Configuration_adv.h E Y_RSENSE 0.15
+Configuration_adv.h E Y_HOLD_MULTIPLIER 0.5
+Configuration_adv.h E Z_RSENSE 0.15
+Configuration_adv.h E Z_HOLD_MULTIPLIER 0.5
+Configuration_adv.h E E0_CURRENT 600
+Configuration_adv.h E E0_RSENSE 0.15
+Configuration_adv.h E E0_HOLD_MULTIPLIER 1
+Configuration_adv.h E X_SLAVE_ADDRESS 0x03
+Configuration_adv.h E Y_SLAVE_ADDRESS 0x03
+Configuration_adv.h E Z_SLAVE_ADDRESS 0x03
+Configuration_adv.h E E0_SLAVE_ADDRESS 0x03
+Configuration_adv.h D CHOPPER_TIMING
+Configuration_adv.h E CHOPPER_TIMING_X USER_X_24V
+Configuration_adv.h E CHOPPER_TIMING_Y USER_Y_24V
+Configuration_adv.h E CHOPPER_TIMING_Z USER_Z_24V
+Configuration_adv.h E CHOPPER_TIMING_E CHOPPER_DEFAULT_24V
+Configuration_adv.h E HYBRID_THRESHOLD
+Configuration_adv.h D FREEZE_JERK

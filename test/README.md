@@ -9,6 +9,14 @@ This document focuses on Unit tests.
 
 ## Unit tests
 
+### Creality DWIN bed mesh renderer (host)
+
+Run `python3 test/test_bed_level_visualizer.py` from the repository root. It compiles the production renderer with a recorded LCD transport and sample bed meshes, then checks filled surfaces, color scales, coordinate bounds, incomplete meshes, immutable snapshots, all five original assessment thresholds and labels, QR pixels and quiet zone, and return to Leveling during header, QR and surface rendering. It checks that XYZ axes are drawn behind the surface and their labels do not overlap it. It also checks the centered yellow title and replays replacement of a longer leveling label by Bed Level Map in every menu row, ensuring no trailing text remains. It exercises the actual Leveling menu drawing and encoder handlers, checks the selected row after returning, rejects calibration actions while opening the viewer, and compiles the menu with the feature disabled to verify the original three-option limit. It rejects floating-point printf conversions, checks numeric statistics and legend labels, and replays surface coverage with both inclusive and exclusive rectangle endpoints to detect gaps. A simulated clock verifies 10/20 ms command spacing, repeated calls before a deadline and timer rollover. The test also reads the fixed QR's byte payload to verify the exact help URL. It needs a host C++17 compiler, without PlatformIO, a QR library, or a connected printer.
+
+Add `--preview-dir /tmp/bed-level-preview` to export LCD command previews as SVG. If ImageMagick is available, it also writes a PNG. Use `--sanitize` to enable UBSan when the host has its runtime installed.
+
+### Marlin native unit tests
+
 Unit testing allows for functional testing of Marlin logic on a local machine. This strategy is available to all developers, and will be able to be used on generic GitHub workers to automate testing. While PlatformIO does support the execution of unit tests on target controllers, that is not yet implemented and not really practical. This would require dedicated testing labs, and would be less broadly usable than testing directly on the development or build machine.
 
 Unit tests verify the behavior of small discrete sections of Marlin code. By thoroughly unit testing important parts of Marlin code, we effectively provide "guard rails" which will prevent major regressions in behavior. As long as all submissions go through the Pull Request process and execute automated checks, it is possible to catch most major issues prior to completion of a PR.

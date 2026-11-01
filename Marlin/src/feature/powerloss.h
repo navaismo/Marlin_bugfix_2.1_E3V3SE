@@ -46,9 +46,7 @@
   #define POWER_LOSS_STATE HIGH
 #endif
 
-#if DISABLED(BACKUP_POWER_SUPPLY)
-  #undef POWER_LOSS_ZRAISE    // No Z raise at outage without backup power
-#endif
+// Without backup power the lift is deferred until resume(), not discarded.
 #ifndef POWER_LOSS_ZRAISE
   #define POWER_LOSS_ZRAISE 2 // Default Z-raise on outage or resume
 #endif
@@ -62,6 +60,7 @@ typedef struct {
 
   // Machine state
   xyze_pos_t current_position;
+  xyze_pos_t command_start_position; // Start of the whole SD command, before segmentation
   uint16_t feedrate;
   int16_t feedrate_percentage;
   uint16_t flow_percentage[EXTRUDERS];
@@ -90,7 +89,7 @@ typedef struct {
 
   bool sd_printing_flag;
 
-  #if DISABLED(NO_VOLUMETRICS)
+  #if HAS_VOLUMETRIC_EXTRUSION
     float filament_size[EXTRUDERS];
   #endif
 
@@ -168,13 +167,9 @@ class PrintJobRecovery {
       static bool ui_flag_resume;     //!< Flag the UI to show a dialog to Resume (M1000) or Cancel (M1000C)
     #endif
 
-     #if ENABLED(DWIN_CREALITY_LCD)
-      static bool dwin_flag;
-    #endif
-
-
     static void init();
     static void prepare();
+    static void capture_block(const uint32_t offset, const xyze_pos_t &position);
 
     static void setup() {
       #if PIN_EXISTS(OUTAGECON)
@@ -211,10 +206,14 @@ class PrintJobRecovery {
     static void resume();
     static void purge();
 
-    static void cancel() { purge(); }
+    static void cancel();
+
+    #if ENABLED(PLR_HEAT_BED_ON_REBOOT)
+      static void set_bed_temp(const bool on);
+    #endif
 
     static void load();
-    static void save(const bool force=ENABLED(SAVE_EACH_CMD_MODE), const float zraise=POWER_LOSS_ZRAISE, const bool raised=false);
+    static void save(const bool force=ENABLED(SAVE_EACH_CMD_MODE), const float zraise=TERN(DWIN_PLR_MENU, -1.0f, POWER_LOSS_ZRAISE), const bool raised=false);
 
     #if PIN_EXISTS(POWER_LOSS)
       static void outage() {
@@ -241,6 +240,8 @@ class PrintJobRecovery {
     #endif
 
   private:
+    static float last_saved_z; //!< Z of the last successfully written checkpoint, independent of live motion
+    static volatile bool command_start_valid;
     static void write();
 
     #if ENABLED(BACKUP_POWER_SUPPLY)

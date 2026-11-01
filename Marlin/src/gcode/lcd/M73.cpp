@@ -28,8 +28,10 @@
 #include "../../lcd/marlinui.h"
 #include "../../sd/cardreader.h"
 #include "../../libs/numtostr.h"
-#include "../../lcd/e3v2/creality/dwin.h"
-#include "../../module/bed_scale/bed_scale.h"
+#include "../../lcd/dwin/creality/dwin.h"
+#if ENABLED(BED_SCALE)
+  #include "../../e3v3se/bed_scale/bed_scale.h"
+#endif
 
 /**
  * M73: Set Print Progress
@@ -72,33 +74,11 @@ void GcodeSuite::M73() {
     if (parser.seenval('C')) ui.set_interaction_time(60 * parser.value_ulong());
   #endif
 
-  #if ENABLED(DWIN_RENDER_THUMBNAIL)
-    if(parser.seen('L') ){
-       const int32_t layer = parser.value_int();
-       ui.set_current_layer(layer);
-
-      #if ENABLED(BED_SCALE)
-
-        const int32_t raw = bed_scale_read_raw_avg(1);
-        if (raw != INT32_MIN) {
-
-          const int32_t delta = raw - bed_scale.offset_raw;
-          const float g_est = bed_scale_estimate_grams_from_delta(delta);
-
-          SERIAL_ECHOPGM("BedScale L");
-          SERIAL_ECHO(layer);
-          SERIAL_ECHOPGM(" delta=");
-          SERIAL_ECHO(delta);
-          SERIAL_ECHOPGM(" g_est=");
-          SERIAL_ECHOLN(g_est, 2);
-
-          const bool dropped = bed_scale_check_drop_and_pause((uint16_t)layer, g_est);
-          if (dropped) {
-            SERIAL_ECHOLNPGM("BedScale Object drop detected - Pause requested");
-          }
-        }
-
-      #endif    
+  #if ANY(DWIN_RENDER_THUMBNAIL, BED_SCALE)
+    if (parser.seenval('L')) {
+      const int32_t layer = parser.value_int();
+      TERN_(DWIN_RENDER_THUMBNAIL, ui.set_current_layer(layer));
+      TERN_(BED_SCALE, bed_scale_on_layer(layer));
     }
   #endif
 

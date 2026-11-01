@@ -64,7 +64,6 @@ extern const char M23_STR[], M24_STR[];
   #define MEDIA_SUPPORT_BIN_FILES 1
 #endif
 
-extern bool reset_flag; // reset flag to avoid OCP overlaping
 typedef struct {
   bool saving:1,                // Receiving a G-code file or logging commands during a print
        logging:1,               // Log enqueued commands to the open file. See GCodeQueue::advance()
@@ -212,7 +211,8 @@ public:
 
   #if ENABLED(ONE_CLICK_PRINT)
     static bool one_click_check();  // Check for the newest file and prompt to run it.
-    static void diveToNewestFile(MediaFile parent, uint32_t &compareDateTime, MediaFile &outdir, char * const outname);
+    static void diveToNewestFile(MediaFile parent, uint32_t &compareDateTime, MediaFile &outdir, char * const outname,
+                                  uint8_t depth, MediaFile * const outParents, uint8_t &outDepth);
     static bool selectNewestFile();
   #endif
 
@@ -282,14 +282,6 @@ public:
    */
   static const char* diveToFile(const bool update_cwd, MediaFile* &inDirPtr, const char * const path, const bool echo=false);
 
-
-  #if ENABLED(SDCARD_RATHERRECENTFIRST) && DISABLED(SDCARD_SORT_ALPHA)
-  #define SD_ORDER(N,C) ((C) - 1 - (N))
-#else
-  #define SD_ORDER(N,C) N
-#endif
-
-
   #if ENABLED(SDCARD_SORT_ALPHA)
     static void presort();
     static void selectFileByIndexSorted(const int16_t nr);
@@ -302,7 +294,6 @@ public:
     FORCE_INLINE static void selectFileByIndexSorted(const int16_t nr) {
       selectFileByIndex(TERN(SDCARD_RATHERRECENTFIRST, get_num_items() - 1 - nr, (nr)));
     }
-     FORCE_INLINE static void getfilename_sorted(const uint16_t nr) { selectFileByIndex(nr); }
   #endif
 
   static void ls(const uint8_t lsflags=0);
@@ -363,21 +354,17 @@ private:
   // Alphabetical file and folder sorting
   //
   #if ENABLED(SDCARD_SORT_ALPHA)
-    static int16_t sort_count;    // Count of sorted items in the current directory
+
     #if ENABLED(SDSORT_GCODE)
       static SortFlag sort_alpha; // Sorting: REV, OFF, FWD
       static int8_t sort_folders; // Folder sorting before/none/after
       //static bool sort_reverse; // Flag to enable / disable reverse sorting
     #endif
 
-    // By default the sort index is statically allocated
-    #if ENABLED(SDSORT_DYNAMIC_RAM)
-      static uint8_t *sort_order;
-    #else
-      static uint8_t sort_order[SDSORT_LIMIT];
-    #endif
+    static int16_t sort_count;    // Count of sorted items in the current directory
+    static uint8_t *sort_order;   // Pointer to the static or dynamic sort index
 
-    #if ALL(SDSORT_USES_RAM, SDSORT_CACHE_NAMES) && DISABLED(SDSORT_DYNAMIC_RAM)
+    #if ENABLED(SDSORT_CACHE_NAMES) && DISABLED(SDSORT_DYNAMIC_RAM)
       #define SORTED_LONGNAME_MAXLEN (SDSORT_CACHE_VFATS) * (FILENAME_LENGTH)
       #define SORTED_LONGNAME_STORAGE (SORTED_LONGNAME_MAXLEN + 1)
     #else
@@ -385,20 +372,17 @@ private:
       #define SORTED_LONGNAME_STORAGE SORTED_LONGNAME_MAXLEN
     #endif
 
+    #define SORTED_SHORTNAME_STORAGE FILENAME_LENGTH
+
     // Cache filenames to speed up SD menus.
     #if ENABLED(SDSORT_USES_RAM)
 
-      // If using dynamic ram for names, allocate on the heap.
+      // Pointers to static or dynamic arrays of sorted names
       #if ENABLED(SDSORT_CACHE_NAMES)
-        #if ENABLED(SDSORT_DYNAMIC_RAM)
-          static char **sortshort, **sortnames;
-        #else
-          static char sortshort[SDSORT_LIMIT][FILENAME_LENGTH];
-        #endif
+        static char (*sortshort)[SORTED_SHORTNAME_STORAGE];
       #endif
-
-      #if (ENABLED(SDSORT_CACHE_NAMES) && DISABLED(SDSORT_DYNAMIC_RAM)) || NONE(SDSORT_CACHE_NAMES, SDSORT_USES_STACK)
-        static char sortnames[SDSORT_LIMIT][SORTED_LONGNAME_STORAGE];
+      #if ENABLED(SDSORT_CACHE_NAMES) || DISABLED(SDSORT_USES_STACK)
+        static char (*sortnames)[SORTED_LONGNAME_STORAGE];
       #endif
 
       // Folder sorting uses an isDir array when caching items.

@@ -26,6 +26,7 @@
 
 #include "../gcode.h"
 #include "../queue.h"           // for getting the command port
+#include "../../e3v3se/OctoHost.h"
 
 #if ENABLED(M115_GEOMETRY_REPORT)
   #include "../../module/motion.h"
@@ -65,8 +66,8 @@
  */
 void GcodeSuite::M115() {
 
-  serial_connection_active = true;
-  SERIAL_ECHOLNPGM("=====++++>> OCTO Value: ", serial_connection_active);
+  TERN_(OCTOPRINT_PLUGIN, serial_connection_active = true);
+
   // Hosts should match one of these
   #define MACHINE_KINEMATICS "" \
     TERN_(COREXY, "COREXY") TERN_(COREYX, "COREYX") \
@@ -87,7 +88,7 @@ void GcodeSuite::M115() {
     " MACHINE_TYPE:" MACHINE_NAME
     " KINEMATICS:" MACHINE_KINEMATICS
     " EXTRUDER_COUNT:" STRINGIFY(EXTRUDERS)
-    #if NUM_AXES != XYZ
+    #if NUM_AXES != 3
       " AXIS_COUNT:" STRINGIFY(NUM_AXES)
     #endif
     #if defined(MACHINE_UUID) || ENABLED(HAS_STM32_UID)
@@ -141,7 +142,7 @@ void GcodeSuite::M115() {
     cap_line(F("EEPROM"), ENABLED(EEPROM_SETTINGS));
 
     // Volumetric Extrusion (M200)
-    cap_line(F("VOLUMETRIC"), DISABLED(NO_VOLUMETRICS));
+    cap_line(F("VOLUMETRIC"), ENABLED(HAS_VOLUMETRIC_EXTRUSION));
 
     // AUTOREPORT_POS (M154)
     cap_line(F("AUTOREPORT_POS"), ENABLED(AUTO_REPORT_POSITION));
@@ -256,8 +257,8 @@ void GcodeSuite::M115() {
                           dmin = NUM_AXIS_ARRAY(X_MIN_POS,  Y_MIN_POS,  Z_MIN_POS, I_MIN_POS, J_MIN_POS, K_MIN_POS, U_MIN_POS, V_MIN_POS, W_MIN_POS),
                           dmax = NUM_AXIS_ARRAY(X_MAX_POS,  Y_MAX_POS,  Z_MAX_POS, I_MAX_POS, J_MAX_POS, K_MAX_POS, U_MAX_POS, V_MAX_POS, W_MAX_POS);
       xyz_pos_t cmin = bmin, cmax = bmax;
-      apply_motion_limits(cmin);
-      apply_motion_limits(cmax);
+      motion.apply_limits(cmin);
+      motion.apply_limits(cmax);
       const xyz_pos_t lmin = dmin.asLogical(), lmax = dmax.asLogical(),
                       wmin = cmin.asLogical(), wmax = cmax.asLogical();
 

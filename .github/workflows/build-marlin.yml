@@ -1,5 +1,8 @@
-name: Build Custom Marlin 2.1.x E3V3SE Firmware 
+name: Build E3V3SE Firmware
 
+# Bed_Scale_test branch (C13, experimental bed scale + OctoPrint). The committed configuration is the
+# starting point, and the inputs below only override individual feature defines for this build.
+# Defaults match the branch: plugin and MeatPack on, one-click print off.
 on:
   workflow_dispatch:
     inputs:
@@ -11,83 +14,85 @@ on:
         options:
           - STM32F103RET6_creality
 
-      x_routine_auto_offset:
-        description: "X_ROUTINE_AUTO_OFFSET (Z offset with X pattern)"
-        required: true
+      bed_level_visualizer:
+        description: "BED_LEVEL_VISUALIZER (filled isometric bed mesh in Leveling)"
         type: boolean
         default: false
-
+      bed_scale:
+        description: "BED_SCALE (experimental HX711 scale + M73 layer monitoring)"
+        type: boolean
+        default: true
       d_routine_auto_offset:
-        description: "D_ROUTINE_AUTO_OFFSET (Z offset with Delta pattern)"
-        required: true
-        type: boolean
-        default: false
-
-      dwin_render_thumbnail:
-        description: "DWIN_RENDER_THUMBNAIL (render thumbnail on LCD)"
-        required: true
+        description: "D_ROUTINE_AUTO_OFFSET (Z offset, Delta pattern)"
         type: boolean
         default: true
-
-      dwin_dimm_menu:
-        description: "DWIN_DIMM_MENU (brightness/dimm menu on LCD)"
-        required: true
-        type: boolean
-        default: true
-
-      dwin_zhome_menu:
-        description: "DWIN_ZHOME_MENU (Z menu after homing)"
-        required: true
-        type: boolean
-        default: true
-
-      extra_preheat_labels:
-        description: "EXTRA_PREHEAT_LABELS (extra preheats)"
-        required: true
-        type: boolean
-        default: true
-
       dwin_custom_extrude:
-        description: "DWIN_CUSTOM_EXTRUDE (custom extrusion menu)"
-        required: true
+        description: "DWIN_CUSTOM_EXTRUDE (custom extrude menu)"
         type: boolean
         default: true
-
-      skew_correction:
-        description: "SKEW_CORRECTION (skew correction)"
-        required: true
+      dwin_dimm_menu:
+        description: "DWIN_DIMM_MENU (brightness/dimmer menu)"
         type: boolean
-        default: false
-
-      dwin_skew_menu:
-        description: "DWIN_SKEW_MENU (skew menu)"
-        required: true
-        type: boolean
-        default: false
-
-      input_shaping_x:
-        description: "INPUT_SHAPING_X"
-        required: true
-        type: boolean
-        default: false
-
-      input_shaping_y:
-        description: "INPUT_SHAPING_Y"
-        required: true
-        type: boolean
-        default: false
-
+        default: true
       dwin_input_shaping_menu:
-        description: "DWIN_INPUT_SHAPING_MENU (Input Shaping menu)"
-        required: true
+        description: "DWIN_INPUT_SHAPING_MENU (legacy motion only; disabled with FT_MOTION)"
+        type: boolean
+        default: false
+      dwin_render_thumbnail:
+        description: "DWIN_RENDER_THUMBNAIL (render G-code thumbnail on the LCD)"
+        type: boolean
+        default: true
+      dwin_skew_menu:
+        description: "DWIN_SKEW_MENU (requires SKEW_CORRECTION)"
+        type: boolean
+        default: false
+      dwin_zhome_menu:
+        description: "DWIN_ZHOME_MENU (Z height after homing menu)"
+        type: boolean
+        default: true
+      e3v3se_ignore_bed_mintemp:
+        description: "E3V3SE_IGNORE_BED_MINTEMP (skip bed MINTEMP shutdown; default off)"
+        type: boolean
+        default: false
+      extra_preheat_labels:
+        description: "EXTRA_PREHEAT_LABELS (two extra preheat materials)"
+        type: boolean
+        default: true
+      ft_motion:
+        description: "FT_MOTION (configure with M493; disables legacy shaping menu)"
+        type: boolean
+        default: true
+      meatpack:
+        description: "MEATPACK_ON_SERIAL_PORT_1 (host transmission compression)"
+        type: boolean
+        default: true
+      octoprint_plugin:
+        description: "OCTOPRINT_PLUGIN (Octoprint-LCD_E3V3SE plugin layer)"
+        type: boolean
+        default: true
+      one_click_print:
+        description: "ONE_CLICK_PRINT (SD card only; off for OctoPrint)"
+        type: boolean
+        default: false
+      power_loss_recovery:
+        description: "POWER_LOSS_RECOVERY + DWIN_PLR_MENU (SD recovery and advanced LCD menu; uses memory)"
+        type: boolean
+        default: false
+      preheat_alert:
+        description: "PREHEAT_ALERT (beep when LCD preheating is complete)"
+        type: boolean
+        default: false
+      skew_correction:
+        description: "SKEW_CORRECTION"
+        type: boolean
+        default: false
+      x_routine_auto_offset:
+        description: "X_ROUTINE_AUTO_OFFSET (Z offset, X pattern)"
         type: boolean
         default: false
 
-      one_click_print:
-        description: "ONE_CLICK_PRINT"
-        required: true
-        type: boolean
-        default: true
+permissions:
+  contents: read
 
 jobs:
   build:
@@ -103,34 +108,48 @@ jobs:
           python-version: "3.11"
 
       - name: Install PlatformIO
-        run: pip install platformio
+        run: pip install -U platformio
 
       - name: Apply firmware options
         run: |
           python .github/scripts/apply_marlin_options.py \
-            --x_routine_auto_offset "${{ github.event.inputs.x_routine_auto_offset }}" \
-            --d_routine_auto_offset "${{ github.event.inputs.d_routine_auto_offset }}" \
-            --dwin_render_thumbnail "${{ github.event.inputs.dwin_render_thumbnail }}" \
-            --dwin_dimm_menu "${{ github.event.inputs.dwin_dimm_menu }}" \
-            --dwin_zhome_menu "${{ github.event.inputs.dwin_zhome_menu }}" \
-            --extra_preheat_labels "${{ github.event.inputs.extra_preheat_labels }}" \
-            --dwin_custom_extrude "${{ github.event.inputs.dwin_custom_extrude }}" \
-            --skew_correction "${{ github.event.inputs.skew_correction }}" \
-            --dwin_skew_menu "${{ github.event.inputs.dwin_skew_menu }}" \
-            --input_shaping_x "${{ github.event.inputs.input_shaping_x }}" \
-            --input_shaping_y "${{ github.event.inputs.input_shaping_y }}" \
-            --dwin_input_shaping_menu "${{ github.event.inputs.dwin_input_shaping_menu }}" \
-            --one_click_print "${{ github.event.inputs.one_click_print }}"
+            BED_LEVEL_VISUALIZER=${{ inputs.bed_level_visualizer }} \
+            BED_SCALE=${{ inputs.bed_scale }} \
+            D_ROUTINE_AUTO_OFFSET=${{ inputs.d_routine_auto_offset }} \
+            DWIN_CUSTOM_EXTRUDE=${{ inputs.dwin_custom_extrude }} \
+            DWIN_DIMM_MENU=${{ inputs.dwin_dimm_menu }} \
+            DWIN_INPUT_SHAPING_MENU=${{ inputs.dwin_input_shaping_menu && !inputs.ft_motion }} \
+            DWIN_PLR_MENU=${{ inputs.power_loss_recovery }} \
+            DWIN_RENDER_THUMBNAIL=${{ inputs.dwin_render_thumbnail }} \
+            DWIN_SKEW_MENU=${{ inputs.dwin_skew_menu }} \
+            DWIN_ZHOME_MENU=${{ inputs.dwin_zhome_menu }} \
+            E3V3SE_IGNORE_BED_MINTEMP=${{ inputs.e3v3se_ignore_bed_mintemp }} \
+            EXTRA_PREHEAT_LABELS=${{ inputs.extra_preheat_labels }} \
+            FT_MOTION=${{ inputs.ft_motion }} \
+            MEATPACK_ON_SERIAL_PORT_1=${{ inputs.meatpack }} \
+            OCTOPRINT_PLUGIN=${{ inputs.octoprint_plugin }} \
+            ONE_CLICK_PRINT=${{ inputs.one_click_print }} \
+            POWER_LOSS_RECOVERY=${{ inputs.power_loss_recovery }} \
+            PREHEAT_ALERT=${{ inputs.preheat_alert }} \
+            SKEW_CORRECTION=${{ inputs.skew_correction }} \
+            X_ROUTINE_AUTO_OFFSET=${{ inputs.x_routine_auto_offset }}
+
       - name: Compile firmware
+        run: pio run -e "${{ inputs.env }}" 2>&1 | tee build.log
+
+      - name: Report memory usage
         run: |
-          pio run -e "${{ github.event.inputs.env }}"
+          {
+            echo "### Firmware size (${{ github.ref_name }}, ${{ inputs.env }})"
+            echo '```'
+            grep -E "^(RAM|Flash):" build.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload firmware as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: firmware-${{ github.event.inputs.env }}
-          path: |
-            .pio/build/${{ github.event.inputs.env }}/firmware*.bin
-            .pio/build/${{ github.event.inputs.env }}/*.bin
-          retention-days: 1  
+          name: firmware-${{ github.ref_name }}-${{ inputs.env }}
+          path: .pio/build/${{ inputs.env }}/firmware*.bin
+          retention-days: 7
           if-no-files-found: error
