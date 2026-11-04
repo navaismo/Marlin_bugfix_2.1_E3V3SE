@@ -1047,6 +1047,21 @@ G29_TYPE GcodeSuite::G29() {
   // Restore state after probing
   if (!faux) motion.restore_feedrate_and_scaling();
 
+  #if ENABLED(DWIN_CREALITY_LCD)
+    // The fork's finish path below saves settings and moves Z. Never enter it
+    // after a probe/stow failure, even when some mesh points were valid.
+    if (!isfinite(abl.measured_z) || !marlin.isRunning()) {
+      set_bed_leveling_enabled(false);
+      motion.set_axis_untrusted(Z_AXIS);
+      HMI_flag.G29_level_not_normal = true;
+      HMI_flag.G29_finish_flag = HMI_flag.local_leveling_flag = HMI_flag.Pressure_Height_end = false;
+      G29_level_num = 0;
+      probe.use_probing_tool(false);
+      DWIN_CalibrationFailed();
+      G29_RETURN(true, false);
+    }
+  #endif
+
   probe.move_z_after_probing();
 
   #ifdef EVENT_GCODE_AFTER_G29
