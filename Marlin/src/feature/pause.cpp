@@ -77,7 +77,6 @@
 #endif
 
 #include "../libs/nozzle.h"
-#include "../e3v3se/OctoHost.h"
 #include "pause.h"
 
 #define DEBUG_OUT ENABLED(DEBUG_PAUSE_RESUME)
@@ -207,13 +206,13 @@ bool load_filament(const float slow_load_length/*=0*/, const float fast_load_len
     first_impatient_beep(max_beep_count);
 
     KEEPALIVE_STATE(PAUSED_FOR_USER);
-    marlin.wait_for_user = true;    // LCD click or M108 will clear this
+    marlin.wait_start();    // LCD click or M108 will clear this
 
     TERN_(EXTENSIBLE_UI, ExtUI::onUserConfirmRequired(GET_TEXT_F(MSG_FILAMENTLOAD)));
 
     #if ENABLED(HOST_PROMPT_SUPPORT)
       const char tool = '0' + TERN0(MULTI_FILAMENT_SENSOR, motion.extruder);
-      if (HOST_LINK_UP()) hostui.prompt_do(PROMPT_USER_CONTINUE, F("Load Filament T"), tool, FPSTR(CONTINUE_STR));
+      hostui.prompt_do(PROMPT_USER_CONTINUE, F("Load Filament T"), tool, FPSTR(CONTINUE_STR));
     #endif
 
     while (marlin.wait_for_user) {
@@ -228,11 +227,11 @@ bool load_filament(const float slow_load_length/*=0*/, const float fast_load_len
 
   #if ENABLED(DUAL_X_CARRIAGE)
     const int8_t saved_ext        = motion.extruder;
-    const bool saved_ext_dup_mode = extruder_duplication_enabled;
-    set_duplication_enabled(false, DXC_ext);
+    const bool saved_ext_dup_mode = motion.extruder_duplication;
+    motion.set_extruder_duplication(false, DXC_ext);
   #endif
 
-  TERN_(BELTPRINTER, do_blocking_move_to_xy(0.00, 50.00));
+  TERN_(BELTPRINTER, motion.blocking_move_xy(0.00, 50.00));
 
   TERN_(MPCTEMP, MPC::e_paused = true);
 
@@ -254,7 +253,7 @@ bool load_filament(const float slow_load_length/*=0*/, const float fast_load_len
   }
 
   #if ENABLED(DUAL_X_CARRIAGE)      // Tie the two extruders movement back together.
-    set_duplication_enabled(saved_ext_dup_mode, saved_ext);
+    motion.set_extruder_duplication(saved_ext_dup_mode, saved_ext);
   #endif
 
   #if ENABLED(ADVANCED_PAUSE_CONTINUOUS_PURGE)
@@ -262,100 +261,67 @@ bool load_filament(const float slow_load_length/*=0*/, const float fast_load_len
     if (show_lcd) ui.pause_show_message(PAUSE_MESSAGE_PURGE);
 
     TERN_(EXTENSIBLE_UI, ExtUI::onUserConfirmRequired(GET_TEXT_F(MSG_FILAMENT_CHANGE_PURGE)));
-    TERN_(HOST_PROMPT_SUPPORT, if (HOST_LINK_UP()) hostui.continue_prompt(GET_TEXT_F(MSG_FILAMENT_CHANGE_PURGE)));
-    marlin.wait_for_user = true; // A click or M108 breaks the purge_length loop
+    TERN_(HOST_PROMPT_SUPPORT, hostui.continue_prompt(GET_TEXT_F(MSG_FILAMENT_CHANGE_PURGE)));
+    marlin.wait_start(); // A click or M108 breaks the purge_length loop
     for (float purge_count = purge_length; purge_count > 0 && marlin.wait_for_user; --purge_count)
       motion.unscaled_e_move(1, ADVANCED_PAUSE_PURGE_FEEDRATE);
-    marlin.wait_for_user = false;
+    marlin.user_resume();
 
   #else
 
-    // do {
-    //   if (purge_length > 0) {
-    //     // "Wait for filament purge"
-    //     if (show_lcd) ui.pause_show_message(PAUSE_MESSAGE_PURGE);
+    do {
+      if (purge_length > 0) {
+        // "Wait for filament purge"
+        if (show_lcd) ui.pause_show_message(PAUSE_MESSAGE_PURGE);
 
-    //     #if ENABLED(SOVOL_SV06_RTS)
-    //       rts.updateTempE0();
-    //       rts.gotoPage(ID_Purge_L, ID_Purge_D);
-    //     #endif
-
-    //     // Extrude filament to get into hotend
-    //     motion.unscaled_e_move(purge_length, ADVANCED_PAUSE_PURGE_FEEDRATE);
-    //   }
-
-    //   TERN_(HOST_PROMPT_SUPPORT, hostui.filament_load_prompt()); // Initiate another host prompt.
-
-    //   #if M600_PURGE_MORE_RESUMABLE
-    //     if (show_lcd) {
-    //       // Show "Purge More" / "Resume" menu and wait for reply
-    //       KEEPALIVE_STATE(PAUSED_FOR_USER);
-    //       marlin.wait_for_user = false;
-    //       #if ANY(HAS_MARLINUI_MENU, EXTENSIBLE_UI)
-    //         ui.pause_show_message(PAUSE_MESSAGE_OPTION); // MarlinUI and MKS UI also set PAUSE_RESPONSE_WAIT_FOR
-    //       #else
-    //         pause_menu_response = PAUSE_RESPONSE_WAIT_FOR;
-    //         TERN_(SOVOL_SV06_RTS, rts.gotoPage(ID_PurgeMore_L, ID_PurgeMore_D));
-    //       #endif
-    //       while (pause_menu_response == PAUSE_RESPONSE_WAIT_FOR) marlin.idle_no_sleep();
-    //     }
-    //   #endif
-
-    //   // Keep looping if "Purge More" was selected
-    // } while (TERN0(M600_PURGE_MORE_RESUMABLE, pause_menu_response == PAUSE_RESPONSE_EXTRUDE_MORE));
-
-    if(serial_connection_active){
-      do {
-        if (purge_length > 0) {
-          // "Wait for filament purge"
-          if (show_lcd) ui.pause_show_message(PAUSE_MESSAGE_PURGE);
-
-          // Extrude filament to get into hotend
-          motion.unscaled_e_move(40, ADVANCED_PAUSE_PURGE_FEEDRATE);
-          
-        }
-
-        #if ENABLED(HOST_PROMPT_SUPPORT)
-          if (serial_connection_active) {
-          //TERN_(HOST_PROMPT_SUPPORT, filament_load_host_prompt()); // Initiate another host prompt.
-            hostui.filament_load_prompt();
-          }  
+        #if ENABLED(SOVOL_SV06_RTS)
+          rts.updateTempE0();
+          rts.gotoPage(ID_Purge_L, ID_Purge_D);
         #endif
 
-        #if M600_PURGE_MORE_RESUMABLE
-          if(serial_connection_active){
-            if (show_lcd) {
-              // Show "Purge More" / "Resume" menu and wait for reply
-              KEEPALIVE_STATE(PAUSED_FOR_USER);
-              marlin.wait_for_user = false;
-              #if HAS_LCD_MENU
-                ui.pause_show_message(PAUSE_MESSAGE_OPTION); // Also sets PAUSE_RESPONSE_WAIT_FOR
-              #else
-                pause_menu_response = PAUSE_RESPONSE_WAIT_FOR;
-              #endif
-              while (pause_menu_response == PAUSE_RESPONSE_WAIT_FOR) marlin.idle_no_sleep();
-            }
+        // Extrude filament to get into hotend
+        motion.unscaled_e_move(purge_length, ADVANCED_PAUSE_PURGE_FEEDRATE);
+      }
+
+      TERN_(HOST_PROMPT_SUPPORT, hostui.filament_load_prompt()); // Initiate another host prompt.
+
+      #if M600_PURGE_MORE_RESUMABLE
+        if (show_lcd) {
+          // Show "Purge More" / "Resume" menu and wait for reply
+          KEEPALIVE_STATE(PAUSED_FOR_USER);
+          marlin.user_resume();
+          pause_menu_response = PAUSE_RESPONSE_WAIT_FOR;
+          #if ANY(HAS_MARLINUI_MENU, EXTENSIBLE_UI, DWIN_CREALITY_LCD_JYERSUI, DWIN_CREALITY_LCD)
+            ui.pause_show_message(PAUSE_MESSAGE_OPTION); // MarlinUI and MKS UI also set PAUSE_RESPONSE_WAIT_FOR
+          #else
+            TERN_(SOVOL_SV06_RTS, rts.gotoPage(ID_PurgeMore_L, ID_PurgeMore_D));
+          #endif
+          #if HAS_FILAMENT_SENSOR
+            bool ran_out = runout.filament_ran_out;
+          #endif
+          while (pause_menu_response == PAUSE_RESPONSE_WAIT_FOR) {
+            marlin.idle_no_sleep();
+            #if HAS_FILAMENT_SENSOR
+              // A runout can be detected after the prompt (e.g., a motion sensor at the end of
+              // the purge) or cleared from the menu. Update the prompt and menu to match.
+              if (runout.filament_ran_out != ran_out) {
+                ran_out = !ran_out;
+                TERN_(HOST_PROMPT_SUPPORT, hostui.filament_load_prompt());
+                ui.refresh();
+              }
+            #endif
           }
-        #endif
-
-        // Keep looping if "Purge More" was selected
-      } while (TERN0(M600_PURGE_MORE_RESUMABLE, show_lcd && pause_menu_response == PAUSE_RESPONSE_EXTRUDE_MORE));
-      //} while (TERN0(serial_connection_active, show_lcd && pause_menu_response == PAUSE_RESPONSE_EXTRUDE_MORE));
-    }else{
-       if (purge_length > 0) {
-          // "Wait for filament purge"
-          if (show_lcd) ui.pause_show_message(PAUSE_MESSAGE_PURGE);
-
-          // Extrude filament to get into hotend
-          motion.unscaled_e_move(40, ADVANCED_PAUSE_PURGE_FEEDRATE);
         }
-    }
+      #endif
+
+      // Keep looping if "Purge More" was selected
+    } while (TERN0(M600_PURGE_MORE_RESUMABLE, pause_menu_response == PAUSE_RESPONSE_EXTRUDE_MORE));
 
   #endif
 
   TERN_(MPCTEMP, MPC::e_paused = false);
 
-  TERN_(HOST_PROMPT_SUPPORT, if (HOST_LINK_UP()) hostui.prompt_end());
+  TERN_(HOST_PROMPT_SUPPORT, hostui.prompt_end());
 
   return true;
 }
@@ -454,33 +420,33 @@ bool unload_filament(const float unload_length, const bool show_lcd/*=false*/,
  *
  * Return 'true' if pause was completed, 'false' for abort
  */
-uint8_t did_pause_print = 0;
+uint8_t paused_for_filament_change = 0;
 
 bool pause_print(const float retract, const xyz_pos_t &park_point, const bool show_lcd/*=false*/, const float unload_length/*=0*/ DXC_ARGS) {
   DEBUG_SECTION(pp, "pause_print", true);
   DEBUG_ECHOLNPGM("... park.x:", park_point.x, " y:", park_point.y, " z:", park_point.z, " unloadlen:", unload_length, " showlcd:", show_lcd DXC_SAY);
 
-  if (did_pause_print) return false; // already paused
+  if (paused_for_filament_change) return false; // already paused
 
   #if ENABLED(HOST_ACTION_COMMANDS)
     #ifdef ACTION_ON_PAUSED
-      if (HOST_LINK_UP()) hostui.paused();
+      hostui.paused();
     #elif defined(ACTION_ON_PAUSE)
       hostui.pause();
     #endif
   #endif
 
-  TERN_(HOST_PROMPT_SUPPORT, if (HOST_LINK_UP()) hostui.prompt_open(PROMPT_INFO, F("Pause"), FPSTR(DISMISS_STR)));
+  TERN_(HOST_PROMPT_SUPPORT, hostui.prompt_open(PROMPT_INFO, F("Pause"), FPSTR(DISMISS_STR)));
 
   // Indicate that the printer is paused
-  ++did_pause_print;
+  ++paused_for_filament_change;
 
   // Pause the print job and timer
   #if HAS_MEDIA
     const bool was_sd_printing = card.isStillPrinting();
     if (was_sd_printing) {
       card.pauseSDPrint();
-      ++did_pause_print; // Indicate SD pause also
+      ++paused_for_filament_change; // Indicate SD pause also
     }
   #endif
 
@@ -525,15 +491,15 @@ bool pause_print(const float retract, const xyz_pos_t &park_point, const bool sh
 
   #if ENABLED(DUAL_X_CARRIAGE)
     const int8_t saved_ext        = motion.extruder;
-    const bool saved_ext_dup_mode = extruder_duplication_enabled;
-    set_duplication_enabled(false, DXC_ext);
+    const bool saved_ext_dup_mode = motion.extruder_duplication;
+    motion.set_extruder_duplication(false, DXC_ext);
   #endif
 
   // Unload the filament, if specified
   if (unload_length)
     unload_filament(unload_length, show_lcd, PAUSE_MODE_CHANGE_FILAMENT);
 
-  TERN_(DUAL_X_CARRIAGE, set_duplication_enabled(saved_ext_dup_mode, saved_ext));
+  TERN_(DUAL_X_CARRIAGE, motion.set_extruder_duplication(saved_ext_dup_mode, saved_ext));
 
   // Disable the Extruder for manual change
   disable_active_extruder();
@@ -584,13 +550,13 @@ void wait_for_confirmation(const bool is_reload/*=false*/, const int8_t max_beep
 
   #if ENABLED(DUAL_X_CARRIAGE)
     const int8_t saved_ext        = motion.extruder;
-    const bool saved_ext_dup_mode = extruder_duplication_enabled;
-    set_duplication_enabled(false, DXC_ext);
+    const bool saved_ext_dup_mode = motion.extruder_duplication;
+    motion.set_extruder_duplication(false, DXC_ext);
   #endif
 
   // Wait for filament insert by user and press button
   KEEPALIVE_STATE(PAUSED_FOR_USER);
-  TERN_(HOST_PROMPT_SUPPORT, if (HOST_LINK_UP()) hostui.continue_prompt(GET_TEXT_F(MSG_NOZZLE_PARKED)));
+  TERN_(HOST_PROMPT_SUPPORT, hostui.continue_prompt(GET_TEXT_F(MSG_NOZZLE_PARKED)));
   TERN_(EXTENSIBLE_UI, ExtUI::onUserConfirmRequired(GET_TEXT_F(MSG_NOZZLE_PARKED)));
   marlin.wait_start();    // LCD click or M108 will clear this
 
@@ -632,7 +598,7 @@ void wait_for_confirmation(const bool is_reload/*=false*/, const int8_t max_beep
       #endif
       SERIAL_ECHO_MSG(_PMSG(STR_FILAMENT_CHANGE_HEAT));
 
-      TERN_(HOST_PROMPT_SUPPORT, if (HOST_LINK_UP()) hostui.prompt_do(PROMPT_USER_CONTINUE, GET_TEXT_F(MSG_HEATER_TIMEOUT), GET_TEXT_F(MSG_REHEAT)));
+      TERN_(HOST_PROMPT_SUPPORT, hostui.prompt_do(PROMPT_USER_CONTINUE, GET_TEXT_F(MSG_HEATER_TIMEOUT), GET_TEXT_F(MSG_REHEAT)));
 
       #if ENABLED(TOUCH_UI_FTDI_EVE)
         ExtUI::onUserConfirmRequired(GET_TEXT_F(MSG_FTDI_HEATER_TIMEOUT));
@@ -642,7 +608,7 @@ void wait_for_confirmation(const bool is_reload/*=false*/, const int8_t max_beep
 
       TERN_(HAS_RESUME_CONTINUE, marlin.wait_for_user_response(0, true)); // Wait for LCD click or M108
 
-      TERN_(HOST_PROMPT_SUPPORT, if (HOST_LINK_UP()) hostui.prompt_do(PROMPT_INFO, GET_TEXT_F(MSG_REHEATING)));
+      TERN_(HOST_PROMPT_SUPPORT, hostui.prompt_do(PROMPT_INFO, GET_TEXT_F(MSG_REHEATING)));
 
       LCD_MESSAGE(MSG_REHEATING);
 
@@ -659,21 +625,21 @@ void wait_for_confirmation(const bool is_reload/*=false*/, const int8_t max_beep
       constexpr millis_t nozzle_timeout_ms = SEC_TO_MS(PAUSE_PARK_NOZZLE_TIMEOUT);
       HOTEND_LOOP() thermalManager.heater_idle[e].start(nozzle_timeout_ms);
 
-      TERN_(HOST_PROMPT_SUPPORT, if (HOST_LINK_UP()) hostui.continue_prompt(GET_TEXT_F(MSG_REHEATDONE)));
+      TERN_(HOST_PROMPT_SUPPORT, hostui.continue_prompt(GET_TEXT_F(MSG_REHEATDONE)));
       #if ENABLED(EXTENSIBLE_UI)
         ExtUI::onUserConfirmRequired(GET_TEXT_F(MSG_REHEATDONE));
       #else
         LCD_MESSAGE(MSG_REHEATDONE);
       #endif
 
-      IF_DISABLED(PAUSE_REHEAT_FAST_RESUME, marlin.wait_for_user = true);
+      IF_DISABLED(PAUSE_REHEAT_FAST_RESUME, marlin.wait_start());
 
       nozzle_timed_out = false;
       first_impatient_beep(max_beep_count);
     }
     marlin.idle_no_sleep();
   }
-  TERN_(DUAL_X_CARRIAGE, set_duplication_enabled(saved_ext_dup_mode, saved_ext));
+  TERN_(DUAL_X_CARRIAGE, motion.set_extruder_duplication(saved_ext_dup_mode, saved_ext));
 }
 
 /**
@@ -720,14 +686,14 @@ void resume_print(
 
   /*
   SERIAL_ECHOLNPGM(
-    "start of resume_print()\ndual_x_carriage_mode:", dual_x_carriage_mode,
-    "\nextruder_duplication_enabled:", extruder_duplication_enabled,
-    "\nactive_extruder:", motion.extruder,
+    "start of resume_print()\ndual_x_carriage_mode:", motion.idex_mode,
+    "\nmotion.extruder_duplication:", motion.extruder_duplication,
+    "\nmotion.extruder:", motion.extruder,
     "\n"
   );
   //*/
 
-  if (!did_pause_print) return;
+  if (!paused_for_filament_change) return;
 
   // Re-enable the heaters if they timed out
   bool nozzle_timed_out = pause_for_user;
@@ -791,7 +757,8 @@ void resume_print(
 
   // Now all extrusion positions are resumed and ready to be confirmed
   // Set extruder to saved position
-  planner.set_e_position_mm((motion.destination.e = motion.position.e = resume_position.e));
+  motion.destination.e = motion.position.e = resume_position.e;
+  motion.sync_plan_position_e();
 
   ui.pause_show_message(PAUSE_MESSAGE_STATUS);
   #if ENABLED(SOVOL_SV06_RTS)
@@ -807,16 +774,16 @@ void resume_print(
     hostui.resume();
   #endif
 
-  --did_pause_print;
+  --paused_for_filament_change;
 
-  TERN_(HOST_PROMPT_SUPPORT, if (HOST_LINK_UP()) hostui.prompt_open(PROMPT_INFO, F("Resuming"), FPSTR(DISMISS_STR)));
+  TERN_(HOST_PROMPT_SUPPORT, hostui.prompt_open(PROMPT_INFO, F("Resuming"), FPSTR(DISMISS_STR)));
 
   // Resume the print job timer if it was running
   if (print_job_timer.isPaused()) print_job_timer.start();
 
   #if HAS_MEDIA
-    if (did_pause_print) {
-      --did_pause_print;
+    if (paused_for_filament_change) {
+      --paused_for_filament_change;
       card.startOrResumeFilePrinting();
       // Write PLR now to update the z axis value
       TERN_(POWER_LOSS_RECOVERY, if (recovery.enabled) recovery.save(true));

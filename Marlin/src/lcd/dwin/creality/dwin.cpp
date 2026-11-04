@@ -65,6 +65,9 @@ lin 3D Printer Firmware
 #include "../../../module/probe.h"
 #endif
 #include "../../../feature/babystep.h"
+#if HAS_FILAMENT_SENSOR
+  #include "../../../feature/runout.h"
+#endif
 
 #if ENABLED(POWER_LOSS_RECOVERY)
 #include "../../../feature/powerloss.h"
@@ -212,7 +215,7 @@ typedef struct
 typedef struct
 {
   char filename[FILENAME_LENGTH];
-  char longfilename[LONG_FILENAME_LENGTH];
+  char longfilename[LONG_FILENAME_BYTES];
 } PrintFile_InfoTypeDef;
 
 select_t select_page{0}, select_file{0}, select_print{0}, select_prepare{0}, select_control{0}, select_axis{0}, select_temp{0}, select_motion{0}, select_tune{0}, select_advset{0}, select_PLA{0}, select_ABS{0}, select_TPU{0},  select_PETG{0},  
@@ -3750,7 +3753,7 @@ static void G29_small(void) //
 
 #if ENABLED(DWIN_RENDER_THUMBNAIL)
   // Function to render the print job details with Thumbnail in the LCD.
-  void Goto_ThumbPrint()
+  void Goto_ThumbPrint(const bool reset_progress)
   {
     #if ENABLED(OCTOPRINT_PLUGIN)
       OctoRefresh = true;
@@ -3765,7 +3768,7 @@ static void G29_small(void) //
     Draw_Mid_Status_Area(true);
     // clear_UpperArea++;
     HMI_flag.Refresh_bottom_flag = false;
-    ui.progress_reset();
+    if (reset_progress) ui.progress_reset();
     ui.get_current_layer();
     Draw_Print_ProgressBar();
     
@@ -7802,7 +7805,7 @@ void HMI_Prepare()
       HMI_ValueStruct.offset_value = BABY_Z_VAR * 100;
       DWIN_Draw_Signed_Float(font8x16, Select_Color, 2, 2, VALUERANGE_X - 14, MBASE(PREPARE_CASE_ZOFF + MROWS - index_prepare), HMI_ValueStruct.offset_value);
       EncoderRate.enabled = true;
-#else
+#elif HAS_WORKSPACE_OFFSET
                             // Apply workspace offset, making the current position 0,0,0
       queue.inject_P(PSTR("G92 X0 Y0 Z0"));
       HMI_AudioFeedback();
@@ -10425,7 +10428,7 @@ void HMI_ThumbTune() {
       HMI_ValueStruct.offset_value = BABY_Z_VAR * 100;
       DWIN_Draw_Signed_Float(font8x16, Select_Color, 2, 2, VALUERANGE_X - 14, THUMB_MBASE(TUNE_CASE_ZOFF + ThumbMROWS - thumb_index_tune), HMI_ValueStruct.offset_value);
       EncoderRate.enabled = true;
-      #else
+      #elif HAS_WORKSPACE_OFFSET
       queue.inject_P(PSTR("G92 X0 Y0 Z0"));
       HMI_AudioFeedback();
       #endif
@@ -10545,7 +10548,7 @@ void HMI_Tune()
       HMI_ValueStruct.offset_value = BABY_Z_VAR * 100;
       DWIN_Draw_Signed_Float(font8x16, Select_Color, 2, 2, VALUERANGE_X - 14, MBASE(TUNE_CASE_ZOFF + MROWS - index_tune), HMI_ValueStruct.offset_value);
       EncoderRate.enabled = true;
-#else
+#elif HAS_WORKSPACE_OFFSET
                          // Apply workspace offset, making the current position 0,0,0
       queue.inject_P(PSTR("G92 X0 Y0 Z0"));
       HMI_AudioFeedback();
@@ -11209,6 +11212,117 @@ void HMI_Boot_Set() // Boot settings
   }
 }
 
+#if ENABLED(ADVANCED_PAUSE_FEATURE)
+  static bool pause_ui_active = false, pause_resume_selected = true;
+  static PauseMessage pause_ui_message = PAUSE_MESSAGE_STATUS;
+  static bool pause_keep_thumbnail = false;
+
+  static bool pause_sensor_out() { return TERN0(HAS_FILAMENT_SENSOR, runout.filament_ran_out); }
+
+  static void Draw_Pause_Options() {
+    DWIN_Draw_Rectangle(1, Color_Bg_Black, 0, 185, DWIN_WIDTH - 1, 218);
+    DWIN_Draw_String(false, false, font6x12, pause_resume_selected ? Color_White : Color_Yellow,
+                     Color_Bg_Black, 12, 195, F("Purge more"));
+    DWIN_Draw_String(false, false, font6x12, pause_resume_selected ? Color_Yellow : Color_White,
+                     Color_Bg_Black, 126, 195, pause_sensor_out() ? F("Disable sensor") : F("Resume"));
+  }
+
+  void MarlinUI::pause_show_message(const PauseMessage message, const PauseMode mode, const uint8_t extruder) {
+    UNUSED(extruder);
+    #if M600_PURGE_MORE_RESUMABLE
+      if (mode != PAUSE_MODE_SAME) pause_mode = mode;
+    #else
+      UNUSED(mode);
+    #endif
+    if (message == PAUSE_MESSAGE_STATUS) {
+      if (!pause_ui_active) return;
+      pause_ui_active = false;
+      if (marlin.printJobOngoing() || marlin.printingIsPaused()) {
+        #if ENABLED(DWIN_RENDER_THUMBNAIL)
+          if (pause_keep_thumbnail) {
+            Show_JPN_print_title();
+            Goto_ThumbPrint(false);
+          }
+          else
+        #endif
+          Goto_PrintProcess();
+      }
+      else Goto_MainMenu();
+      return;
+    }
+    if (!pause_ui_active) pause_keep_thumbnail = TERN0(DWIN_RENDER_THUMBNAIL, hasThumbnail);
+    pause_ui_active = true;
+    pause_ui_message = message;
+    checkkey = AdvancedPause;
+    EncoderRate.enabled = false;
+    HMI_flag.Refresh_bottom_flag = false;
+    if (pause_keep_thumbnail) {
+      Clear_Title_Bar();
+      DWIN_Draw_Rectangle(1, Color_Bg_Black, 0, 123, DWIN_WIDTH - 1, STATUS_Y - 1);
+    }
+    else Clear_Main_Window();
+    Draw_Title(F("Filament change"));
+    FSTR_P text = F("Please wait...");
+    switch (message) {
+      case PAUSE_MESSAGE_PARKING: text = F("Parking nozzle..."); break;
+      case PAUSE_MESSAGE_HEATING: text = F("Heating nozzle..."); break;
+      case PAUSE_MESSAGE_UNLOAD: text = F("Unloading filament..."); break;
+      case PAUSE_MESSAGE_INSERT: text = F("Insert filament"); break;
+      case PAUSE_MESSAGE_LOAD: text = F("Loading filament..."); break;
+      case PAUSE_MESSAGE_PURGE: text = F("Purging filament..."); break;
+      case PAUSE_MESSAGE_OPTION: text = F("Purge more or resume"); break;
+      case PAUSE_MESSAGE_HEAT: text = F("Press knob to reheat"); break;
+      case PAUSE_MESSAGE_RESUME: text = F("Resuming print..."); break;
+      default: break;
+    }
+    DWIN_Draw_String(false, false, font8x16, Color_White, Color_Bg_Black, 12, 145, text);
+    if (message == PAUSE_MESSAGE_INSERT || message == PAUSE_MESSAGE_WAITING)
+      DWIN_Draw_String(false, false, font6x12, Color_Yellow, Color_Bg_Black, 12, 170, F("Press knob to continue"));
+    if (message == PAUSE_MESSAGE_OPTION) {
+      pause_resume_selected = true;
+      Draw_Pause_Options();
+    }
+    Draw_Mid_Status_Area(true);
+    DWIN_UpdateLCD();
+  }
+
+  static void HMI_AdvancedPause() {
+    const ENCODER_DiffState state = get_encoder_state();
+    // Wait-for-user clicks are consumed by the encoder and clear the core wait.
+    #if M600_PURGE_MORE_RESUMABLE
+      if (pause_ui_message != PAUSE_MESSAGE_OPTION || pause_menu_response != PAUSE_RESPONSE_WAIT_FOR) return;
+      static bool was_out = false;
+      const bool out = pause_sensor_out();
+      if (state == ENCODER_DIFF_CW || state == ENCODER_DIFF_CCW) pause_resume_selected = !pause_resume_selected;
+      if (out != was_out || state == ENCODER_DIFF_CW || state == ENCODER_DIFF_CCW) {
+        was_out = out;
+        Draw_Pause_Options();
+        DWIN_UpdateLCD();
+      }
+      if (state == ENCODER_DIFF_ENTER) {
+        #if HAS_FILAMENT_SENSOR
+          if (pause_resume_selected && out) {
+            runout.enabled = false;
+            runout.reset();
+          }
+        #endif
+        pause_menu_response = pause_resume_selected ? PAUSE_RESPONSE_RESUME_PRINT : PAUSE_RESPONSE_EXTRUDE_MORE;
+      }
+    #else
+      UNUSED(state);
+    #endif
+  }
+#endif
+
+void dwinInitScreen() {
+  delay(800);
+  SERIAL_ECHOPGM("\nDWIN handshake ");
+  if (DWIN_Handshake()) SERIAL_ECHOLNPGM("ok."); else SERIAL_ECHOLNPGM("error.");
+  DWIN_UpdateLCD();
+  Encoder_Configuration();
+  HMI_Init();
+}
+
 void HMI_Init()
 {
   // SERIAL_ECHOLNPGM(">>>> HMI_Init");
@@ -11253,11 +11367,13 @@ void DWIN_Update()
       Remove_card_window_check();
     }
     // SD card print
+    #if !HAS_FILAMENT_SENSOR
     if (HMI_flag.cloud_printing_flag || card.isPrinting())
     {
       // check filament update
       Check_Filament_Update();
     }
+    #endif
   }
 
   EachMomentUpdate(); // Status update
@@ -11265,6 +11381,9 @@ void DWIN_Update()
   DWIN_HandleScreen(); // Rotary encoder update
 }
 
+#if !HAS_FILAMENT_SENSOR
+// When Marlin's runout sensor is enabled it owns M600 and M412 state.
+// The legacy LCD M25 path is only a fallback without that core feature.
 void Check_Filament_Update(void)
 {
   static uint32_t lMs = millis();
@@ -11318,6 +11437,8 @@ void Check_Filament_Update(void)
     }
   }
 }
+
+#endif // !HAS_FILAMENT_SENSOR
 
 // The card monitoring
 void Remove_card_window_check(void)
@@ -11592,7 +11713,7 @@ void EachMomentUpdate()
 
     #if ENABLED(OCTOPRINT_PLUGIN)
       // Update LCD when using OctoPrint
-      if (serial_connection_active && OctoRefresh)
+      if (serial_connection_active && OctoRefresh && TERN1(ADVANCED_PAUSE_FEATURE, checkkey != AdvancedPause))
         DWIN_OctoUpdate();
     #endif
 
@@ -12273,6 +12394,11 @@ void DWIN_HandleScreen()
   // }
   switch (checkkey)
   {
+  #if ENABLED(ADVANCED_PAUSE_FEATURE)
+    case AdvancedPause:
+      HMI_AdvancedPause();
+      break;
+  #endif
   case MainMenu:
     HMI_MainMenu();
     break;

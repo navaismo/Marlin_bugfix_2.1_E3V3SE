@@ -43,8 +43,8 @@
   #include "../module/printcounter.h"
 #endif
 
-#if ENABLED(ADVANCED_PAUSE_FEATURE)
-  #include "../feature/pause.h"
+#if ENABLED(ADVANCED_PAUSE_FEATURE) && ANY(HAS_MARLINUI_MENU, EXTENSIBLE_UI, DWIN_CREALITY_LCD_JYERSUI, DWIN_CREALITY_LCD)
+  #include "../feature/pause.h" //  for types
 #endif
 
 #if ENABLED(DWIN_CREALITY_LCD)
@@ -363,12 +363,13 @@ public:
       FORCE_INLINE static void set_current_layer(const uint16_t layer) { current_layer = layer; }
       FORCE_INLINE static uint16_t get_current_layer() { return current_layer; }
     #endif
+    
     #if ALL(DWIN_RENDER_THUMBNAIL, OCTOPRINT_PLUGIN)
       static uint32_t print_time;
       FORCE_INLINE static void set_print_time(const uint32_t t) { print_time = t; }
       FORCE_INLINE static uint32_t get_print_time() { return print_time; }
     #endif
-    
+
     #if ENABLED(SET_PROGRESS_PERCENT)
       static progress_t progress_override;
       static void set_progress(const progress_t p) { progress_override = _MIN(p, 100U * (PROGRESS_SCALE)); }
@@ -435,7 +436,7 @@ public:
 
   #if HAS_STATUS_MESSAGE
 
-    static MString<MAX_MESSAGE_SIZE> status_message;
+    static MString<MAX_MESSAGE_BYTES> status_message;
     static uint8_t alert_level; // Higher levels block lower levels
 
     #if HAS_STATUS_MESSAGE_TIMEOUT
@@ -836,7 +837,7 @@ public:
     static bool use_click() { return false; }
   #endif
 
-  #if ENABLED(ADVANCED_PAUSE_FEATURE) && ANY(HAS_MARLINUI_MENU, EXTENSIBLE_UI, DWIN_CREALITY_LCD_JYERSUI)
+  #if ENABLED(ADVANCED_PAUSE_FEATURE) && ANY(HAS_MARLINUI_MENU, EXTENSIBLE_UI, DWIN_CREALITY_LCD_JYERSUI, DWIN_CREALITY_LCD)
     static void pause_show_message(const PauseMessage message, const PauseMode mode=PAUSE_MODE_SAME, const uint8_t extruder=motion.extruder);
   #else
     static void _pause_show_message() {}
@@ -1006,9 +1007,9 @@ private:
  * @param maxlen The maximum size of the string (in pixels on GLCD)
  * @return the output width (in pixels on GLCD)
  */
-uint8_t expand_u8str_P(char * const outstr, PGM_P const ptpl, const int8_t ind, const char *cstr=nullptr, FSTR_P const fstr=nullptr, const uint8_t maxlen=MAX_MESSAGE_SIZE);
+uint8_t expand_u8str_P(char * const outstr, PGM_P const ptpl, const int8_t ind, const char *cstr=nullptr, FSTR_P const fstr=nullptr, const uint8_t maxlen=MAX_MESSAGE_BYTES);
 
-inline uint8_t expand_u8str(char * const outstr, FSTR_P const ftpl, const int8_t ind, const char *cstr=nullptr, FSTR_P const fstr=nullptr, const uint8_t maxlen=MAX_MESSAGE_SIZE) {
+inline uint8_t expand_u8str(char * const outstr, FSTR_P const ftpl, const int8_t ind, const char *cstr=nullptr, FSTR_P const fstr=nullptr, const uint8_t maxlen=MAX_MESSAGE_BYTES) {
   return expand_u8str_P(outstr, FTOP(ftpl), ind, cstr, fstr, maxlen);
 }
 

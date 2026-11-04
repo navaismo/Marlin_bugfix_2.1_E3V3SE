@@ -1,6 +1,6 @@
 --- Configuration_adv.h
 +++ Configuration_adv.h
-@@ -415,13 +415,12 @@
+@@ -416,13 +416,12 @@
    // A well-chosen Kc value should add just enough power to melt the increased material volume.
    //#define PID_EXTRUSION_SCALING
    #if ENABLED(PID_EXTRUSION_SCALING)
@@ -15,7 +15,7 @@
    #endif
  
    /**
-@@ -465,15 +464,15 @@
+@@ -466,15 +465,15 @@
        #define PID_FAN_SCALING_MIN_SPEED     10.0        // Minimum fan speed at which to enable PID_FAN_SCALING
  
        //#define DEFAULT_KF (255.0*PID_FAN_SCALING_AT_MIN_SPEED-PID_FAN_SCALING_AT_FULL_SPEED*PID_FAN_SCALING_MIN_SPEED)/(255.0-PID_FAN_SCALING_MIN_SPEED)
@@ -33,7 +33,7 @@
      // Specify up to one value per hotend here, according to your setup.
      // If there are fewer values, the last one applies to the remaining hotends.
      //#define DEFAULT_KF_LIST { DEFAULT_KF, DEFAULT_KF }
-@@ -1181,14 +1180,10 @@
+@@ -1176,14 +1175,10 @@
    //#define FT_MOTION_MENU                      // Provide a MarlinUI menu to set M493 and M494 parameters
  
    //#define NO_STANDARD_MOTION                  // Disable the standard motion system entirely to save Flash and RAM
@@ -48,7 +48,7 @@
  
    // Disable unused shapers if you need more free space
    #define FTM_SHAPER_ZV
-@@ -1266,6 +1261,7 @@
+@@ -1261,6 +1256,7 @@
    #define FTM_BUFFER_SIZE             128   // Window size for trajectory generation, must be a power of 2 (e.g 64, 128, 256, ...)
                                              // The total buffered time in seconds is (FTM_BUFFER_SIZE/FTM_FS)
    #define FTM_FS                     1000   // (Hz) Frequency for trajectory generation.
@@ -56,7 +56,7 @@
    #define FTM_MIN_SHAPE_FREQ           20   // (Hz) Minimum shaping frequency, lower consumes more RAM
  
    /**
-@@ -1274,18 +1270,10 @@
+@@ -1269,18 +1265,10 @@
     * These options cause FT Motion to delay for > 750µs after a DIR change on a given axis.
     * Disable only if you are certain that this can never happen with your TMC2208s.
     */
@@ -75,23 +75,26 @@
  
  #endif // FT_MOTION
  
-@@ -1308,6 +1296,7 @@
+@@ -1302,6 +1290,18 @@
+ //#define INPUT_SHAPING_X
  //#define INPUT_SHAPING_Y
  //#define INPUT_SHAPING_Z
++//#define DWIN_INPUT_SHAPING_MENU // Legacy X/Y menu; automatically disabled with FT_MOTION.
++#if ENABLED(FT_MOTION)
++  #undef DWIN_INPUT_SHAPING_MENU
++#elif ENABLED(DWIN_INPUT_SHAPING_MENU)
++  // The LCD edits both axes, using the same standard-motion shapers as M593.
++  #ifndef INPUT_SHAPING_X
++    #define INPUT_SHAPING_X
++  #endif
++  #ifndef INPUT_SHAPING_Y
++    #define INPUT_SHAPING_Y
++  #endif
++#endif
  #if ANY(INPUT_SHAPING_X, INPUT_SHAPING_Y, INPUT_SHAPING_Z)
-+  // #define DWIN_INPUT_SHAPING_MENU        // Enable LCD Menu to Configure Input Shaping parameters
    #if ENABLED(INPUT_SHAPING_X)
      #define SHAPING_FREQ_X  42.0        // (Hz) The default dominant resonant frequency on the X axis.
-     #define SHAPING_ZETA_X   0.15       // Damping ratio of the X axis (range: 0.0 = no damping to 1.0 = critical damping).
-@@ -1389,6 +1378,7 @@
- #ifdef XY_FREQUENCY_LIMIT
-   #define XY_FREQUENCY_MIN_PERCENT 5 // (%) Minimum FR percentage to apply. Set with M201 S<min%>.
- #endif
-+#define MINIMUM_PLANNER_SPEED 0.05 // (mm/s)
- 
- //
- // Backlash Compensation
-@@ -1595,6 +1585,7 @@
+@@ -1590,6 +1590,7 @@
  // Change values more rapidly when the encoder is rotated faster
  #define ENCODER_RATE_MULTIPLIER
  #if ENABLED(ENCODER_RATE_MULTIPLIER)
@@ -99,7 +102,7 @@
    #define ENCODER_10X_STEPS_PER_SEC   80  // (steps/s) Encoder rate for 10x speed
    #define ENCODER_100X_STEPS_PER_SEC  130  // (steps/s) Encoder rate for 100x speed
  #endif
-@@ -1722,7 +1713,7 @@
+@@ -1717,7 +1718,7 @@
      #if HAS_MARLINUI_U8GLIB
        //#define BOOT_MARLIN_LOGO_ANIMATED // Animated Marlin logo. Costs ~3260 (or ~940) bytes of flash.
      #endif
@@ -108,7 +111,26 @@
        //#define SHOW_CUSTOM_BOOTSCREEN    // Show the bitmap in Marlin/_Bootscreen.h on startup.
      #endif
    #endif
-@@ -1870,10 +1861,12 @@
+@@ -1780,6 +1781,18 @@
+       //#define NEO2_USER_PRESET_STARTUP      // Have the printer display the user preset color on startup for the second strip
+     #endif
+   #endif
++#endif // HAS_DISPLAY
++
++// Filled isometric bed mesh in Leveling > Bed Level Map (Creality DWIN, bilinear ABL).
++//#define BED_LEVEL_VISUALIZER
++#if ENABLED(BED_LEVEL_VISUALIZER)
++  #define BED_LEVEL_VISUALIZER_DRAW_DELAY_MS 10 // Minimum time between LCD drawing commands
++  #if BED_LEVEL_VISUALIZER_DRAW_DELAY_MS < 5
++    #error "BED_LEVEL_VISUALIZER_DRAW_DELAY_MS must be at least 5 ms."
++  #endif
++#endif
++#if ENABLED(BED_LEVEL_VISUALIZER) && (!ENABLED(DWIN_CREALITY_LCD) || !ENABLED(AUTO_BED_LEVELING_BILINEAR))
++  #error "BED_LEVEL_VISUALIZER requires DWIN_CREALITY_LCD and AUTO_BED_LEVELING_BILINEAR."
+ 
+ #endif // HAS_DISPLAY
+ 
+@@ -1865,10 +1878,12 @@
  
    #define SD_MENU_CONFIRM_START             // Confirm the selected SD file before printing
  
@@ -122,7 +144,16 @@
    //#define BROWSE_MEDIA_ON_INSERT          // Open the file browser when media is inserted
  
    //#define MEDIA_MENU_AT_TOP               // Force the media menu to be listed on the top of the main menu
-@@ -1958,21 +1951,17 @@
+@@ -1897,6 +1912,8 @@
+    */
+   //#define POWER_LOSS_RECOVERY
+   #if ENABLED(POWER_LOSS_RECOVERY)
++    //#define DWIN_PLR_MENU
++    //#define PLR_HEAT_NOZZLE_ON_REBOOT // Default for the LCD nozzle-on-reboot setting
+     #define PLR_ENABLED_DEFAULT       true // Power-Loss Recovery enabled by default. (Set with 'M413 Sn' & M500)
+     //#define PLR_HEAT_BED_ON_REBOOT        // Heat up bed immediately on reboot to mitigate object detaching/warping.
+     //#define PLR_HEAT_BED_EXTRA          0 // (°C) Relative increase of bed temperature for better adhesion (limited by max temp).
+@@ -1953,21 +1970,17 @@
  
    // SD Card Sorting options
    #if ENABLED(SDCARD_SORT_ALPHA)
@@ -146,7 +177,7 @@
    #endif
  
    // Allow international symbols in long filenames. To display correctly, the
-@@ -1984,6 +1973,7 @@
+@@ -1979,6 +1992,7 @@
    //#define M20_TIMESTAMP_SUPPORT         // Include timestamps by adding the 'T' flag to M20 commands
  
    #define SCROLL_LONG_FILENAMES// Scroll long filenames in the SD card menu
@@ -154,7 +185,7 @@
  
    //#define SD_ABORT_NO_COOLDOWN          // Leave the heaters on after Stop Print (not recommended!)
  
-@@ -2400,6 +2390,7 @@
+@@ -2395,6 +2409,7 @@
   * Requires a display with a controllable backlight
   */
  //#define LCD_BACKLIGHT_TIMEOUT_MINS 1  // (minutes) Timeout before turning off the backlight
@@ -162,7 +193,7 @@
  
  #if defined(DISPLAY_SLEEP_MINUTES) || defined(LCD_BACKLIGHT_TIMEOUT_MINS)
    #define EDITABLE_DISPLAY_TIMEOUT      // Edit sleep / backlight timeout with M255 S<minutes> and a menu item
-@@ -2469,6 +2460,28 @@
+@@ -2464,6 +2479,28 @@
    #endif
  #endif
  
@@ -191,7 +222,7 @@
  // @section extruder
  
  /**
-@@ -2582,7 +2595,11 @@
+@@ -2578,7 +2615,11 @@
    #define PROBING_MARGIN_LEFT PROBING_MARGIN
    #define PROBING_MARGIN_RIGHT PROBING_MARGIN+10
    #define PROBING_MARGIN_FRONT PROBING_MARGIN
@@ -203,7 +234,7 @@
  #endif
  
  #if ANY(MESH_BED_LEVELING, AUTO_BED_LEVELING_UBL)
-@@ -3467,6 +3484,10 @@
+@@ -3463,6 +3504,10 @@
    #define  X_SLAVE_ADDRESS 0x03
    #define  Y_SLAVE_ADDRESS 0x03
    #define  Z_SLAVE_ADDRESS 0x03
@@ -214,7 +245,7 @@
    //#define X2_SLAVE_ADDRESS 0
    //#define Y2_SLAVE_ADDRESS 0
    //#define Z2_SLAVE_ADDRESS 0
-@@ -3478,7 +3499,7 @@
+@@ -3474,7 +3519,7 @@
    //#define  U_SLAVE_ADDRESS 0
    //#define  V_SLAVE_ADDRESS 0
    //#define  W_SLAVE_ADDRESS 0
@@ -223,7 +254,7 @@
    //#define E1_SLAVE_ADDRESS 0
    //#define E2_SLAVE_ADDRESS 0
    //#define E3_SLAVE_ADDRESS 0
-@@ -4233,9 +4254,7 @@
+@@ -4265,9 +4310,7 @@
  #if ENABLED(GCODE_MACROS)
    #define GCODE_MACROS_SLOTS       5  // Up to 10 may be used
    #define GCODE_MACROS_SLOT_SIZE  50  // Maximum length of a single macro
@@ -233,7 +264,7 @@
  #endif
  
  /**
-@@ -4530,9 +4549,7 @@
+@@ -4562,9 +4605,7 @@
  #if ENABLED(FREEZE_FEATURE)
    //#define FREEZE_PIN   -1   // Override the default (KILL) pin here
    #define FREEZE_STATE  LOW   // State of pin indicating freeze
@@ -243,7 +274,7 @@
    /**
     * Command P000 (REALTIME_REPORTING_COMMANDS and EMERGENCY_PARSER) or
     * FREEZE_PIN (FREEZE_FEATURE) initiates a soft feed hold that keeps
-@@ -4545,9 +4562,7 @@
+@@ -4577,9 +4618,7 @@
     * NOTE: Affects Laser PWM but DOES NOT pause Spindle, Fans, Heaters or other devices.
     */
    //#define SOFT_FEED_HOLD

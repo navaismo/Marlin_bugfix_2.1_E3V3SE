@@ -17,6 +17,8 @@ import argparse, difflib, os, re, subprocess, sys, tempfile
 
 ROOT = subprocess.check_output(["git", "rev-parse", "--show-toplevel"], text=True).strip()
 PROFILE_DIR = os.path.join(ROOT, "buildroot/share/e3v3se/profiles")
+ACTIVE_PATH = os.path.join(PROFILE_DIR, "..", "active_profile")
+ACTIVE_PROFILE = open(ACTIVE_PATH).read().strip() if os.path.exists(ACTIVE_PATH) else "c13_sd"
 FILES = ("Configuration.h", "Configuration_adv.h")
 DEFINE = re.compile(r'^(\s*)(//)?(\s*)#define(\s+)(\w+)(?:(\s+)(.*?))?(\s*//.*)?$')
 
@@ -224,13 +226,8 @@ def cmd_stale(a):
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("command", choices=("derive", "apply", "check", "stale"))
-    p.add_argument("--profile", default=None)
+    p.add_argument("--profile", default=ACTIVE_PROFILE)
     p.add_argument("--ref", default=None, help="upstream commit to use as base (default: merge-base of HEAD and upstream/bugfix-2.1.x)")
     a = p.parse_args()
-    if not a.profile:
-        active_profile = os.path.join(PROFILE_DIR, "..", "active_profile")
-        a.profile = open(active_profile, encoding="utf-8").read().strip() if os.path.exists(active_profile) else "c13_sd"
-    if not a.profile:
-        raise SystemExit("active_profile is empty; provide --profile explicitly")
     a.ref = a.ref or subprocess.check_output(["git", "merge-base", "HEAD", "upstream/bugfix-2.1.x"], cwd=ROOT, text=True).strip()
     sys.exit({"derive": cmd_derive, "apply": cmd_apply, "check": cmd_check, "stale": cmd_stale}[a.command](a) or 0)

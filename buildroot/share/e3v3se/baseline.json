@@ -26,6 +26,7 @@
     "Marlin/src/gcode/lcd/M73.cpp",
     "Marlin/src/inc/Conditionals-2-LCD.h",
     "Marlin/src/inc/Conditionals-4-adv.h",
+    "Marlin/src/inc/Conditionals-5-post.h",
     "Marlin/src/inc/SanityCheck.h",
     "Marlin/src/inc/Version.h",
     "Marlin/src/lcd/buttons.h",
@@ -58,8 +59,8 @@
       "ram": 29224
     },
     "STM32F401RE_creality": {
-      "flash": 228856,
-      "ram": 28712
+      "flash": 237000,
+      "ram": 29212
     }
   }
 }
