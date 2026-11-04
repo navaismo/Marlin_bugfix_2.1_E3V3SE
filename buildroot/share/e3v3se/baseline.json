@@ -15,6 +15,7 @@
     "Marlin/src/gcode/bedlevel/abl/G29.cpp",
     "Marlin/src/gcode/calibrate/G28.cpp",
     "Marlin/src/gcode/control/M17_M18_M84.cpp",
+    "Marlin/src/gcode/feature/pause/M125.cpp",
     "Marlin/src/gcode/feature/pause/M600.cpp",
     "Marlin/src/gcode/feature/powerloss/M1000.cpp",
     "Marlin/src/gcode/gcode.cpp",
@@ -58,8 +59,8 @@
       "ram": 29224
     },
     "STM32F401RE_creality": {
-      "flash": 234928,
-      "ram": 28884
+      "flash": 236312,
+      "ram": 28892
     }
   }
 }

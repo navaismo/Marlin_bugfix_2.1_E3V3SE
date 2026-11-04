@@ -98,7 +98,9 @@ void GcodeSuite::M125() {
   if (pause_print(retract, park_point, show_lcd, 0)) {
     if (ENABLED(HAS_DISPLAY) || ALL(EMERGENCY_PARSER, HOST_PROMPT_SUPPORT) || !sd_printing || show_lcd) {
       wait_for_confirmation(false, 0);
-      resume_print(0, 0, -retract, 0);
+      // The V3 SE LCD pause also serves manual filament changes. Purge once
+      // before returning to the print, using the configured length.
+      resume_print(0, 0, TERN(DWIN_CREALITY_LCD, ADVANCED_PAUSE_PURGE_LENGTH, -retract), 0);
     }
   }
 }

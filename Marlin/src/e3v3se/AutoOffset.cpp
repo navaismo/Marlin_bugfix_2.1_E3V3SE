@@ -1,4 +1,5 @@
 #include "AutoOffset.h"
+#include "../core/utility.h"
 #include "../inc/MarlinConfigPre.h"
 #if ENABLED(FT_MOTION)
   #include "../module/ft_motion.h"
@@ -283,8 +284,10 @@ float ProbeAcq::probeTimes(int max_times, xyz_float_t rdy_pos, float step_mm, fl
 
   FOR_LOOP_TIMES(i, 0, (max_times <= 0 ? 1 : max_times), {
     mm0 = pa.probePointByStep()->outVal_mm;
+    if (!isfinite(mm0)) return NAN;
     CHECK_AND_RETURN(max_times <= 0, mm0);
     mm1 = pa.probePointByStep()->outVal_mm;
+    if (!isfinite(mm1)) return NAN;
     CHECK_AND_RETURN(fabs(mm0 - mm1) <= max_z_err, (mm0 + mm1) / 2);
   });
   return (mm0 + mm1) / 2;
@@ -439,7 +442,11 @@ bool ProbeAcq::checkTrigger() {
  */
 ProbeAcq* ProbeAcq::probePointByStep() {
   this->outIndex  = PI_COUNT - 1;
-  this->outVal_mm = 0;
+  this->outVal_mm = NAN;
+  if (!marlin.isRunning() || !motion.all_axes_trusted()
+      || !isfinite(basePos_mm.x) || !isfinite(basePos_mm.y) || !isfinite(basePos_mm.z)
+      || !isfinite(step_mm) || step_mm <= 0 || !isfinite(minZ_mm) || minZ_mm >= 0)
+    return this;
 
   // 0) Mover a base XY y Z
   DO_BLOCKING_MOVE_TO_XY(this->basePos_mm.x, this->basePos_mm.y, this->baseSpdXY_mm_s);
@@ -463,10 +470,8 @@ ProbeAcq* ProbeAcq::probePointByStep() {
   }
 
   // 3) Allow negative Z during search
-  #if ENABLED(SOFT_ENDSTOPS)
-    extern bool soft_endstops_enabled;
-    const bool prev_soft = soft_endstops_enabled;
-    soft_endstops_enabled = false;   // = M211 S0
+  #if HAS_SOFTWARE_ENDSTOPS
+    REMEMBER(pressure_endstops, motion.soft_endstop._enabled, false);
   #endif
 
   // 4) Init colas
@@ -474,13 +479,16 @@ ProbeAcq* ProbeAcq::probePointByStep() {
 
   // 5) Step descent (safer: small step and shallow limit)
   const float step_mm = this->step_mm;          // typical 0.02..0.03
-  const float z_limit = this->minZ_mm;          // e.g. -3.0 (see clamp in probeTimes)
+  const float z_limit = _MAX(this->minZ_mm, -3.0f);
   float relZ = 0.0f;
 
   while (relZ > z_limit) {
+    if (!marlin.isRunning() || !motion.all_axes_trusted()) break;
     // Step
-    DO_BLOCKING_MOVE_TO_Z(motion.position[Z_AXIS] - step_mm, max(2.0f, this->baseSpdZ_mm_s));
+    const float previous_z = motion.position.z;
+    DO_BLOCKING_MOVE_TO_Z(_MAX(previous_z - step_mm, basePos_mm.z + z_limit), max(2.0f, this->baseSpdZ_mm_s));
     relZ = motion.position[Z_AXIS] - this->basePos_mm.z;
+    if (!marlin.isRunning() || !motion.all_axes_trusted() || motion.position.z >= previous_z) break;
 
     // Measurement
     const int nowVal = this->hx711.getVal(false);
@@ -498,12 +506,7 @@ ProbeAcq* ProbeAcq::probePointByStep() {
     MARLIN_CORE_IDLE();
   }
 
-  // 6) Restore soft-endstops
-  #if ENABLED(SOFT_ENDSTOPS)
-    soft_endstops_enabled = prev_soft;     // = M211 S1
-  #endif
-
-  // Note: if there was no trigger, outVal_mm remains 0 (you filter it above with your is_valid_offset)
+  // Software endstops are restored by scope. Missing contact remains NAN.
   return this;
 }
 /*
@@ -524,14 +527,16 @@ bool clearByBed(xyz_float_t startPos, xyz_float_t endPos, float minTemp, float m
   In_out_feedtock_level(LEVEL_DISTANCE,FEEDING_DEF_SPEED,false);
   DO_BLOCKING_MOVE_TO_XY(startPos.x, startPos.y, 50);
   float start_mm = ProbeAcq::probeTimes(3, startPos, 0.03, -10, 0.2, MIN_HOLD, MAX_HOLD / 2);
+  if (!isfinite(start_mm)) return false;
   float end_mm   = ProbeAcq::probeTimes(3, endPos,   0.03, -10, 0.2, MIN_HOLD, MAX_HOLD / 2);
+  if (!isfinite(end_mm)) return false;
   startPos.z = start_mm; endPos.z = end_mm;
   DO_BLOCKING_MOVE_TO_XYZ(startPos.x, startPos.y + 3, startPos.z, 50);
   DO_BLOCKING_MOVE_TO_XYZ(endPos.x, endPos.y - 3, endPos.z - 0.1, 5);
   endPos.x -= 10; endPos.y -= 10;
   DO_BLOCKING_MOVE_TO_XYZ(endPos.x, endPos.y, endPos.z - 0.1, 5);
   RUN_AND_WAIT_GCODE_CMD("G28 Z", true);
-  return true;
+  return marlin.isRunning() && motion.all_axes_trusted();
 }
 
 /*
@@ -539,8 +544,12 @@ bool clearByBed(xyz_float_t startPos, xyz_float_t endPos, float minTemp, float m
  */
 bool probeByPress(xyz_float_t basePos_mm, float *outZ)
 {
-  float outZ_mm[3] = {0};
-  FOR_LOOP_TIMES(i, 0, 3, outZ_mm[i] = ProbeAcq::probeTimes(0, basePos_mm, 0.02, -10, 0, MIN_HOLD, MAX_HOLD));
+  *outZ = NAN;
+  float outZ_mm[3];
+  for (uint8_t i = 0; i < 3; ++i) {
+    outZ_mm[i] = ProbeAcq::probeTimes(0, basePos_mm, 0.02, -10, 0, MIN_HOLD, MAX_HOLD);
+    if (!isfinite(outZ_mm[i])) return false;
+  }
   ARY_SORT(outZ_mm, 3);
 #if ENABLED(SHOW_MSG)
   PRINTF("\n***PROBE BY PRESS: z=%s, zs={%s, %s, %s}***\n", getStr(outZ_mm[1]), getStr(outZ_mm[0]), getStr(outZ_mm[1]), getStr(outZ_mm[2]));
@@ -555,6 +564,10 @@ bool probeByPress(xyz_float_t basePos_mm, float *outZ)
  */
 bool probeByTouch(xyz_float_t rdyPos_mm, float *outZ)
 {
+  *outZ = NAN;
+  if (!marlin.isRunning() || !motion.all_axes_trusted()
+      || !isfinite(rdyPos_mm.x) || !isfinite(rdyPos_mm.y) || !isfinite(rdyPos_mm.z))
+    return false;
   ProbeAcq pa;
   pa.shakeZAxis(20);
   xyz_float_t touchOftPos = CRTOUCH_OFT_POS;
@@ -564,57 +577,46 @@ bool probeByTouch(xyz_float_t rdyPos_mm, float *outZ)
   DO_BLOCKING_MOVE_TO_Z(rdyPos_mm.z, 5);
   DO_BLOCKING_MOVE_TO_XY(rdyPos_mm.x - touchOftPos.x, rdyPos_mm.y - touchOftPos.y, 100);
   *outZ = PROBE_PPINT_BY_TOUCH(rdyPos_mm.x - touchOftPos.x, rdyPos_mm.y - touchOftPos.y);
-  PRINTF("\n***PROBE BY TOUCH: touch_z=%s***\n", getStr(*outZ));
 
   SET_HOTEND_TEMP(oldNozTmp, 0);
   SET_BED_TEMP(oldBedTmp);
 
-  probe.stow();
+  const bool stow_failed = probe.stow();
+  if (stow_failed || !isfinite(*outZ) || !marlin.isRunning() || !motion.all_axes_trusted()) {
+    *outZ = NAN;
+    motion.set_axis_untrusted(Z_AXIS);
+    SERIAL_ERROR_MSG("Auto Z-offset: CRTouch failed. Calibration aborted.");
+    return false;
+  }
+  PRINTF("\n***PROBE BY TOUCH: touch_z=%s***\n", getStr(*outZ));
   return true;
 }
 
-/*
- *Function Name: printTestResult(float *zTouch, float *zPress)
- */
-void printTestResult(float *zTouch, float *zPress)
-{
-  static float acqVals[128][3] = {0}; // Save up to 128 sets of measurement data
+// Each point supplies one touch measurement and one median pressure measurement.
+static void printTestResult(const float zTouch, const float zPress) {
+  static float acqVals[128][3] = {0};
   static int acqValIndex = 0;
 
-  PRINTF("\n***GET Z OFFSET: zTouch={%s, %s, %s}, zPress={%s, %s, %s}, zOffset={%s, %s, %s}***\n",
-         getStr(zTouch[0]), getStr(zTouch[1]), getStr(zTouch[2]), getStr(zPress[0]), getStr(zPress[1]), getStr(zPress[2]),
-         getStr(zPress[0] - zTouch[0]), getStr(zPress[1] - zTouch[1]), getStr(zPress[2] - zTouch[2]));
-
-  float zt_avg = 0, zp_avg = 0;
-  ARY_AVG(zt_avg, zTouch, 3);
-  ARY_AVG(zp_avg, zPress, 3);
-
-  acqVals[acqValIndex][0] = zp_avg;
-  acqVals[acqValIndex][1] = zt_avg;
-  acqVals[acqValIndex][2] = zp_avg - zt_avg;
+  PRINTF("\n***GET Z OFFSET: touch=%s, press=%s, offset=%s***\n",
+         getStr(zTouch), getStr(zPress), getStr(zPress - zTouch));
+  acqVals[acqValIndex][0] = zPress;
+  acqVals[acqValIndex][1] = zTouch;
+  acqVals[acqValIndex][2] = zPress - zTouch;
   acqValIndex = (acqValIndex >= 127 ? 127 : (acqValIndex + 1));
   FOR_LOOP_TIMES(i, 0, acqValIndex, PRINTF("%d\t%s\t%s\t%s\n", i, getStr(acqVals[i][0]), getStr(acqVals[i][1]), getStr(acqVals[i][2])));
 }
 
-// High ounce (one point)
-float Hight_One(xyz_float_t pressPos)
-{
-  float temp_value = 0;
-  float zTouch[1] = {0};
-  float zPress[1] = {0};
-
-  bool isRunProByPress = true, isRunProByTouch = true;
+// Measure pressure only after the CRTouch measurement succeeds.
+float Hight_One(xyz_float_t pressPos) {
+  float zTouch = NAN, zPress = NAN;
   SET_BED_LEVE_ENABLE(false);
-
-  CHECK_AND_RUN(isRunProByTouch, {FOR_LOOP_TIMES(i, 0, 1, {probeByTouch(pressPos, &zTouch[0]); pressPos.z = zTouch[0]; })});
-
-  SET_BED_LEVE_ENABLE(false);
-  CHECK_AND_RUN(isRunProByPress, FOR_LOOP_TIMES(i, 0, 1, {probeByPress(pressPos, &zPress[0]); zPress[0] += NOZ_TEMP_OFT_MM; }));
-
-  temp_value = (zPress[0] - zTouch[0]);
+  if (!probeByTouch(pressPos, &zTouch)) return NAN;
+  pressPos.z = zTouch;
+  if (!probeByPress(pressPos, &zPress)) return NAN;
+  zPress += NOZ_TEMP_OFT_MM;
   printTestResult(zTouch, zPress);
   DO_BLOCKING_MOVE_TO_Z(5, 5);
-  return temp_value;
+  return zPress - zTouch;
 }
 
 // === Variant of Multiple_Hight that accepts an explicit base point ===
@@ -630,6 +632,7 @@ static float Multiple_Hight_At(xyz_float_t basePos, bool isRunProByPress, bool i
   for (uint8_t k = 0; k < NIN; k++) {
     pressPos.y = basePos.y - (k * 5);     
     zoffset_value[k] = Hight_One(pressPos);
+    if (!isfinite(zoffset_value[k])) return NAN;
     PRINTF("\n***OUTPUT_ZOFFSET(@[%s,%s]): zOffset=%s***\n",getStr(pressPos.x), getStr(pressPos.y), getStr(zoffset_value[k]));
     // RUN_AND_WAIT_GCODE_CMD("G28", true);
   }
@@ -654,6 +657,7 @@ static float Multiple_Hight_At(xyz_float_t basePos, bool isRunProByPress, bool i
     // third “additional” reading
     pressPos.y = basePos.y - ((2 - 2) * 5); 
     zoffset_value[2] = Hight_One(pressPos);
+    if (!isfinite(zoffset_value[2])) return NAN;
     PRINTF("\n***OUTPUT_ZOFFSET(@[%s,%s] 3rd): zOffset=%s***\n",getStr(pressPos.x), getStr(pressPos.y), getStr(zoffset_value[2]));
 
     const float a2 = zoffset_value[2];
@@ -743,129 +747,72 @@ static float Multiple_Hight_At(xyz_float_t basePos, bool isRunProByPress, bool i
  *Function Name: getZOffset(float*outOffset)
  *Purpose: measure multiple points and estimate Z offset with robust statistics
  */
-bool getZOffset(bool isNozzleClr, bool isRunProByPress, bool isRunProByTouch, float *outOffset)
-{
-  // The load-cell sampling needs standard stepper motion; FT Motion is restored on exit
-  TERN_(FT_MOTION, FTM_DISABLE_IN_SCOPE());
-  #if ENABLED(X_ROUTINE_AUTO_OFFSET)
-    SERIAL_ECHOLNPGM_P("=== Starting Get Z Offset (5 points, X Routine) ===");
-  #elif ENABLED(D_ROUTINE_AUTO_OFFSET)
-    SERIAL_ECHOLNPGM_P("=== Starting Get Z Offset (4 points, D Routine) ===");
-  #endif
-  
-  // Preparation
-  SET_Z_OFFSET(0, false);
+static bool measure_z_offset(const bool isNozzleClr, float *outOffset) {
+  if (!marlin.isRunning()) return false;
+  SET_BED_LEVE_ENABLE(false);
   RUN_AND_WAIT_GCODE_CMD("G28", true);
+  if (!marlin.isRunning() || !motion.all_axes_trusted()) return false;
 
-  // Cleaning (one time, as before)
-  xyz_float_t pressPos = PRESS_XYZ_POS;
-  xyz_float_t touchOftPos = CRTOUCH_OFT_POS;
-  xyz_float_t rdyPos[3] = {{0, 0, HIGHT_UPRAISE_Z}, {0, 0, HIGHT_UPRAISE_Z}, {0, 0, HIGHT_UPRAISE_Z}};
-  rdyPos[0].x = rdyPos[2].x = (pressPos.x < (BED_SIZE_X_MM / 2) ? (touchOftPos.x < 0) : (touchOftPos.x > 0)) ? pressPos.x : touchOftPos.x + 10;
-  rdyPos[0].x -= 9;
-  rdyPos[0].y = rdyPos[1].y = ((pressPos.y < (BED_SIZE_Y_MM / 2) ? (touchOftPos.y < 0) : (touchOftPos.y > 0)) ? pressPos.y : touchOftPos.y + 10);
-  rdyPos[0].y = rdyPos[1].y -= 17;
-  rdyPos[1].x = rdyPos[0].x + (pressPos.x < (BED_SIZE_X_MM / 2) ? +1 : -1) * BED_SIZE_X_MM / 5;
-  rdyPos[2].y = rdyPos[0].y + (pressPos.y < (BED_SIZE_Y_MM / 2) ? +1 : -1) * BED_SIZE_Y_MM / 5;
-  rdyPos[2].x = (rdyPos[0].x + (rdyPos[1].x - rdyPos[0].x) / 2);
-
-  xyz_float_t startPos = {CLEAR_NOZZL_START_X, CLEAR_NOZZL_START_Y, 0};
-  xyz_float_t endPos   = {CLEAR_NOZZL_END_X,   CLEAR_NOZZL_END_Y,   0};
-  CHECK_AND_RUN(isNozzleClr, clearByBed(startPos, endPos, 140, 175));
+  if (isNozzleClr) {
+    const xyz_float_t startPos = {CLEAR_NOZZL_START_X, CLEAR_NOZZL_START_Y, 0};
+    const xyz_float_t endPos = {CLEAR_NOZZL_END_X, CLEAR_NOZZL_END_Y, 0};
+    if (!clearByBed(startPos, endPos, 140, 175)) return false;
+  }
   Popup_Window_Height(Nozz_Hight);
 
-#if ENABLED(X_ROUTINE_AUTO_OFFSET)
-  // Points requested
-  const xyz_float_t Probes[5] = {
-    {  28,  28, 0},   // Left front
-    { 110, 110, 0},   // center approx
-    { 180, 180, 0}, //back-right this point is too far from the load cell, could cause damage in the bed disable if needed
-    { 180,  28, 0},   // Right front
-    {  28, 180, 0},   // Back left
+  const xyz_float_t points[] = {
+    { 28, 28, 0 }, { 110, 110, 0 },
+    #if ENABLED(X_ROUTINE_AUTO_OFFSET)
+      { 180, 180, 0 },
+    #endif
+    { 180, 28, 0 }, { 28, 180, 0 }
   };
-
-  // Measure each point using the same robust routine (Multiple_Hight_) but centered on the coordinate
-  float vals[5] = {0};
-  xyz_float_t valid_pts[5] = {};
+  float vals[COUNT(points)];
+  xyz_float_t valid_pts[COUNT(points)];
   uint8_t vcount = 0;
-
-  for (uint8_t i = 0; i < 5; ++i)
-  
-  {
-    float zoff = Multiple_Hight_At(Probes[i], isRunProByPress, isRunProByTouch);
-    // Filters invalid values ​​(≈0, out of range)
+  for (uint8_t i = 0; i < COUNT(points); ++i) {
+    const float zoff = Multiple_Hight_At(points[i], true, true);
+    // A sensor failure aborts the entire run, even after earlier valid points.
+    if (!isfinite(zoff) || !marlin.isRunning() || !motion.all_axes_trusted()) return false;
     if (is_valid_offset(zoff)) {
-      vals[vcount++] = zoff;
-      valid_pts[vcount - 1] = Probes[i];
-      PRINTF("***POINT[%d @ %s,%s] => zOffset=%s (kept)\n", i, getStr(Probes[i].x), getStr(Probes[i].y), getStr(zoff));
-    } else {
-      PRINTF("***POINT[%d @ %s,%s] => zOffset=%s (discarded)\n", i, getStr(Probes[i].x), getStr(Probes[i].y), getStr(zoff));
+      vals[vcount] = zoff;
+      valid_pts[vcount++] = points[i];
     }
-    // RUN_AND_WAIT_GCODE_CMD("G28", true);  // not needed between points
+    PRINTF("***POINT[%d @ %s,%s] => zOffset=%s (%s)\n", i,
+           getStr(points[i].x), getStr(points[i].y), getStr(zoff), is_valid_offset(zoff) ? "kept" : "discarded");
   }
-
-  if (vcount == 0) {
-    SERIAL_ECHOLNPGM_P("No valid readings across 5 points.");
-    return false;
-  }
-
-  // Final robust estimate (median fallback internal)
-#elif ENABLED(D_ROUTINE_AUTO_OFFSET)
-  // Points requested
-  const xyz_float_t Probes[4] = {
-    {  28,  28, 0},   // Left front
-    { 110, 110, 0},   // center approx
-    { 180,  28, 0},   // Right front
-    {  28, 180, 0},   // Back left
-  };
-
-  // Measure each point using the same robust routine (Multiple_Hight_) but centered on the coordinate
-  float vals[4] = {0};
-  xyz_float_t valid_pts[4] = {};
-  uint8_t vcount = 0;
-
-  for (uint8_t i = 0; i < 4; ++i)
-  
-  {
-    float zoff = Multiple_Hight_At(Probes[i], isRunProByPress, isRunProByTouch);
-    // Filters invalid values ​​(≈0, out of range)
-    if (is_valid_offset(zoff)) {
-      vals[vcount++] = zoff;
-      valid_pts[vcount - 1] = Probes[i];
-      PRINTF("***POINT[%d @ %s,%s] => zOffset=%s (kept)\n", i, getStr(Probes[i].x), getStr(Probes[i].y), getStr(zoff));
-    } else {
-      PRINTF("***POINT[%d @ %s,%s] => zOffset=%s (discarded)\n", i, getStr(Probes[i].x), getStr(Probes[i].y), getStr(zoff));
-    }
-    // RUN_AND_WAIT_GCODE_CMD("G28", true);  // not needed between points
-  }
-
-  if (vcount == 0) {
-    SERIAL_ECHOLNPGM_P("No valid readings across 4 points.");
-    return false;
-  }
-
-  // Final robust estimate (median fallback internal)
-
-#endif
-
+  if (!vcount) return false;
   *outOffset = robust_offset_from_points(vals, valid_pts, vcount);
+  return is_valid_offset(*outOffset);
+}
 
-#if ENABLED(X_ROUTINE_AUTO_OFFSET)
-    SERIAL_ECHOLNPGM_P("=== Z Offset Measurement Completed (5 points) ===");
-    SERIAL_ECHOLNPGM("OUTPUT_ZOFFSET(5pt ROBUST): ", *outOffset);
-#elif ENABLED(D_ROUTINE_AUTO_OFFSET)
-    SERIAL_ECHOLNPGM_P("=== Z Offset Measurement Completed (4 points) ===");
-    SERIAL_ECHOLNPGM("OUTPUT_ZOFFSET(4pt ROBUST): ", *outOffset);
-#endif
- 
-if ((*outOffset > ZOFFSET_VALUE_MAX) || (*outOffset < ZOFFSET_VALUE_MIN))
+bool getZOffset(bool isNozzleClr, bool isRunProByPress, bool isRunProByTouch, float *outOffset) {
+  *outOffset = NAN;
+  // A calibrated offset requires both sensors; read-only diagnostics have their own G212 modes.
+  if (!isRunProByPress || !isRunProByTouch) return false;
+  TERN_(FT_MOTION, FTM_DISABLE_IN_SCOPE());
+  bool succeeded;
   {
-    SERIAL_ECHOLNPGM_P("=== Z Offset Measurement Failed: Out of Range ===");
+    // Restore the previous calibration on every failure, without babystepping.
+    REMEMBER(z_offset, probe.offset.z, 0.0f);
+    succeeded = measure_z_offset(isNozzleClr, outOffset);
+    if (succeeded) {
+      // Establish Z with the measured offset before the caller saves it.
+      // Assigning the offset here must not queue a physical babystep.
+      probe.offset.z = *outOffset;
+      RUN_AND_WAIT_GCODE_CMD("G28", true);
+      succeeded = marlin.isRunning() && motion.all_axes_trusted();
+    }
+  }
+  if (!succeeded) {
+    *outOffset = NAN;
+    motion.set_axis_untrusted(Z_AXIS);
+    SERIAL_ERROR_MSG("Auto Z-offset failed. Previous offset preserved; home before moving.");
     return false;
   }
-
-  SET_Z_OFFSET(*outOffset, true);
-  return (isRunProByPress && isRunProByTouch);
+  SERIAL_ECHOLNPGM("OUTPUT_ZOFFSET: ", *outOffset);
+  probe.offset.z = *outOffset;
+  return true;
 }
 
 #endif

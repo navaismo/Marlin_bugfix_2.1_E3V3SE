@@ -299,6 +299,14 @@ void GcodeSuite::dwell(const millis_t time) {
     uint8_t retries = G29_MAX_RETRIES;
     while (G29())
   {
+    #if ENABLED(DWIN_CREALITY_LCD)
+      // A failed probe can leave Z untrusted. Do not retry or issue recovery
+      // movements after the LCD failure path has stopped the calibration.
+      if (!marlin.isRunning() || !motion.axis_is_trusted(Z_AXIS)) {
+        TERN_(HOST_PROMPT_SUPPORT, hostui.prompt_end());
+        return;
+      }
+    #endif
     // G29 should return true for failed probes ONLY
     if (retries)
     {
