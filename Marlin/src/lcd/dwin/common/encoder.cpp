@@ -160,9 +160,13 @@ ENCODER_DiffState Encoder_ReceiveAnalyze() {
         #if PIN_EXISTS(LCD_LED)
           //LED_Action();
         #endif
+        #if ENABLED(DWIN_CREALITY_LCD_JYERSUI)
+          return ENCODER_DIFF_ENTER; // JyersUI consumes confirmation itself.
+        #else
         const bool was_waiting = marlin.wait_for_user;
         marlin.user_resume();
         return was_waiting ? ENCODER_DIFF_NO : ENCODER_DIFF_ENTER;
+        #endif
       }
       else return ENCODER_DIFF_NO;
     }

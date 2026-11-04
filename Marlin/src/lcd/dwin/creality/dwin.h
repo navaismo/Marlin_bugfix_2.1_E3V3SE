@@ -84,6 +84,9 @@ enum processID : uint8_t {
   Leveling,
   Level,
   PrintProcess,
+  #if ENABLED(ADVANCED_PAUSE_FEATURE)
+    AdvancedPause,
+  #endif
   AxisMove,
   TemperatureID,
   MotionMenu,
@@ -823,10 +826,6 @@ void Popup_Window_Leveling();
 
 void Goto_PrintProcess();
 void Goto_MainMenu();
-#if ENABLED(DWIN_RENDER_THUMBNAIL)
-  void Goto_ThumbPrint();
-#endif
-
 #if ENABLED(OCTOPRINT_PLUGIN)
   void Goto_ThumbFinish();
   void DWIN_OctoUpdate();
@@ -911,9 +910,15 @@ void HMI_Step();            // Transmission ratio
 void HMI_Boot_Set(); //Boot settings
 
 void HMI_Init();
+void dwinInitScreen();
+#if ENABLED(DWIN_RENDER_THUMBNAIL)
+  void Goto_ThumbPrint(const bool reset_progress=true);
+#endif
 void DWIN_Update();
 void EachMomentUpdate();
-void Check_Filament_Update(void);
+#if !HAS_FILAMENT_SENSOR
+  void Check_Filament_Update(void);
+#endif
 void DWIN_HandleScreen();
 // void DWIN_StatusChanged(const char *text);
 void DWIN_Draw_Checkbox(uint16_t color, uint16_t bcolor, uint16_t x, uint16_t y, bool mode /* = false*/);

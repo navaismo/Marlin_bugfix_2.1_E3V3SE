@@ -29,7 +29,7 @@ Read [`MEMORY.md`](./MEMORY.md) for the repository's branch map, custom-feature 
 
 - Fork-only code lives in `Marlin/src/e3v3se/` (auto Z-offset: `AutoOffset.*`, `M8015.cpp`, `G212.cpp`) and `Marlin/src/lcd/dwin/creality/`. Never put fork-only files in upstream folders.
 - Upstream-owned files (everything else) should stay as close to upstream as possible. Prefer a hook in a fork-owned file over editing upstream code. One-click print is an upstream feature: `sd/cardreader.*` and `menu_one_click_print.cpp` follow upstream plus the `selectNewestFile()` depth-sync fix.
-- `Configuration.h` / `Configuration_adv.h` are derived: pristine upstream + `buildroot/share/e3v3se/profiles/c13_sd/` (`overrides.txt` for define states, `residual.*.patch` for fork-only options/blocks).
+- `Configuration.h` / `Configuration_adv.h` are derived: pristine upstream + the profile selected by `buildroot/share/e3v3se/active_profile` (`overrides.txt` for define states, `residual.*.patch` for fork-only options/blocks).
   - Edited the config files by hand? Run `python3 buildroot/share/e3v3se/config_profile.py derive`.
   - After merging upstream: take upstream's config files, then run `config_profile.py apply` (fails loudly if the residual patch no longer applies), then `config_profile.py stale` to review upstream options the profile disables.
 - Guardrails (commit first, they diff `HEAD`): `check_profile.py boundary | config | build`. Use `--update` only after a reviewed change.

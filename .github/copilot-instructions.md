@@ -8,12 +8,16 @@ This repository is a Marlin 2.1.x bugfix fork customized for the Creality Ender-
 
 | Hardware | Use | Branch |
 | --- | --- | --- |
-| C13 (`BOARD_CREALITY_V3_GD303`, STM32F103RE) | SD card | `legacy/for_E3V3SE` |
-| C14 (STM32F401) | SD card | `legacy/for_STM32F401` |
-| C13 | OctoPrint / serial host | `for_Octoprint` (legacy), `c13_octoprint` (profile-based rewrite) |
-| C14 | OctoPrint / serial host | `legacy/for_Octoprint_F401` |
+| C13 (`BOARD_CREALITY_V3_GD303`, STM32F103RE) | SD card | `c13_sd` |
+| C14 (STM32F401RE) | SD card | `c14_sd` |
+| C13 | OctoPrint / serial host | `c13_octoprint` |
+| C14 | OctoPrint / serial host | `c14_octoprint` |
 
-These are the pre-architecture `legacy/` branches. Current work happens on `c13_sd` (default, C13 SD) and `c13_octoprint` (C13 host); C14 is not yet migrated.
+All four variants use the upstream-merge architecture and active configuration
+profiles. The `legacy/` branches are historical references. `Bed_Scale_test`
+adds the experimental scale and plugin protocol in its own `bed_scale` profile.
+See `docs/upstream-integration-2026-11.md` before changing startup, pause/runout,
+SD state or the EEPROM schema. STM32 uses STM32duino 2.6.0 / ststm32 17.1.0.
 
 Check the active branch and target before changing board-specific configuration or host behavior. The SD-only and host branches do not have identical enabled features.
 

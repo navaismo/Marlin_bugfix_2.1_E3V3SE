@@ -17,9 +17,9 @@ import argparse, difflib, os, re, subprocess, sys, tempfile
 
 ROOT = subprocess.check_output(["git", "rev-parse", "--show-toplevel"], text=True).strip()
 PROFILE_DIR = os.path.join(ROOT, "buildroot/share/e3v3se/profiles")
+ACTIVE_PATH = os.path.join(PROFILE_DIR, "..", "active_profile")
+ACTIVE_PROFILE = open(ACTIVE_PATH).read().strip() if os.path.exists(ACTIVE_PATH) else "c13_sd"
 FILES = ("Configuration.h", "Configuration_adv.h")
-_active = os.path.join(PROFILE_DIR, "..", "active_profile")
-ACTIVE_PROFILE = open(_active).read().strip() if os.path.exists(_active) else "c13_sd"
 DEFINE = re.compile(r'^(\s*)(//)?(\s*)#define(\s+)(\w+)(?:(\s+)(.*?))?(\s*//.*)?$')
 
 
