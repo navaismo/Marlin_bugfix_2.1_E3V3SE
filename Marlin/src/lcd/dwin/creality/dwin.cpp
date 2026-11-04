@@ -3690,7 +3690,7 @@ void Popup_window_Remove_card(void)
 }
 #if ENABLED(USER_LEVEL_CHECK) // Using the leveling calibration function
 // Reduced G29
-static void G29_small(void) //
+static bool G29_small(void) //
 {
   xy_pos_t probe_position_lf,
       probe_position_rb;
@@ -3714,13 +3714,20 @@ static void G29_small(void) //
   const xy_int8_t grid_temp[4] = {{GRID_MAX_POINTS_X - 1, 0}, {0, 0}, {0, GRID_MAX_POINTS_Y - 1}, {GRID_MAX_POINTS_X - 1, GRID_MAX_POINTS_Y - 1}};
   // //Z values[grid temp[0].x][grid temp[0].y]=0;
   RUN_AND_WAIT_GCODE_CMD(G28_STR, 1);
+  if (!marlin.isRunning() || !motion.all_axes_trusted()) {
+    HMI_flag.Need_g29_flag = true;
+    return false;
+  }
   set_bed_leveling_enabled(false);
   SET_BED_TEMP(65); // heated bed
   WAIT_BED_TEMP(60 * 5 * 1000, 2);
   DO_BLOCKING_MOVE_TO_Z(5, 5); // Lift the z-axis to 5mm
   for (loop_j = 0; loop_j < CHECK_POINT_NUM; loop_j++)
   {
-    probeByTouch(position_arr[loop_j], &temp_z_arr[loop_j]);
+    if (!probeByTouch(position_arr[loop_j], &temp_z_arr[loop_j])) {
+      HMI_flag.Need_g29_flag = true;
+      return false;
+    }
     // temp_z_arr[loop_j]=PROBE_PPINT_BY_TOUCH(position_arr[loop_j].x, position_arr[loop_j].y);
     // PRINT_LOG("temp_z_arr[]:", temp_z_arr[loop_j]);
     // PRINT_LOG("bedlevel.z_values[]:", bedlevel.z_values[grid_temp[loop_j].x][grid_temp[loop_j].y]);
@@ -3745,6 +3752,7 @@ static void G29_small(void) //
   }
 
   set_bed_leveling_enabled(true);
+  return true;
   // Calculate the coordinates of the four points that need to be verified
   // Calibrate the heights of the four points respectively and save them in a temporary array.
   // Compare the coordinates of the four points in the temporary array with the coordinates of the four points tested last time. If the coordinates of more than two points exceed 0.05, re-G29.
@@ -6576,7 +6584,7 @@ void HMI_Printing()
         if (isPaused){
           isPaused = false;
           SERIAL_ECHOLNPGM("M9000 resume-job");
-          Goto_ThumbPrint();
+          Goto_ThumbPrint(false);
           
         }else{
 
@@ -6644,11 +6652,11 @@ void HMI_PauseOrStop()
         {  
           isPaused = true;
           SERIAL_ECHOLNPGM("M9000 pause-job");
-          Goto_ThumbPrint();
+          Goto_ThumbPrint(false);
         }
         else
         {
-          Goto_ThumbPrint();
+          Goto_ThumbPrint(false);
         }  
       #else
         if (HMI_flag.select_flag)
@@ -6661,7 +6669,7 @@ void HMI_PauseOrStop()
 
           #if ENABLED(DWIN_RENDER_THUMBNAIL)
           if(hasThumbnail){
-            Goto_ThumbPrint();
+            Goto_ThumbPrint(false);
           } else {
             Goto_PrintProcess();
           }  
@@ -6678,7 +6686,7 @@ void HMI_PauseOrStop()
         {
           #if ENABLED(DWIN_RENDER_THUMBNAIL)
           if(hasThumbnail){
-            Goto_ThumbPrint();
+            Goto_ThumbPrint(false);
           } else {
             Goto_PrintProcess();
           }  
@@ -6700,7 +6708,7 @@ void HMI_PauseOrStop()
         }
         else
         {
-          Goto_ThumbPrint();
+          Goto_ThumbPrint(false);
         }
 
       #else
@@ -6740,7 +6748,7 @@ void HMI_PauseOrStop()
         {
           #if ENABLED(DWIN_RENDER_THUMBNAIL)
           if(hasThumbnail){
-            Goto_ThumbPrint();
+            Goto_ThumbPrint(false);
           } else {
             Goto_PrintProcess();
           }  
@@ -6988,6 +6996,63 @@ void CR_Touch_error_func()
     hal.reboot();
   }
 }
+// Calibration failures have their own state so acknowledging an error cannot
+// retry M8015 or complete the first-boot wizard through HMI_Confirm.
+static bool calibration_recovery_busy = false;
+
+void DWIN_CalibrationFailed(const bool homing_failed) {
+  HMI_flag.leveling_offset_flag = HMI_flag.Pressure_Height_end = false;
+  HMI_flag.local_leveling_flag = HMI_flag.G29_finish_flag = false;
+  HMI_flag.Level_check_start_flag = HMI_flag.Need_g29_flag = false;
+  HMI_flag.Refresh_bottom_flag = true;
+  motion.set_axis_untrusted(Z_AXIS);
+  checkkey = CalibrationError;
+  #if ENABLED(OCTOPRINT_PLUGIN)
+    OctoRefresh = false;
+  #endif
+  Clear_Main_Window();
+  Draw_Title(HMI_flag.language == Spanish ? F("Error de calibracion") : F("Calibration failed"));
+  Draw_Popup_Bkgd_60();
+  DWIN_Draw_String(false, false, font8x16, Color_White, Color_Bg_Window, 32, 92,
+                   HMI_flag.language == Spanish ? F("Fallo al calcular") : F("Could not calculate"));
+  DWIN_Draw_String(false, false, font8x16, Color_White, Color_Bg_Window, 32, 116,
+                   HMI_flag.language == Spanish ? F("la calibracion.") : F("calibration data."));
+  if (homing_failed)
+    DWIN_Draw_String(false, false, font8x16, Color_Red, Color_Bg_Window, 24, 148,
+                     HMI_flag.language == Spanish ? F("Homing fallo. Revisar.") : F("Homing failed. Check."));
+  DWIN_Draw_Rectangle(1, Color_Bg_Blue, 16, 188, DWIN_WIDTH - 16, 220);
+  DWIN_Draw_Rectangle(0, Color_Yellow, 16, 188, DWIN_WIDTH - 16, 220);
+  DWIN_Draw_String(false, false, font8x16, Color_Yellow, Color_Bg_Blue, 48, 196,
+                   HMI_flag.language == Spanish ? F("Homing y menu") : F("Home / Main menu"));
+  DWIN_UpdateLCD();
+}
+
+static void HMI_CalibrationError() {
+  const ENCODER_DiffState state = get_encoder_state();
+  if (state != ENCODER_DIFF_ENTER || calibration_recovery_busy) return;
+  calibration_recovery_busy = true;
+
+  // A probe alarm may have stopped Marlin. This explicit click authorizes
+  // homing only; do not flush/replay the host queue or resume a print.
+  if (marlin.isStopped()) {
+    marlin.setState(MF_RUNNING);
+    ui.reset_alert_level();
+  }
+  if (marlin.isRunning()) {
+    Popup_Window_Home();
+    motion.set_axis_untrusted(Z_AXIS);
+    gcode.home_all_axes();
+    planner.synchronize();
+  }
+  if (marlin.isRunning() && motion.all_axes_trusted()) {
+    select_page.set(0);
+    Goto_MainMenu();
+  }
+  else
+    DWIN_CalibrationFailed(true);
+  calibration_recovery_busy = false;
+}
+
 // An interface with an OK button
 void HMI_Confirm()
 {
@@ -10305,7 +10370,7 @@ void HMI_ThumbPrint()
         if(isPaused){ //If already paused
           SERIAL_ECHOLNPGM("M9000 resume-job");
           isPaused = false;
-          Goto_ThumbPrint();
+          Goto_ThumbPrint(false);
 
         }else{
           checkkey = ThumbPrint_window;
@@ -10375,7 +10440,7 @@ void HMI_ThumbTune() {
     switch (select_tune.now) {
     case 0: { // Back
       select_print.set(0);
-      Goto_ThumbPrint();
+      Goto_ThumbPrint(false);
     } break;
     case TUNE_CASE_SPEED: // Print speed
       HMI_flag.Refresh_bottom_flag = true;
@@ -11214,17 +11279,33 @@ void HMI_Boot_Set() // Boot settings
 
 #if ENABLED(ADVANCED_PAUSE_FEATURE)
   static bool pause_ui_active = false, pause_resume_selected = true;
+  static bool pause_option_sensor_out = false;
   static PauseMessage pause_ui_message = PAUSE_MESSAGE_STATUS;
   static bool pause_keep_thumbnail = false;
 
-  static bool pause_sensor_out() { return TERN0(HAS_FILAMENT_SENSOR, runout.filament_ran_out); }
+  static bool pause_sensor_out() {
+    #if HAS_FILAMENT_SENSOR
+      // A switch can confirm reinsertion independently of the latched event.
+      // Motion sensors need extrusion to establish filament presence instead.
+      #if NONE(FILAMENT_MOTION_SENSOR, FILAMENT_SWITCH_AND_MOTION)
+        if (runout.enabled && runout.filament_ran_out && !active_filament_is_out()) {
+          runout.reset();
+          TERN_(HOST_PROMPT_SUPPORT, hostui.filament_load_prompt());
+        }
+      #endif
+      return runout.filament_ran_out;
+    #else
+      return false;
+    #endif
+  }
 
   static void Draw_Pause_Options() {
+    pause_option_sensor_out = pause_sensor_out();
     DWIN_Draw_Rectangle(1, Color_Bg_Black, 0, 185, DWIN_WIDTH - 1, 218);
     DWIN_Draw_String(false, false, font6x12, pause_resume_selected ? Color_White : Color_Yellow,
                      Color_Bg_Black, 12, 195, F("Purge more"));
     DWIN_Draw_String(false, false, font6x12, pause_resume_selected ? Color_Yellow : Color_White,
-                     Color_Bg_Black, 126, 195, pause_sensor_out() ? F("Disable sensor") : F("Resume"));
+                     Color_Bg_Black, 126, 195, pause_option_sensor_out ? F("Disable sensor") : F("Resume"));
   }
 
   void MarlinUI::pause_show_message(const PauseMessage message, const PauseMode mode, const uint8_t extruder) {
@@ -11261,13 +11342,14 @@ void HMI_Boot_Set() // Boot settings
       DWIN_Draw_Rectangle(1, Color_Bg_Black, 0, 123, DWIN_WIDTH - 1, STATUS_Y - 1);
     }
     else Clear_Main_Window();
-    Draw_Title(F("Filament change"));
+    Draw_Title(pause_ui_message == PAUSE_MESSAGE_WAITING ? F("Print paused") : F("Filament change"));
     FSTR_P text = F("Please wait...");
     switch (message) {
       case PAUSE_MESSAGE_PARKING: text = F("Parking nozzle..."); break;
       case PAUSE_MESSAGE_HEATING: text = F("Heating nozzle..."); break;
       case PAUSE_MESSAGE_UNLOAD: text = F("Unloading filament..."); break;
       case PAUSE_MESSAGE_INSERT: text = F("Insert filament"); break;
+      case PAUSE_MESSAGE_WAITING: text = F("Press knob to resume"); break;
       case PAUSE_MESSAGE_LOAD: text = F("Loading filament..."); break;
       case PAUSE_MESSAGE_PURGE: text = F("Purging filament..."); break;
       case PAUSE_MESSAGE_OPTION: text = F("Purge more or resume"); break;
@@ -11291,11 +11373,9 @@ void HMI_Boot_Set() // Boot settings
     // Wait-for-user clicks are consumed by the encoder and clear the core wait.
     #if M600_PURGE_MORE_RESUMABLE
       if (pause_ui_message != PAUSE_MESSAGE_OPTION || pause_menu_response != PAUSE_RESPONSE_WAIT_FOR) return;
-      static bool was_out = false;
       const bool out = pause_sensor_out();
       if (state == ENCODER_DIFF_CW || state == ENCODER_DIFF_CCW) pause_resume_selected = !pause_resume_selected;
-      if (out != was_out || state == ENCODER_DIFF_CW || state == ENCODER_DIFF_CCW) {
-        was_out = out;
+      if (out != pause_option_sensor_out || state == ENCODER_DIFF_CW || state == ENCODER_DIFF_CCW) {
         Draw_Pause_Options();
         DWIN_UpdateLCD();
       }
@@ -12148,6 +12228,31 @@ void Show_G_Pic(void)
       // Reset highlight for next entry
       if (card.isSDCardInserted()) // Have a card
       {
+#if ENABLED(USER_LEVEL_CHECK) // Using the leveling calibration function
+        if (HMI_flag.Level_check_flag && (!card.isPrinting()))
+        {
+          // Popup window home();
+          HMI_flag.Level_check_start_flag = true; // Leveling calibration start mark position 1
+          HMI_flag.Need_g29_flag = false;
+          bool level_check_ok = G29_small();
+          if (level_check_ok) {
+            if (HMI_flag.Need_g29_flag) {
+              HMI_flag.G29_level_not_normal = false;
+              RUN_AND_WAIT_GCODE_CMD("G29", 1);
+              HMI_flag.Need_g29_flag = false;
+              level_check_ok = !HMI_flag.G29_level_not_normal;
+            }
+            else
+              RUN_AND_WAIT_GCODE_CMD(G28_STR, 1);
+          }
+          if (!level_check_ok || !marlin.isRunning() || !motion.all_axes_trusted()) {
+            HMI_flag.Level_check_start_flag = false;
+            DWIN_CalibrationFailed();
+            return; // Never queue the SD print after a probe failure.
+          }
+          HMI_flag.Level_check_start_flag = false; // Leveling calibration start flag cleared
+        }
+#endif
         select_print.reset();
         select_file.reset();
         // Start choice and print SD file
@@ -12169,23 +12274,7 @@ void Show_G_Pic(void)
           Goto_PrintProcess();
         #endif
 
-#if ENABLED(USER_LEVEL_CHECK) // Using the leveling calibration function
-        if (HMI_flag.Level_check_flag && (!card.isPrinting()))
-        {
-          // Popup window home();
-          HMI_flag.Level_check_start_flag = true; // Leveling calibration start mark position 1
-          HMI_flag.Need_g29_flag = false;
-          G29_small(); // Leveling calibration mark position 1
-          if (HMI_flag.Need_g29_flag)
-          {
-            RUN_AND_WAIT_GCODE_CMD("G29", 1);
-            HMI_flag.Need_g29_flag = false; // Put it after g29
-          }
-          else
-            RUN_AND_WAIT_GCODE_CMD(G28_STR, 1);
-          HMI_flag.Level_check_start_flag = false; // Leveling calibration start flag cleared
-        }
-#endif
+
       }
       else
       {
@@ -12725,6 +12814,9 @@ void DWIN_HandleScreen()
   case POPUP_CONFIRM:
     HMI_Confirm();
     break;       // Interface with a single confirmation button
+  case CalibrationError:
+    HMI_CalibrationError();
+    break;
   case M117Info: // M117 window fix for HMI
     HMI_M117Info();
     break;

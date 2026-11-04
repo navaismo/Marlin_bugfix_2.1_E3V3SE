@@ -214,6 +214,7 @@ enum processID : uint8_t {
   ThumbHomeoffset,
   ThumbPrint_window,
 #endif
+  CalibrationError,
 };
 
 enum DC_language{
@@ -1006,6 +1007,7 @@ void Draw_laguage_Cursor(uint8_t line);
 void In_out_feedtock(uint16_t _distance,uint16_t _feedRate,bool dir);
 void In_out_feedtock_level(uint16_t _distance,uint16_t _feedRate,bool dir);
 void Popup_window_boot(uint8_t type_popup); //Pop-up window type interface
+void DWIN_CalibrationFailed(const bool homing_failed=false);
 void CR_Touch_error_func();//CR_TOUCH错误
 // void Draw_Dots_On_Screen(xy_int8_t *mesh_Count,uint8_t Set_En,uint16_t Set_BG_Color);
 #if ENABLED(SHOW_GRID_VALUES)  //If the leveling value is displayed

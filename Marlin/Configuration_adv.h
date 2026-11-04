@@ -1785,9 +1785,9 @@
 #endif // HAS_DISPLAY
 
 // Filled isometric bed mesh in Leveling > Bed Level Map (Creality DWIN, bilinear ABL).
-//#define BED_LEVEL_VISUALIZER
+#define BED_LEVEL_VISUALIZER
 #if ENABLED(BED_LEVEL_VISUALIZER)
-  #define BED_LEVEL_VISUALIZER_DRAW_DELAY_MS 10 // Minimum time between LCD drawing commands
+  #define BED_LEVEL_VISUALIZER_DRAW_DELAY_MS 7 // Minimum time between LCD drawing commands
   #if BED_LEVEL_VISUALIZER_DRAW_DELAY_MS < 5
     #error "BED_LEVEL_VISUALIZER_DRAW_DELAY_MS must be at least 5 ms."
   #endif
