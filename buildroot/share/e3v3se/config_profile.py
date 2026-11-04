@@ -17,6 +17,8 @@ import argparse, difflib, os, re, subprocess, sys, tempfile
 
 ROOT = subprocess.check_output(["git", "rev-parse", "--show-toplevel"], text=True).strip()
 PROFILE_DIR = os.path.join(ROOT, "buildroot/share/e3v3se/profiles")
+ACTIVE_PATH = os.path.join(PROFILE_DIR, "..", "active_profile")
+ACTIVE_PROFILE = open(ACTIVE_PATH).read().strip() if os.path.exists(ACTIVE_PATH) else "c13_sd"
 FILES = ("Configuration.h", "Configuration_adv.h")
 DEFINE = re.compile(r'^(\s*)(//)?(\s*)#define(\s+)(\w+)(?:(\s+)(.*?))?(\s*//.*)?$')
 
@@ -224,7 +226,7 @@ def cmd_stale(a):
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("command", choices=("derive", "apply", "check", "stale"))
-    p.add_argument("--profile", default="c13_sd")
+    p.add_argument("--profile", default=ACTIVE_PROFILE)
     p.add_argument("--ref", default=None, help="upstream commit to use as base (default: merge-base of HEAD and upstream/bugfix-2.1.x)")
     a = p.parse_args()
     a.ref = a.ref or subprocess.check_output(["git", "merge-base", "HEAD", "upstream/bugfix-2.1.x"], cwd=ROOT, text=True).strip()

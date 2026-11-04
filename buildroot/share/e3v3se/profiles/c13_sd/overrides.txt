@@ -1,4 +1,4 @@
-# Define-level overrides on top of 9861a96f3bdc11330b8ff111dc8468252e11c48a. Regenerate with: config_profile.py derive
+# Define-level overrides on top of 1c204b77c916bb16b59aeb765bdca4e0fd180efa. Regenerate with: config_profile.py derive
 Configuration.h E STRING_CONFIG_H_AUTHOR "Marlin, Creality, Kraplax & Navaismo"
 Configuration.h E MOTHERBOARD BOARD_CREALITY_V3_GD303
 Configuration.h E SERIAL_PORT 1

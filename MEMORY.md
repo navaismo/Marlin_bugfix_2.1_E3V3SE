@@ -1,5 +1,24 @@
 # Repository memory
 
+## Current integration (2026-11-03)
+
+- November upstream target: `1c204b77c916bb16b59aeb765bdca4e0fd180efa`.
+  All four release variants already use the profile architecture; older branch
+  descriptions below are historical. STM32 builds use ststm32 17.1.0,
+  STM32duino 2.6.0 and GCC 12.3. Remove obsolete MINIMUM_PLANNER_SPEED from residuals.
+- DWIN implements dwinInitScreen and the upstream advanced-pause UI contract.
+  pause.cpp now follows upstream with one Creality UI guard extension; configurable
+  purge lengths and paused_for_filament_change replace the old fork pause loop.
+  Knob and host responses both complete Purge More / Resume. Thumbnail progress
+  survives the pause dialog.
+- Marlin's enabled core sensor owns runout and M412. The legacy LCD M25 detector
+  is only compiled without HAS_FILAMENT_SENSOR, preventing pending-M600 overwrite.
+  Upstream timer-based print monitoring (including thermal autostart) is unchanged.
+- Default C13 EEPROM V93 matches 0cdabb7337: 771 bytes, 60 field offsets and
+  128 active serialization calls. check_eeprom_upgrade.py reproduces the ARM
+  comparison using compile_commands.json and pyelftools. Wizard and PLR-menu
+  raw EEPROM regions are unchanged. See docs/upstream-integration-2026-11.md.
+
 This is a point-in-time reference for future work, not a substitute for checking the active branch and current source. Branch refs, hardware configurations, and experiments may change. Facts below were inspected on **2026-10-09** in the working tree at `for_E3V3SE`, commit `4d0510d947` (also `origin/for_E3V3SE`).
 
 ## Repository identity and remotes

@@ -25,6 +25,7 @@
     "Marlin/src/gcode/lcd/M73.cpp",
     "Marlin/src/inc/Conditionals-2-LCD.h",
     "Marlin/src/inc/Conditionals-4-adv.h",
+    "Marlin/src/inc/Conditionals-5-post.h",
     "Marlin/src/inc/SanityCheck.h",
     "Marlin/src/inc/Version.h",
     "Marlin/src/lcd/buttons.h",
@@ -53,8 +54,8 @@
   ],
   "build": {
     "STM32F103RET6_creality": {
-      "flash": 230036,
-      "ram": 28384
+      "flash": 239580,
+      "ram": 28916
     }
   }
 }
