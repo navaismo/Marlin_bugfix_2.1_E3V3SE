@@ -1,4 +1,4 @@
-# Define-level overrides on top of 9861a96f3bdc11330b8ff111dc8468252e11c48a. Regenerate with: config_profile.py derive
+# Define-level overrides on top of 1c204b77c916bb16b59aeb765bdca4e0fd180efa. Regenerate with: config_profile.py derive
 Configuration.h E STRING_CONFIG_H_AUTHOR "Marlin, Creality, Kraplax & Navaismo"
 Configuration.h E MOTHERBOARD BOARD_CREALITY_V3_GD303
 Configuration.h E SERIAL_PORT 1
@@ -178,7 +178,6 @@ Configuration_adv.h E SD_FINISHED_RELEASECOMMAND "G1 X0 Y215\nM84"
 Configuration_adv.h E NO_SD_AUTOSTART
 Configuration_adv.h E ONE_CLICK_PRINT
 Configuration_adv.h E EVENT_GCODE_SD_ABORT "G28XY\nG1 X0 Y215\nM84"
-Configuration_adv.h E POWER_LOSS_RECOVERY
 Configuration_adv.h E PLR_ENABLED_DEFAULT true
 Configuration_adv.h E POWER_LOSS_ZRAISE 5
 Configuration_adv.h E LONG_FILENAME_HOST_SUPPORT

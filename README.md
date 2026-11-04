@@ -192,7 +192,7 @@ Some options depend on others. For example, `ONE_CLICK_PRINT` requires `NO_SD_AU
 | Thumbnail rendering | `DWIN_RENDER_THUMBNAIL` | `Configuration.h` |
 | Z height after homing menu | `DWIN_ZHOME_MENU` | `Configuration.h` |
 
-The table lists switches, not a statement of the current state; check the define in the file to see whether it is on in your branch. Some menu options depend on a base feature (for example the input shaping menu needs `FT_MOTION` or the legacy shapers).
+The table lists switches, not a statement of the current state; check the define in the file to see whether it is on in your branch. Some menu options depend on a base feature (for example the input shaping menu needs the legacy shapers with `FT_MOTION` disabled).
 
 `POWER_LOSS_RECOVERY` with `DWIN_PLR_MENU` adds **Control → Power-loss recovery**, a submenu for enabling SD recovery, heating the bed/nozzle while awaiting confirmation, bed temperature boost, automatic-resume temperature (0 = off), Z clearance, purge length and checkpoint Z interval. Use **Store settings** in the submenu or `M500` to persist all options; `M501` reloads them and `M502` restores defaults. `Configuration_adv.h` supplies the initial defaults. Recovery takes priority over One Click Print at startup. See the [recovery behavior and validation guide](docs/power-loss-recovery.md).
 
@@ -273,6 +273,9 @@ python3 buildroot/share/e3v3se/check_profile.py build --env STM32F401RE_creality
 Use `--update` only after a deliberate, reviewed change. A new edit to an upstream-owned file has to be added to the boundary list in `baseline.json` on purpose.
 
 ## Merging upstream
+
+The November integration and its compatibility checks are described in
+[`docs/upstream-integration-2026-11.md`](docs/upstream-integration-2026-11.md).
 
 1. Merge `bugfix-2.1.x` and resolve conflicts in favor of upstream, keeping the fork hooks.
 2. Take upstream's `Configuration.h` and `Configuration_adv.h`, then run `config_profile.py apply`. It fails loudly if a residual patch no longer applies.

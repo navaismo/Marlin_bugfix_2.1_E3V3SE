@@ -300,9 +300,10 @@
  * temperature of the air in the room, and the firmware will keep
  * the heater on.
  *
- * The solution: Once the temperature reaches the target, start observing.
- * If the temperature stays too far below the target (hysteresis) for too
- * long (period), the firmware will halt the machine as a safety precaution.
+ * The solution: Once the temperature is within the hysteresis of the target,
+ * start observing. If the temperature stays too far below the target
+ * (hysteresis) for too long (period), the firmware will halt the machine as
+ * a safety precaution.
  *
  * If you get false positives for "Thermal Runaway", increase
  * THERMAL_PROTECTION_HYSTERESIS and/or THERMAL_PROTECTION_PERIOD
@@ -323,9 +324,9 @@
    * Whenever an M104, M109, or M303 increases the target temperature, the
    * firmware will wait for the WATCH_TEMP_PERIOD to expire. If the temperature
    * hasn't increased by WATCH_TEMP_INCREASE degrees, the machine is halted and
-   * requires a hard reset. This test restarts with any M104/M109/M303, but only
-   * if the current temperature is far enough below the target for a reliable
-   * test.
+   * requires a hard reset. This test restarts with any M104/M109/M303 and
+   * repeats until the temperature is within THERMAL_PROTECTION_HYSTERESIS of
+   * the target, where Thermal Runaway protection takes over.
    *
    * If you get false positives for "Heating failed", increase WATCH_TEMP_PERIOD
    * and/or decrease WATCH_TEMP_INCREASE. WATCH_TEMP_INCREASE should not be set
@@ -341,16 +342,6 @@
 #if TEMP_SENSOR_BED && ENABLED(THERMAL_PROTECTION_BED)
   #define THERMAL_PROTECTION_BED_PERIOD        180 // (seconds)
   #define THERMAL_PROTECTION_BED_HYSTERESIS     2 // (°C)
-
-  /**
-   * E3V3SE_IGNORE_BED_MINTEMP may be enabled in Configuration.h when the
-   * bed sensor is intermittent or absent. It suppresses only the BED_MINTEMP
-   * shutdown. BED_MAXTEMP, thermal runaway, and heating-failed protection
-   * remain enabled.
-   *
-   * Do not enable this option when the bed sensor is required for safe
-   * operation. A missing or disconnected sensor can otherwise go unnoticed.
-   */
 
   /**
    * As described above, except for the bed (M140/M190/M303).
@@ -949,12 +940,6 @@
   #endif
 #endif
 
-// Drive the E axis with two synchronized steppers
-//#define E_DUAL_STEPPER_DRIVERS
-#if ENABLED(E_DUAL_STEPPER_DRIVERS)
-  //#define INVERT_E1_VS_E0_DIR       // E direction signals are opposites
-#endif
-
 // @section extruder
 
 // Activate a solenoid on the active extruder with M380. Disable all with M381.
@@ -1399,7 +1384,7 @@
 #ifdef XY_FREQUENCY_LIMIT
   #define XY_FREQUENCY_MIN_PERCENT 5 // (%) Minimum FR percentage to apply. Set with M201 S<min%>.
 #endif
-#define MINIMUM_PLANNER_SPEED 0.05 // (mm/s)
+// Minimum planner junction speed is calculated automatically by Marlin.
 
 //
 // Backlash Compensation
@@ -1797,7 +1782,6 @@
       //#define NEO2_USER_PRESET_STARTUP      // Have the printer display the user preset color on startup for the second strip
     #endif
   #endif
-
 #endif // HAS_DISPLAY
 
 // Filled isometric bed mesh in Leveling > Bed Level Map (Creality DWIN, bilinear ABL).
@@ -1810,7 +1794,8 @@
 #endif
 #if ENABLED(BED_LEVEL_VISUALIZER) && (!ENABLED(DWIN_CREALITY_LCD) || !ENABLED(AUTO_BED_LEVELING_BILINEAR))
   #error "BED_LEVEL_VISUALIZER requires DWIN_CREALITY_LCD and AUTO_BED_LEVELING_BILINEAR."
-#endif
+
+#endif // HAS_DISPLAY
 
 // Some displays offer Feedrate / Flow editing.
 #if ANY(HAS_MARLINUI_MENU, DWIN_CREALITY_LCD, DWIN_LCD_PROUI, MALYAN_LCD, TOUCH_SCREEN, ULTIPANEL_FEEDMULTIPLY)
@@ -1926,9 +1911,8 @@
    * an option on the LCD screen to continue the print from the last-known
    * point in the file.
    */
-  //#define POWER_LOSS_RECOVERY // Optional: consumes flash/RAM; enable with DWIN_PLR_MENU for the LCD submenu.
+  //#define POWER_LOSS_RECOVERY
   #if ENABLED(POWER_LOSS_RECOVERY)
-    // LCD-editable recovery options. Save from the submenu or with M500.
     //#define DWIN_PLR_MENU
     //#define PLR_HEAT_NOZZLE_ON_REBOOT // Default for the LCD nozzle-on-reboot setting
     #define PLR_ENABLED_DEFAULT       true // Power-Loss Recovery enabled by default. (Set with 'M413 Sn' & M500)
@@ -1941,7 +1925,7 @@
     //#define POWER_LOSS_PULLUP             // Set pullup / pulldown as appropriate for your sensor
     //#define POWER_LOSS_PULLDOWN
 
-    #define POWER_LOSS_ZRAISE        5    // (mm) Z axis raise on resume (on power-loss with UPS). Limited to Z_MAX_POS.
+    #define POWER_LOSS_ZRAISE        5    // (mm) Z axis raise on resume (on power-loss with UPS)
     //#define POWER_LOSS_PURGE_LEN    20    // (mm) Length of filament to purge on resume
 
     // Without a POWER_LOSS_PIN the following option helps reduce wear on the SD card,
@@ -2578,7 +2562,8 @@
  */
 //#define NONLINEAR_EXTRUSION
 #if ENABLED(NONLINEAR_EXTRUSION)
-  //#define NONLINEAR_EXTRUSION_DEFAULT_ON    // Enable if NLE should be ON by default
+  //#define NONLINEAR_EXTRUSION_DEFAULT_ON          // Enable if NLE should be ON by default
+  //#define NONLINEAR_FACTORS { 0.0f, 0.0f, 1.0f }  // Quadratic, Linear, Constant coefficients
 #endif
 
 // @section leveling
@@ -3577,13 +3562,21 @@
    * Optimize spreadCycle chopper parameters by using predefined parameter sets
    * or with the help of an example included in the library.
    * Provided parameter sets are
-   * CHOPPER_DEFAULT_12V
+   * CHOPPER_DEFAULT_12V  // 1.8 degree steppers (also CHOPPER_18STEP_<V>)
    * CHOPPER_DEFAULT_19V
    * CHOPPER_DEFAULT_24V
    * CHOPPER_DEFAULT_36V
-   * CHOPPER_09STEP_24V   // 0.9 degree steppers (24V)
+   * CHOPPER_DEFAULT_48V
+   * CHOPPER_DEFAULT_60V
+   * CHOPPER_09STEP_12V   // 0.9 degree steppers
+   * CHOPPER_09STEP_19V
+   * CHOPPER_09STEP_24V
+   * CHOPPER_09STEP_36V
+   * CHOPPER_09STEP_48V
    * CHOPPER_PRUSAMK3_24V // Imported parameters from the official Průša firmware for MK3 (24V)
    * CHOPPER_MARLIN_119   // Old defaults from Marlin v1.1.9
+   *
+   * Presets over 24V require a driver rated for the supply voltage.
    *
    * Define your own with:
    * { <off_time[1..15]>, <hysteresis_end[-3..12]>, hysteresis_start[1..8] }
@@ -3641,6 +3634,7 @@
    * This mode allows for faster movements at the expense of higher noise levels.
    * STEALTHCHOP_(XY|Z|E) must be enabled to use HYBRID_THRESHOLD.
    * M913 X/Y/Z/E to live tune the setting
+   * Set THRESHOLD to zero to disable this function on specific axis.
    */
   #define HYBRID_THRESHOLD
 
@@ -3668,16 +3662,43 @@
   #define E7_HYBRID_THRESHOLD     30
 
   /**
+   * Use a separate Hybrid Threshold while homing each axis.
+   * TMC2209 and TMC2240 home with StallGuard4, which only works in stealthChop.
+   * Set the threshold above the homing feedrate, or 0 to stay in stealthChop.
+   * M913 H X/Y/Z to live tune the setting
+   */
+  //#define HOMING_HYBRID_THRESHOLD
+  #if ENABLED(HOMING_HYBRID_THRESHOLD)
+    #define X_HOMING_HYBRID_THRESHOLD    0  // (mm/s) 0 = Stay in stealthChop
+    #define X2_HOMING_HYBRID_THRESHOLD   0
+    #define Y_HOMING_HYBRID_THRESHOLD    0
+    #define Y2_HOMING_HYBRID_THRESHOLD   0
+    #define Z_HOMING_HYBRID_THRESHOLD    0
+    #define Z2_HOMING_HYBRID_THRESHOLD   0
+    #define Z3_HOMING_HYBRID_THRESHOLD   0
+    #define Z4_HOMING_HYBRID_THRESHOLD   0
+    #define I_HOMING_HYBRID_THRESHOLD    0  // [linear=mm/s, rotational=°/s]
+    #define J_HOMING_HYBRID_THRESHOLD    0  // [linear=mm/s, rotational=°/s]
+    #define K_HOMING_HYBRID_THRESHOLD    0  // [linear=mm/s, rotational=°/s]
+    #define U_HOMING_HYBRID_THRESHOLD    0  // (mm/s)
+    #define V_HOMING_HYBRID_THRESHOLD    0
+    #define W_HOMING_HYBRID_THRESHOLD    0
+  #endif
+
+  /**
    * Use StallGuard to home / probe X, Y, Z.
    *
    * TMC2130, TMC2160, TMC2209, TMC2240, TMC2660, TMC5130, and TMC5160 only
    * Connect the stepper driver's DIAG1 pin to the X/Y endstop pin.
-   * X, Y, and Z homing will always be done in spreadCycle mode.
+   * (TMC2240 signals a stall on DIAG0.)
+   * TMC2209 and TMC2240 home in stealthChop mode using StallGuard4.
+   * Other drivers home in spreadCycle mode using StallGuard2.
+   * With HYBRID_THRESHOLD use HOMING_HYBRID_THRESHOLD to stay in stealthChop while homing.
    *
    * X/Y/Z_STALL_SENSITIVITY is the default stall threshold.
    * Use M914 X Y Z to set the stall threshold at runtime:
    *
-   *  Sensitivity  TMC2209        Others
+   *  Sensitivity  TMC2209/2240   Others
    *    HIGHEST        255         -64    (Too sensitive => False positive)
    *    LOWEST          0           63    (Too insensitive => No trigger)
    *
@@ -3696,7 +3717,7 @@
   //#define SENSORLESS_HOMING // StallGuard capable drivers only
 
   #if ANY(SENSORLESS_HOMING, SENSORLESS_PROBING)
-    // TMC2209: 0...255. TMC2130: -64...63
+    // TMC2209, TMC2240: 0...255. Others: -64...63
     #define X_STALL_SENSITIVITY  8
     #define X2_STALL_SENSITIVITY X_STALL_SENSITIVITY
     #define Y_STALL_SENSITIVITY  8
@@ -4675,33 +4696,59 @@
 //#define WIFISUPPORT         // Marlin embedded WiFi management. Not needed for simple WiFi serial port.
 //#define ESP3D_WIFISUPPORT   // ESP3D Library WiFi management (https://github.com/luc-github/ESP3DLib)
 
-#if ENABLED(WIFISUPPORT)
+#if ANY(WIFISUPPORT, ESP3D_WIFISUPPORT)
   /**
-   * Marlin's own webserver and OTA, implemented in HAL/ESP32/wifi/ and built
-   * only for an ESP32 build of Marlin. With an add-on WiFi module the module
-   * runs its own firmware, so neither option has any effect there.
+   * MKS WiFi module: an ESP8266/ESP32 co-processor on its own UART, fitted to
+   * MKS Robin / Neptune / Monster boards. Unlike a plain add-on module, which
+   * just bridges a serial port, Marlin talks to this one directly to transfer
+   * files and to set the network from WIFI_SSID / WIFI_PWD below.
+   *
+   * Requires a board that defines WIFI_RESET_PIN and WIFI_IO1_PIN, and
+   * SDSUPPORT for file transfers.
    */
-  //#define WEBSUPPORT          // Start a webserver (which may include auto-discovery) using SPIFFS
-  //#define OTASUPPORT          // Support over-the-air firmware updates
+  //#define MKS_WIFI_MODULE
+
+  #if ENABLED(MKS_WIFI_MODULE)
+    /**
+     * WIFI_SSID / WIFI_PWD are only the defaults here. The network is stored
+     * with the rest of Marlin's settings, so M587 or the TFT_LVGL_UI screens
+     * can change it at runtime and M500 makes the change stick. M502 restores
+     * the values below.
+     *
+     *   M587                       ; Report the current network
+     *   M587 S"MyNetwork" P"pass"  ; Join a network (needs GCODE_QUOTED_STRINGS)
+     *   M587 A1                    ; Host an access point instead
+     */
+    //#define MKS_WIFI_AP_MODE      // Host WIFI_SSID as an access point instead of joining it
+
+  #else
+    /**
+     * Webserver and OTA updates.
+     * With WIFISUPPORT these are Marlin's own, implemented in HAL/ESP32/wifi/ and built
+     * only for an ESP32 build of Marlin. With an add-on WiFi module the module runs its
+     * own firmware, so neither option has any effect there.
+     * With ESP3D_WIFISUPPORT these enable the ESP3D web interface and ESP3D OTA updates.
+     */
+    //#define WEBSUPPORT          // Start a webserver (which may include auto-discovery) using SPIFFS
+    //#define OTASUPPORT          // Support over-the-air firmware updates
+  #endif
+
+  #if ENABLED(ESP3D_WIFISUPPORT)
+    //#define WIFI_CUSTOM_COMMAND // Accept ESP3D '[ESP...]' commands from the host
+  #endif
 
   /**
-   * The network is set at compile time. To set a default WiFi SSID / Password, create a file
-   * called Configuration_Secure.h with the following defines, customized for your network.
-   * This specific file is excluded via .gitignore to prevent it from accidentally leaking
-   * to the public.
+   * To set a default WiFi SSID / Password, create a file called Configuration_Secure.h with
+   * the following defines, customized for your network. This specific file is excluded via
+   * .gitignore to prevent it from accidentally leaking to the public.
    *
    *   #define WIFI_SSID "WiFi SSID"
    *   #define WIFI_PWD  "WiFi Password"
+   *
+   * With WIFISUPPORT the network is set at compile time. With ESP3D_WIFISUPPORT these are
+   * the defaults for station mode, which can be changed at runtime with '[ESP100]' / '[ESP101]'.
    */
   //#include "Configuration_Secure.h" // External file with WiFi SSID / Password
-
-#elif ENABLED(ESP3D_WIFISUPPORT)
-  /**
-   * ESP3D brings its own webserver and OTA, so WEBSUPPORT and OTASUPPORT don't apply here.
-   * The network is configured at runtime with '[ESP100]' / '[ESP101]' and stored on the ESP,
-   * so WIFI_SSID / WIFI_PWD don't apply either.
-   */
-  //#define WIFI_CUSTOM_COMMAND // Accept ESP3D '[ESP...]' commands from the host
 #endif
 
 // @section multi-material
@@ -4910,6 +4957,70 @@
   #endif
 
 #endif // HAS_PRUSA_MMU2 || HAS_PRUSA_MMU3
+
+#if HAS_CHAMELEON
+
+  /**
+   * 3D Chameleon Mk4 (https://www.3dchameleon.com)
+   *
+   * The Chameleon's one button is pressed by moving a printer axis into it.
+   * Hold times select the filament and run its feed motor, so timing matters.
+   * Use the "Mk4 G-code Generator" values from the Chameleon site as a guide.
+   */
+  #define CHAMELEON_BUTTON_AXIS     X_AXIS    // (X_AXIS, Y_AXIS, Z_AXIS) Axis that presses the button
+  #define CHAMELEON_BUTTON_POS      X_MAX_POS // (mm) Axis position where the button is fully pressed (within the axis limits)
+  #define CHAMELEON_PRESS_MM        3         // (mm) Standby this far short of the button, toward the middle of the axis
+  #define CHAMELEON_PRESS_FEEDRATE  2000      // (mm/min) Speed of button presses
+  #define CHAMELEON_TRAVEL_FEEDRATE 5000      // (mm/min) Speed of moves to and from the standby position
+
+  // Where to wait while changing. The button axis is set by CHAMELEON_BUTTON_POS.
+  // Z is only raised, never lowered. These are ignored for the button axis.
+  //#define CHAMELEON_TOOLCHANGE_X  X_CENTER
+  //#define CHAMELEON_TOOLCHANGE_Y  Y_CENTER
+  //#define CHAMELEON_TOOLCHANGE_Z  Z_MAX_POS
+
+  // Timing. Press a number of pulses to select a filament (1 = T0, 2 = T1, ...).
+  // If the wrong filament is selected, adjust the pulse time to match your Chameleon.
+  #define CHAMELEON_PULSE_MS         500      // (ms) One pulse
+  #define CHAMELEON_CUT_MS          2000      // (ms) After selecting, wait for the cutter and the selector to finish
+  #define CHAMELEON_UNLOAD_MS       4000      // (ms) Hold to pull the old filament back out of the Y adapter
+  #define CHAMELEON_LOAD_MS         4000      // (ms) Hold to push the new filament to the extruder, including the assist
+  #define CHAMELEON_SETTLE_MS        400      // (ms) Wait after releasing the button
+  #define CHAMELEON_HOME_MS         2000      // (ms) Wait for the selector to home
+  #define CHAMELEON_HOME_FIRST                // Home the selector before the first load. (The Chameleon starts out empty.)
+
+  // Extruder moves
+  #define CHAMELEON_EXTRUDER_TO_HOTEND_MM 86  // (mm) Distance from the extruder gears to the nozzle
+  #define CHAMELEON_CUT_RETRACT_MM        20  // (mm) Initial retract, to make room for the cut
+  #define CHAMELEON_RELEASE_MM           -30  // (mm) Final move to clear the extruder. Use a positive value with a mechanical cutter.
+  #define CHAMELEON_LOAD_ASSIST_MM        25  // (mm) Extruder move to catch the filament as the Chameleon lets go
+  #define CHAMELEON_ASSIST_FEEDRATE     1500  // (mm/min)
+  #define CHAMELEON_SLOW_FEEDRATE        500  // (mm/min)
+  #define CHAMELEON_FAST_FEEDRATE       2000  // (mm/min)
+
+  /**
+   * Tip shaping. Not needed with a 3DClippy filament cutter, so comment this out.
+   * Each step is { temp, extrude, feedrate }. If 'temp' is non-zero Marlin waits for
+   * the hotend to reach it before the move. The hotend returns to its target
+   * temperature afterward. Cold extrusion is allowed during the sequence.
+   */
+  #define CHAMELEON_TIP_SEQUENCE \
+    { 180,  +20, 1500 }, /* Cool to 180C to prevent swelling, then ram */ \
+    {   0,   -5,  500 }, \
+    { 165,   +5, 1500 }, \
+    {   0,   -1,  500 }, \
+    { 155,   +1, 1500 }, \
+    {   0,  -25,  500 }, \
+    { 150,  +24, 1500 }, /* Last tip dip with a cold tip */ \
+    {   0,  -24, 1500 }, \
+    { 180,  -80,  500 }  /* Heat up again and back out of the extruder */
+
+  // Optional G-code to run at each stage of an unload (e.g., for a cooling fan or a mechanical cutter)
+  //#define CHAMELEON_START_GCODE "M106 S255"  // Just after reaching the standby position
+  //#define CHAMELEON_CUT_GCODE   "M280 P0 S90" // After the cut retract, before tip shaping
+  //#define CHAMELEON_END_GCODE   "M106 S0"    // After the new filament is loaded
+
+#endif // HAS_CHAMELEON
 
 /**
  * Advanced Print Counter settings
