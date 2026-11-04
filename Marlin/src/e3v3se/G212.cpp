@@ -50,6 +50,10 @@ void GcodeSuite::G212()
   bool isRunTestByPress = GET_PARSER_SEEN('P'); //Is it necessary to use a pressure sensor to measure the height of the nozzle?
   bool isRunTestByTouch = GET_PARSER_SEEN('T'); //Do I need to use CT touch to measure?
   float zOffset = 0;
-  CHECK_AND_RUN((isRunClearNozzle || isRunTestByPress || isRunTestByTouch), FOR_LOOP_TIMES(i, 0, count, getZOffset(isRunClearNozzle, isRunTestByPress, isRunTestByTouch, &zOffset)));
+  if (isRunClearNozzle || isRunTestByPress || isRunTestByTouch)
+    for (int i = 0; i < count; ++i) {
+      if (!getZOffset(isRunClearNozzle, isRunTestByPress, isRunTestByTouch, &zOffset)) break;
+      settings.save();
+    }
 
 }

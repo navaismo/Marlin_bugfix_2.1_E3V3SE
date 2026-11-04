@@ -48,7 +48,7 @@
 #define ARY_MIN_INDEX(min, index, ary, count) for(int i = 0; i < count; i++) {CHECK_AND_RUN(min >= ary[i], {min = ary[i]; index = i;})}
 #define ARY_SORT(ary, count) FOR_LOOP_TIMES(i, 0, count, FOR_LOOP_TIMES(j, i, count, { if(ary[i] > ary[j]){float t = ary[i]; ary[i] = ary[j]; ary[j] = t;}}));
 
-#define PRINTF(str, ...)  {char strMsg[128] = {0}; sprintf(strMsg, str, __VA_ARGS__); SERIAL_PRINT_MSG(strMsg);} 
+#define PRINTF(str, ...)  {char strMsg[128] = {0}; snprintf(strMsg, sizeof(strMsg), str, __VA_ARGS__); SERIAL_PRINT_MSG(strMsg);}
 #define RUN_AND_WAIT_GCODE_STR(gCode, isWait, ...)   {char cmd[128] = {0}; sprintf(cmd, gCode, __VA_ARGS__);PRINTF("\n***RUM GCODE CMD: %s***\n", cmd); RUN_AND_WAIT_GCODE_CMD(cmd, isWait);}
 #define WAIT_BED_TEMP(maxTickMs, maxErr)    { unsigned int tickMs = GET_TICK_MS(); while (((GET_TICK_MS() - tickMs) < maxTickMs) && (abs(GET_BED_TAR_TEMP() - GET_BED_TEMP()) > maxErr)) MARLIN_CORE_IDLE();}
 #define WAIT_HOTEND_TEMP(maxTickMs, maxErr) { unsigned int tickMs = GET_TICK_MS(); while (((GET_TICK_MS() - tickMs) < maxTickMs) && (abs(GET_HOTEND_TAR_TEMP(0) - GET_HOTEND_TEMP(0)) > maxErr)) MARLIN_CORE_IDLE();}
@@ -110,7 +110,7 @@
 //Update watchdog
 #define REFRESH_WATCHDOG()              {HAL_watchdog_refresh();}
 //Block the execution of a gcode instruction
-#define RUN_AND_WAIT_GCODE_CMD(gcode, isWait) do { planner.synchronize(); queue.inject_P(PSTR((gcode))); queue.advance(); if (isWait) planner.synchronize(); } while (0)
+#define RUN_AND_WAIT_GCODE_CMD(cmd, isWait) do { planner.synchronize(); gcode.process_subcommands_now(F(cmd)); if (isWait) planner.synchronize(); } while (0)
 
 //Set gpio working mode
 #define GPIO_SET_MODE(pin, isOut)       {if((isOut)>0) SET_OUTPUT((pin)); else SET_INPUT_PULLUP((pin));}

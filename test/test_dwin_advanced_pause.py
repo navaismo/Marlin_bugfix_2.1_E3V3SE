@@ -40,7 +40,7 @@ using feedRate_t=float;
 enum { MainMenu, PrintProcess, ThumbPrint, Tune, AdvancedPause };
 enum ENCODER_DiffState { ENCODER_DIFF_NO,ENCODER_DIFF_CW,ENCODER_DIFF_CCW,ENCODER_DIFF_ENTER };
 int checkkey=ThumbPrint,progress=67,print_visits=0,thumb_visits=0,main_visits=0,draws=0;
-bool hasThumbnail=true;
+bool hasThumbnail=true, filament_out=false;
 struct {bool enabled=true;} EncoderRate;
 struct {bool Refresh_bottom_flag=false;} HMI_flag;
 constexpr int Color_Bg_Black=0,Color_White=1,Color_Yellow=2,font6x12=6,font8x16=8,DWIN_WIDTH=240,STATUS_Y=250;
@@ -105,13 +105,13 @@ struct MarlinUI {
 PauseMenuResponse pause_menu_response=PAUSE_RESPONSE_WAIT_FOR;
 PauseMode pause_mode=PAUSE_MODE_PAUSE_PRINT;
 bool ensure_safe_temperature(bool,PauseMode) { return true; }
-bool active_filament_is_out() { return runout.filament_ran_out; }
+bool active_filament_is_out() { return filament_out; }
 '''
 
 MAIN = r'''
 void reset() {
  motion.moves.clear();events.clear();marlin.idles=0;marlin.printing=true;
- marlin.wait_for_user=false;runout.enabled=true;runout.filament_ran_out=false;
+ marlin.wait_for_user=false;runout.enabled=true;runout.filament_ran_out=false;filament_out=false;
  hostui.prompts=hostui.ends=0;pause_ui_active=false;hasThumbnail=true;
  checkkey=ThumbPrint;progress=67;
  marlin.idle_action=[] { HMI_AdvancedPause(); };
@@ -131,9 +131,29 @@ int main() {
  assert(!marlin.wait_for_user && checkkey==AdvancedPause);
  marlin.printing=false;ui.pause_show_message(PAUSE_MESSAGE_STATUS);assert(checkkey==MainMenu);
  // Explicitly labeled sensor disable matches the upstream host response.
- reset();runout.filament_ran_out=true;events={ENCODER_DIFF_ENTER};load(2.5f);
+ reset();runout.filament_ran_out=true;filament_out=true;events={ENCODER_DIFF_ENTER};load(2.5f);
  assert(!runout.enabled && !runout.filament_ran_out && runout.resets==1);
  assert(pause_menu_response==PAUSE_RESPONSE_RESUME_PRINT);
+ #if !FILAMENT_MOTION_SENSOR
+ // Reinserted switch filament clears the event without disabling detection.
+ reset();runout.filament_ran_out=true;events={ENCODER_DIFF_ENTER};load(50);
+ assert(runout.enabled && !runout.filament_ran_out);
+ assert(motion.moves==std::vector<float>{50});
+ // Reinsertion while the option screen is open also rearms the switch.
+ reset();runout.filament_ran_out=true;filament_out=true;
+ pause_menu_response=PAUSE_RESPONSE_WAIT_FOR;ui.pause_show_message(PAUSE_MESSAGE_OPTION);
+ assert(runout.filament_ran_out);
+ filament_out=false;HMI_AdvancedPause();
+ assert(runout.enabled && !runout.filament_ran_out && labels.back()=="Resume");
+ #else
+ reset();runout.filament_ran_out=true;
+ assert(pause_sensor_out() && runout.enabled); // No switch-based reset for a motion sensor.
+ #endif
+ // M412 S0 remains disabled even when the switch becomes present.
+ reset();runout.enabled=false;runout.filament_ran_out=true;
+ assert(pause_sensor_out() && !runout.enabled);
+ reset();ui.pause_show_message(PAUSE_MESSAGE_WAITING);
+ assert(labels[labels.size()-2]=="Press knob to resume");
  #if HOST_PROMPT_SUPPORT
    reset();int responses=0;
    marlin.idle_action=[&] { hostui.handle_response(responses++ ? 1 : 0); };
@@ -167,11 +187,12 @@ def main():
     with tempfile.TemporaryDirectory() as tmp:
         source,exe=Path(tmp)/'pause.cpp',Path(tmp)/'pause'
         for prompts in (0,1):
-            source.write_text(enums+'\n'+STUBS+bridge+'\n'+host+'\n'+load+'\n'+MAIN)
-            subprocess.run(['g++','-std=c++17','-I',str(ROOT),f'-DHOST_PROMPT_SUPPORT={prompts}',
-                            str(source),'-o',str(exe)],check=True)
-            subprocess.run([str(exe)],check=True)
-    print('PASS upstream purge lengths/repeat, LCD/host confirmation, sensor disable, progress and idle rendering')
+            for motion in (0,1):
+                source.write_text(enums+'\n'+STUBS+bridge+'\n'+host+'\n'+load+'\n'+MAIN)
+                subprocess.run(['g++','-std=c++17','-I',str(ROOT),f'-DHOST_PROMPT_SUPPORT={prompts}',
+                                f'-DFILAMENT_MOTION_SENSOR={motion}',str(source),'-o',str(exe)],check=True)
+                subprocess.run([str(exe)],check=True)
+    print('PASS purge lengths/repeat, LCD/host confirmation, switch reinsertion, explicit disable, progress and idle rendering')
 
 
 if __name__=='__main__':

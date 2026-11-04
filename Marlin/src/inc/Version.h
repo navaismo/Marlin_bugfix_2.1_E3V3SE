@@ -25,7 +25,7 @@
  * Release version. Leave the Marlin version or apply a custom scheme.
  */
 #ifndef SHORT_BUILD_VERSION
-  #define SHORT_BUILD_VERSION "v2.1.x Krasnaya 5"
+  #define SHORT_BUILD_VERSION "v2.1.x Krasnaya 6_fx"
 #endif
 
 /**
