@@ -106,15 +106,16 @@ struct ThumbRun {
 };
 
 // Sized from real quantized 96x96 thumbnails (worst measured: ~1420 runs).
-// An image that overflows this just flushes (renders) early at the next
-// row boundary and continues -- never drops pixels, only palette reuse.
+// Flush before starting a row that could exceed the remaining capacity.
+// This preserves every pixel, sacrificing only palette reuse across batches.
 static constexpr uint16_t MAX_THUMB_RUNS = 1536;
 static ThumbRun thumb_runs[MAX_THUMB_RUNS];
 static uint8_t thumb_run_emitted[(MAX_THUMB_RUNS + 7) / 8];
 
-// A row can produce at most ceil(96/2)=48 runs (each run must be separated
-// from the next by at least one skipped background pixel).
-static constexpr uint8_t MAX_RUNS_PER_ROW = 48;
+// Adjacent non-background pixels with different colors each start a run.
+// A 96-pixel row can therefore require 96 runs, without any background gaps.
+static constexpr uint8_t MAX_RUNS_PER_ROW = 96;
+static_assert(MAX_THUMB_RUNS >= MAX_RUNS_PER_ROW, "Thumbnail buffer must hold a full row.");
 static uint16_t thumb_open_prev[MAX_RUNS_PER_ROW]; // indices into thumb_runs
 static uint16_t thumb_open_cur[MAX_RUNS_PER_ROW];
 
@@ -213,6 +214,14 @@ static void thumb_flush_runs(uint16_t run_count) {
     if (len < w * 4)
       break;
 
+    // Reserve a whole worst-case row before any run or merge-index writes.
+    // Never flush mid-row: the open indices must refer to the current batch.
+    if (run_count + MAX_RUNS_PER_ROW > MAX_THUMB_RUNS) {
+      thumb_flush_runs(run_count);
+      run_count = 0;
+      open_prev_count = 0;
+    }
+
     // RLE this row, merging each run vertically into the matching
     // (x0,x1,color) run left open by the row above where possible.
     open_cur_count = 0;
@@ -254,15 +263,6 @@ static void thumb_flush_runs(uint16_t run_count) {
 
     y++;
 
-    // Flush at row boundaries only (never mid-row: that would leave a
-    // half-built open_cur and buys nothing). A completed row needs at most
-    // MAX_RUNS_PER_ROW new slots, so checking here guarantees the next row
-    // always fits.
-    if (MAX_THUMB_RUNS - run_count < MAX_RUNS_PER_ROW) {
-      thumb_flush_runs(run_count);
-      run_count = 0;
-      open_prev_count = 0; // those runs are now drawn; nothing left to extend
-    }
   }
 
   if (run_count > 0)
