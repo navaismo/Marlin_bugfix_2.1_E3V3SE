@@ -66,6 +66,15 @@ def main() -> int:
             print(f"{macro} requires {dep}; forcing {macro}=false")
             wanted[macro] = False
 
+    # The OctoPrint Pinput_Shaping workflow option includes its complete build
+    # configuration. M495/M496 dispatch requires FT_MOTION in this checkout.
+    if wanted.get("PINPUT_RESONANCE_EVENTS"):
+        for macro in ("FT_MOTION", "INPUT_SHAPING_X", "INPUT_SHAPING_Y",
+                      "RESONANCE_TEST", "EMERGENCY_PARSER"):
+            if not wanted.get(macro, define_enabled(macro)):
+                print(f"PINPUT_RESONANCE_EVENTS requires {macro}; enabling {macro}")
+            wanted[macro] = True
+
     # Respect FT_MOTION in the existing configuration when no override is given.
     # The legacy menu enables X/Y shaping in Configuration_adv.h when FTM is off.
     if wanted.get("FT_MOTION", define_enabled("FT_MOTION")):

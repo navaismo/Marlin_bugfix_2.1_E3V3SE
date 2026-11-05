@@ -27,6 +27,7 @@
 #include "../../gcode.h"
 #include "../../../lcd/marlinui.h"
 #include "../../../feature/resonance/resonance_generator.h"
+#include "../../../feature/resonance/resonance_host_events.h"
 
 void say_resonance_test() {
   const resonance_test_params_t &p = rtg.rt_params;
@@ -46,6 +47,10 @@ void say_resonance_test() {
  *   A<accel/Hz>   Accel per Hz. (Default 60)
  *   F<Hz>         Start frequency. (Default 5.0)
  *   S             Start the test.
+ *   I<uint32>     Instrumented session (PINPUT_RESONANCE_EVENTS).
+ *   W             With I and S, wait for host arming after preparation (PIS v2).
+ *   R             With I only, authorize the prepared session (PIS v2).
+ *   Q / Q2        Query PIS v1 / host-arming v2 support without movement.
  *   T<Hz>         End frequency. (Default 100.0f)
  *   O<float>      Octave duration for logarithmic progression
  *   C<int>        Amplitude correction factor. (Default 5)
@@ -61,6 +66,9 @@ void say_resonance_test() {
  *
  */
 void GcodeSuite::M495() {
+  // PINPUT_RESONANCE_EVENTS: custom host synchronization hook
+  if (TERN0(PINPUT_RESONANCE_EVENTS, resonance_host_events::command())) return;
+
   if (!parser.seen_any()) return say_resonance_test();
 
   resonance_test_params_t &p = rtg.rt_params;
@@ -165,6 +173,12 @@ void GcodeSuite::M495() {
  * M496: Abort the resonance test (via Emergency Parser)
  */
 void GcodeSuite::M496() {
+  // PINPUT_RESONANCE_EVENTS: custom host synchronization hook
+  if (TERN0(PINPUT_RESONANCE_EVENTS, resonance_host_events::cancel())) {
+    ui.refresh();
+    return;
+  }
+
   if (rtg.isActive()) {
       rtg.abort();
       EmergencyParser::rt_stop_by_M496 = false;

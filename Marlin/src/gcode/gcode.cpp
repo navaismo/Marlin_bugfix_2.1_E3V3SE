@@ -34,6 +34,9 @@ GcodeSuite gcode;
 
 #include "parser.h"
 #include "queue.h"
+#if ENABLED(PINPUT_RESONANCE_EVENTS)
+  #include "../feature/resonance/resonance_host_events.h"
+#endif
 #include "../module/motion.h"
 
 #if ENABLED(PRINTCOUNTER)
@@ -358,6 +361,12 @@ void GcodeSuite::process_parsed_command(bool no_ok/*=false*/) {
       return;
     }
   #endif
+
+  // Keep the native host-armed position/configuration stable until authorization.
+  if (TERN0(PINPUT_RESONANCE_EVENTS, resonance_host_events::reject_command())) {
+    if (!no_ok) queue.ok_to_send();
+    return;
+  }
 
   // Handle a known command or reply "unknown command"
 

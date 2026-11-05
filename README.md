@@ -14,6 +14,7 @@ The goal of this repository is simple: **pull upstream Marlin at any time withou
 - [Configuration profiles](#configuration-profiles)
 - [Enabling and disabling features by hand](#enabling-and-disabling-features-by-hand)
 - [Input shaping with FT_Motion (`M493`)](#input-shaping-with-ft_motion-m493)
+  - [Resonance tests with Pinput_Shaping (`M495` / `M496`)](#resonance-tests-with-pinput_shaping-m495--m496)
 - [Linear Advance: legacy vs FT_Motion](#linear-advance-legacy-vs-ft_motion)
 - [Guardrails](#guardrails)
 - [Merging upstream](#merging-upstream)
@@ -178,12 +179,15 @@ Some options depend on others. `OCTOPRINT_PLUGIN` relies on `HOST_ACTION_COMMAND
 | FT_Motion and input shaping | `FT_MOTION` | `Configuration_adv.h` |
 | Ignore bed MINTEMP (off by default) | `E3V3SE_IGNORE_BED_MINTEMP` | `Configuration.h` |
 | Input shaping menu (legacy X/Y) | `DWIN_INPUT_SHAPING_MENU` | `Configuration_adv.h` |
+| Input shaping on X and Y (standard motion) | `INPUT_SHAPING_X`, `INPUT_SHAPING_Y` | `Configuration_adv.h` |
 | Linear Advance | `LIN_ADVANCE` | `Configuration_adv.h` |
 | MeatPack on serial port 1 | `MEATPACK_ON_SERIAL_PORT_1` | `Configuration_adv.h` (on in this branch) |
 | OctoPrint plugin layer | `OCTOPRINT_PLUGIN` | `Configuration.h` (on in this branch) |
 | One-click print | `ONE_CLICK_PRINT` | `Configuration_adv.h` (off in this branch) |
 | Power-loss recovery and LCD menu (off by default) | `POWER_LOSS_RECOVERY`, `DWIN_PLR_MENU` | `Configuration_adv.h` |
 | Preheat completion alert | `PREHEAT_ALERT` | `Configuration.h` |
+| Resonance sweeps (off by default) | `RESONANCE_TEST` | `Configuration_adv.h` |
+| Pinput_Shaping resonance host events (OctoPrint; off by default) | `PINPUT_RESONANCE_EVENTS` | `Configuration_adv.h` |
 | Thumbnail rendering | `DWIN_RENDER_THUMBNAIL` | `Configuration.h` |
 | Z height after homing menu | `DWIN_ZHOME_MENU` | `Configuration.h` |
 
@@ -234,6 +238,30 @@ M500
 ```
 
 Factory defaults: X none at 37 Hz, Y 3HEI at 42 Hz. To change them, edit `FTM_DEFAULT_SHAPER_*` and `FTM_SHAPING_DEFAULT_FREQ_*` in `Configuration_adv.h` and follow the profile steps above.
+
+### Resonance tests with Pinput_Shaping (`M495` / `M496`)
+
+The OctoPrint [Pinput_Shaping plugin](https://github.com/navaismo/Octoprint-Pinput_Shaping) can synchronize accelerometer acquisition with the firmware's resonance sweep through `PINPUT_RESONANCE_EVENTS`. **`RESONANCE_TEST` and `PINPUT_RESONANCE_EVENTS` are both disabled by default in this branch.** FT Motion and the existing X/Y shaping settings are unchanged by these defaults.
+
+To build this branch for the plugin's resonance-test flow, enable all of the following in `Marlin/Configuration_adv.h`, then regenerate the `c13_octoprint` profile:
+
+```cpp
+#define FT_MOTION
+// Keep at least one FTM_SHAPER_* algorithm enabled (the branch already provides them).
+#define INPUT_SHAPING_X
+#define INPUT_SHAPING_Y
+#define RESONANCE_TEST
+#define PINPUT_RESONANCE_EVENTS
+#define EMERGENCY_PARSER
+```
+
+The exact flag is **`PINPUT_RESONANCE_EVENTS`**. `PINPUT_RESONANCE_PROGRESS` is optional and remains disabled. The firmware requires a 32-bit CPU; M495/M496 dispatch in this checkout also requires `FT_MOTION` at compile time. `INPUT_SHAPING_X/Y` compile the standard-motion shapers; FT Motion's shaper algorithms remain configured through `FTM_SHAPER_*` and `M493`. Selecting a shaping mode with `M493` alone does not compile in resonance testing or host events.
+
+In this OctoPrint branch's GitHub Actions workflow, select **RESONANCE_TEST + PINPUT_RESONANCE_EVENTS**. This single option defaults to off and enables both flags together with FT Motion, X/Y shaping and the emergency parser for that build. It takes precedence over an unchecked FT Motion option and disables the legacy LCD shaping menu.
+
+After installing an enabled build, the plugin can query `M495 Q2` and must receive `echo:PIS:RT:READY:2` before using the host-armed flow. A start with `I<id> S W` performs homing and positioning, emits `HOMED` and `ARMED_WAIT`, and waits without exciting the axis. The plugin starts sensor acquisition, verifies fresh samples, then sends `M495 I<id> R`. `ARM_ACK` and `START` identify activation; `COMPLETE` follows actual motion drain. Without ARM, the pending session expires after 30 seconds. `M496` cancels the test. `M495 Q` and starts without W retain the version 1 flow.
+
+See [the host-event protocol](docs/resonance-host-events.md) for complete commands, event matching, cancellation, timing limits and validation steps.
 
 ## Linear Advance: legacy vs FT_Motion
 
@@ -307,11 +335,11 @@ The `c13_octoprint` branch (C13 OctoPrint host) ships a manual workflow, [`build
 
 1. Open your fork on GitHub, go to **Actions**, and select **Build E3V3SE Firmware**. If workflows are disabled in the fork, click **I understand my workflows, go ahead and enable them**.
 2. Click **Run workflow** and choose the `c13_octoprint` branch.
-3. Keep the environment at `STM32F103RET6_creality` and set the feature toggles you want (thumbnails, Z-offset routines, FT_Motion, DWIN menus, preheat labels and so on). The defaults match the committed configuration of this branch: `OCTOPRINT_PLUGIN` and `MEATPACK_ON_SERIAL_PORT_1` on; `ONE_CLICK_PRINT` off.
+3. Keep the environment at `STM32F103RET6_creality` and set the feature toggles you want (thumbnails, Z-offset routines, FT_Motion, DWIN menus, preheat labels and so on). The defaults match the committed configuration of this branch: `OCTOPRINT_PLUGIN` and `MEATPACK_ON_SERIAL_PORT_1` on; `ONE_CLICK_PRINT`, `RESONANCE_TEST` and `PINPUT_RESONANCE_EVENTS` off. Select **RESONANCE_TEST + PINPUT_RESONANCE_EVENTS** to include the Pinput_Shaping resonance flow and its dependencies.
 4. Click **Run workflow** and wait for the job to finish. The log ends with a RAM and flash usage report.
 5. Download the `firmware-c13_octoprint-STM32F103RET6_creality` artifact from the run summary. It contains the `firmware*.bin` file and is kept for 7 days.
 
-Each toggle only overrides the matching define for that single build; nothing is committed back to the repository. To make a choice permanent, edit the profile as described in [Configuration profiles](#configuration-profiles). Check the reported memory usage against the [Memory budget](#memory-budget) before flashing, and enable `DWIN_INPUT_SHAPING_MENU` only with `FT_MOTION` disabled, and `DWIN_SKEW_MENU` only together with `SKEW_CORRECTION`. Selecting FT_Motion forces the legacy input shaping menu off for that build.
+Each toggle overrides the matching feature and its documented dependencies for that single build; nothing is committed back to the repository. To make a choice permanent, edit the profile as described in [Configuration profiles](#configuration-profiles). Check the reported memory usage against the [Memory budget](#memory-budget) before flashing, and enable `DWIN_INPUT_SHAPING_MENU` only with `FT_MOTION` disabled, and `DWIN_SKEW_MENU` only together with `SKEW_CORRECTION`. Selecting FT_Motion or the Pinput_Shaping resonance option forces the legacy input shaping menu off for that build.
 
 ## Memory budget
 
@@ -322,6 +350,7 @@ Flash and RAM are hard limits on the STM32F103RE (512 KB flash, 64 KB RAM). The 
 - [`AGENTS.E3V3SE.md`](AGENTS.E3V3SE.md): working rules for this fork.
 - [`MEMORY.md`](MEMORY.md): branch map, history and technical decisions.
 - [`.github/copilot-instructions.md`](.github/copilot-instructions.md): build, test and architecture notes for AI assistants.
+- [Resonance host events](docs/resonance-host-events.md): Pinput_Shaping build requirements and M495/M496 version 1 / host-armed version 2 flows.
 - `docs/`: upstream Marlin technical documents.
 
 ---

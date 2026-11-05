@@ -25,6 +25,7 @@
 #if ENABLED(RESONANCE_TEST)
 
 #include "resonance_generator.h"
+#include "resonance_host_events.h"
 
 #if ENABLED(FT_MOTION)
   #include "../../module/ft_motion.h"
@@ -55,10 +56,16 @@ ResonanceGenerator::ResonanceGenerator() {}
 
 void ResonanceGenerator::start() {
   gcode.home_all_axes(); // Always home axes first
+  // PINPUT_RESONANCE_EVENTS: custom host synchronization hook
+  if (TERN0(PINPUT_RESONANCE_EVENTS, !resonance_host_events::prepared())) return;
+  TERN_(PINPUT_RESONANCE_EVENTS, resonance_host_events::homed());
   motion.blocking_move_xy(X_CENTER, Y_CENTER, Z_CLEARANCE_FOR_HOMING);
+  if (TERN0(PINPUT_RESONANCE_EVENTS, !resonance_host_events::prepared())) return;
 
   rt_params.start_pos = motion.position;
-  active = true;
+  #if DISABLED(PINPUT_RESONANCE_EVENTS)
+    active = true;
+  #endif
   done = false;
 
   // Clamp Z-axis acceleration for safety
@@ -84,9 +91,24 @@ void ResonanceGenerator::start() {
   freq_mul_inc = F2FPQ(exp2f(RESONANCE_TS / rt_params.octave_duration) - 1.0f);
   // Use Q28 for phase calculation only for consistency between freq and phase (Q16 is enough)
   phase_inc_fp = F2FPQ((2.0f * M_PI) * RESONANCE_TS);
+
+  // PINPUT_RESONANCE_EVENTS: custom host synchronization hook
+  #if ENABLED(PINPUT_RESONANCE_EVENTS)
+    if (resonance_host_events::wait_for_arm()) return;
+    activate();
+  #endif
 }
 
+#if ENABLED(PINPUT_RESONANCE_EVENTS)
+  void ResonanceGenerator::activate() {
+    if (!resonance_host_events::exciting()) return;
+    active = true; // Fully initialized, authorized, and START already queued.
+  }
+#endif
+
 void ResonanceGenerator::abort() {
+  // PINPUT_RESONANCE_EVENTS: custom host synchronization hook (may run in ISR)
+  if (TERN0(PINPUT_RESONANCE_EVENTS, !resonance_host_events::stopping(done))) return;
   reset();
   #if HAS_STANDARD_MOTION
     if (!TERN0(FT_MOTION, ftMotion.cfg.active))
@@ -163,6 +185,9 @@ float ResonanceGenerator::calc_next_pos() {
 #if HAS_STANDARD_MOTION
 
   block_t* ResonanceGenerator::generate_resonance_block() {
+    // PINPUT_RESONANCE_EVENTS: custom host synchronization hook (ISR, no serial)
+    if (TERN0(PINPUT_RESONANCE_EVENTS, resonance_host_events::stop_requested())) return nullptr;
+
     // Static variables to retain state between calls and avoid cumulative errors
     static float prev_pos = 0.0f, step_accumulator = 0.0f;
 

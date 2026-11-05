@@ -55,6 +55,7 @@
 #endif
 #if ENABLED(RESONANCE_TEST)
   #include "feature/resonance/resonance_generator.h"
+  #include "feature/resonance/resonance_host_events.h"
 #endif
 
 #include "gcode/gcode.h"
@@ -875,6 +876,9 @@ void Marlin::idle(const bool no_stepper_sleep/*=false*/) {
 
   // Direct Stepping
   TERN_(DIRECT_STEPPING, page_manager.write_responses());
+
+  // PINPUT_RESONANCE_EVENTS: custom host synchronization hook
+  TERN_(PINPUT_RESONANCE_EVENTS, resonance_host_events::idle());
 
   // Manage Fixed-time Motion Control
   TERN_(FT_MOTION, ftMotion.loop());

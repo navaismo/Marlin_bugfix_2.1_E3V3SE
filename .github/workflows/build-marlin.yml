@@ -1,8 +1,8 @@
 name: Build E3V3SE Firmware
 
 # c13_octoprint branch (C13, OctoPrint host). The committed configuration of this branch is the
-# starting point, and the inputs below only override individual feature defines for this build.
-# Defaults match the branch: plugin and MeatPack on, one-click print off.
+# starting point, and the inputs below override features and their dependencies for this build.
+# Defaults match the branch: plugin and MeatPack on, one-click print and resonance tests off.
 on:
   workflow_dispatch:
     inputs:
@@ -70,6 +70,10 @@ on:
         description: "ONE_CLICK_PRINT (SD card only; off for OctoPrint)"
         type: boolean
         default: false
+      pinput_resonance_events:
+        description: "RESONANCE_TEST + PINPUT_RESONANCE_EVENTS (Pinput_Shaping; enables FT_MOTION and X/Y shaping)"
+        type: boolean
+        default: false
       power_loss_recovery:
         description: "POWER_LOSS_RECOVERY + DWIN_PLR_MENU (SD recovery and advanced LCD menu; uses memory)"
         type: boolean
@@ -124,8 +128,10 @@ jobs:
             MEATPACK_ON_SERIAL_PORT_1=${{ inputs.meatpack }} \
             OCTOPRINT_PLUGIN=${{ inputs.octoprint_plugin }} \
             ONE_CLICK_PRINT=${{ inputs.one_click_print }} \
+            PINPUT_RESONANCE_EVENTS=${{ inputs.pinput_resonance_events }} \
             POWER_LOSS_RECOVERY=${{ inputs.power_loss_recovery }} \
             PREHEAT_ALERT=${{ inputs.preheat_alert }} \
+            RESONANCE_TEST=${{ inputs.pinput_resonance_events }} \
             SKEW_CORRECTION=${{ inputs.skew_correction }} \
             X_ROUTINE_AUTO_OFFSET=${{ inputs.x_routine_auto_offset }}
 

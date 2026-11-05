@@ -1287,8 +1287,8 @@
  *
  * Tune with M593 D<factor> F<frequency>
  */
-//#define INPUT_SHAPING_X
-//#define INPUT_SHAPING_Y
+#define INPUT_SHAPING_X
+#define INPUT_SHAPING_Y
 //#define INPUT_SHAPING_Z
 //#define DWIN_INPUT_SHAPING_MENU // Legacy X/Y menu; automatically disabled with FT_MOTION.
 #if ENABLED(FT_MOTION)
@@ -1321,7 +1321,13 @@
 #endif
 
 #if ANY(INPUT_SHAPING_X, INPUT_SHAPING_Y, INPUT_SHAPING_Z, FTM_SHAPER_ZV, FTM_SHAPER_ZVD, FTM_SHAPER_ZVDD, FTM_SHAPER_ZVDDD, FTM_SHAPER_EI, FTM_SHAPER_2HEI, FTM_SHAPER_3HEI, FTM_SHAPER_MZV)
-  //#define RESONANCE_TEST              // Sine sweep motion for resonance study
+  //#define RESONANCE_TEST            // Sine sweep motion for resonance study (off by default)
+  #if ENABLED(RESONANCE_TEST)
+    //#define PINPUT_RESONANCE_EVENTS // Pinput_Shaping M495 host events (off by default). See docs/resonance-host-events.md.
+    #if ENABLED(PINPUT_RESONANCE_EVENTS)
+      //#define PINPUT_RESONANCE_PROGRESS // Best-effort 1 Hz updates; requires nonblocking TX capacity reporting.
+    #endif
+  #endif
 #endif
 
 // @section motion
@@ -1785,7 +1791,7 @@
 #endif // HAS_DISPLAY
 
 // Filled isometric bed mesh in Leveling > Bed Level Map (Creality DWIN, bilinear ABL).
-#define BED_LEVEL_VISUALIZER
+//#define BED_LEVEL_VISUALIZER
 #if ENABLED(BED_LEVEL_VISUALIZER)
   #define BED_LEVEL_VISUALIZER_DRAW_DELAY_MS 7 // Minimum time between LCD drawing commands
   #if BED_LEVEL_VISUALIZER_DRAW_DELAY_MS < 5

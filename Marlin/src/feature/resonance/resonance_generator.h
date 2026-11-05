@@ -71,8 +71,19 @@ class ResonanceGenerator {
 
     ResonanceGenerator();
 
+    // PINPUT_RESONANCE_EVENTS: custom host synchronization hook
+    #if ENABLED(PINPUT_RESONANCE_PROGRESS)
+      static float host_frequency() {
+        const volatile int32_t &freq = current_freq_fp; // Aligned 32-bit read; supported targets are 32-bit.
+        return FP2F(freq);
+      }
+    #endif
+
     static void reset();
     static void start();
+    #if ENABLED(PINPUT_RESONANCE_EVENTS)
+      static void activate(); // Resume only a fully prepared, authorized sweep.
+    #endif
 
     // Return frequency based on timeline
     static float getFrequencyFromTimeline() {
