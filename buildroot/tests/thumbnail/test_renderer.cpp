@@ -163,6 +163,14 @@ int main() {
         overflow[y][x] = y == 15 && x >= 40 ? 0 : 1 + (x + y) % 2;
     complete("original-overflow-1480-plus-96-runs", overflow);
 
+    // 4*96 + 32 + 96 fills a 512-run batch exactly. The next row must
+    // flush it before writing, without losing or reusing old open indices.
+    Image boundary(7, Row(96));
+    for (unsigned y = 0; y < 7; ++y)
+      for (unsigned x = 0; x < 96; ++x)
+        boundary[y][x] = y == 4 && x >= 32 ? 0 : 1 + (x + y) % 2;
+    complete("exact-512-run-boundary", boundary, 608);
+
     Image prefix(image.begin(), image.begin() + 23);
     check("truncated-mid-row", encode(prefix, 96, 96) + "; 1234ABCD\n", prefix, true);
     check("truncated-eof", encode(prefix, 96, 96), prefix, true);

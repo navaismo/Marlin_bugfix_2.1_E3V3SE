@@ -1,0 +1,78 @@
+{
+  "target": "STM32F103RET6_creality",
+  "platform": "ststm32 17.1.0",
+  "toolchain": "xPack GCC ARM 12.3.1 (20230626)",
+  "framework": "STM32duino 2.6.0",
+  "configuration": "Frozen implementation snapshot: Belaya 8y, runout sensor disabled, thumbnails/OctoPrint enabled; native build flags unchanged",
+  "builds": {
+    "baseline": {
+      "ram": 34540,
+      "flash": 253268,
+      "data": 1084,
+      "bss": 33456,
+      "bin_bytes": 253888,
+      "sha256": {
+        "firmware.elf": "cecfbaea925f4a67d581abd41ea76b4d38c28183e391381370e327905bf73ae1",
+        "firmware.bin": "d49d2b1fd9e00ada398dd70534abd79151b6e564648609957780c6c0e3f51308",
+        "Configuration.h": "a5c6b9e915fde7c787b712bcf5a2d0ba8fc7c89fe1634435a274777ef2b68aee",
+        "Configuration_adv.h": "5372ddc7a8f3116bd41b8b365aba2e57235d55fc599d56155e4145a3f12f2daf",
+        "Version.h": "8e085166cfae6f49ba7c061a4f761c0efc8dd5319d9bc9e360e6477ebc508e60",
+        "platformio.ini": "ccf4c0c2c77e68649c6730d4491c200621fcc87cde9d86a2c942d139652304b3",
+        "ThumbRender.cpp": "1520375ff719d4241f3b112fe7c1cb654ef5856755625fe03b66ed7c8f901cac"
+      }
+    },
+    "fixed": {
+      "ram": 34732,
+      "flash": 253260,
+      "data": 1084,
+      "bss": 33648,
+      "bin_bytes": 253880,
+      "sha256": {
+        "firmware.elf": "bc9f5b6ca8f3c24c61104dd1d1731a8e415f6bf4c20da91ec7b49ff262996f9c",
+        "firmware.bin": "b974e9431ab991a510335760475e8ab1ef67d00812a29b56a036ffe0933df79b",
+        "Configuration.h": "a5c6b9e915fde7c787b712bcf5a2d0ba8fc7c89fe1634435a274777ef2b68aee",
+        "Configuration_adv.h": "5372ddc7a8f3116bd41b8b365aba2e57235d55fc599d56155e4145a3f12f2daf",
+        "Version.h": "8e085166cfae6f49ba7c061a4f761c0efc8dd5319d9bc9e360e6477ebc508e60",
+        "platformio.ini": "ccf4c0c2c77e68649c6730d4491c200621fcc87cde9d86a2c942d139652304b3",
+        "ThumbRender.cpp": "48c001963dffea9610e842c8170c24b6aa6b69b017fe8ef4e69ce75a215a086e"
+      }
+    },
+    "batched": {
+      "ram": 28460,
+      "flash": 253260,
+      "data": 1084,
+      "bss": 27376,
+      "bin_bytes": 253880,
+      "sha256": {
+        "firmware.elf": "c16ecb5610f9496408dfa09ae7e5e26f02987f23e6d788cc441e2a6df4e4bdb5",
+        "firmware.bin": "948fde7fbfa33edd74da085556e4f11f6e58f169f7d7d032df9ed3e20b71afa5",
+        "Configuration.h": "a5c6b9e915fde7c787b712bcf5a2d0ba8fc7c89fe1634435a274777ef2b68aee",
+        "Configuration_adv.h": "5372ddc7a8f3116bd41b8b365aba2e57235d55fc599d56155e4145a3f12f2daf",
+        "Version.h": "8e085166cfae6f49ba7c061a4f761c0efc8dd5319d9bc9e360e6477ebc508e60",
+        "platformio.ini": "ccf4c0c2c77e68649c6730d4491c200621fcc87cde9d86a2c942d139652304b3",
+        "ThumbRender.cpp": "0e84d48f64e660a64b5096e8171d3170d31c3e854a9cbfdb00981b6465a0e1c9"
+      }
+    }
+  },
+  "ram_symbol_deltas": {
+    "baseline->fixed": {
+      "_ZL14thumb_open_cur": 96,
+      "_ZL15thumb_open_prev": 96
+    },
+    "fixed->batched": {
+      "_ZL10thumb_runs": -6144,
+      "_ZL17thumb_run_emitted": -128
+    },
+    "baseline->batched": {
+      "_ZL10thumb_runs": -6144,
+      "_ZL14thumb_open_cur": 96,
+      "_ZL17thumb_run_emitted": -128,
+      "_ZL15thumb_open_prev": 96
+    }
+  },
+  "fixed_42": "PASS 42 images, 257518 commands; maximum burst=10, nominal max watchdog gap=17230us",
+  "fixed_43": "PASS 43 images, 258128 commands; maximum burst=10, nominal max watchdog gap=17230us",
+  "batched_43": "PASS 43 images, 264518 commands; maximum burst=10, nominal max watchdog gap=17230us",
+  "hardware_flashed": false,
+  "timing": "Pacing and watchdog calls verified with mocks. Wire-time figures are modeled, not hardware measurements."
+}

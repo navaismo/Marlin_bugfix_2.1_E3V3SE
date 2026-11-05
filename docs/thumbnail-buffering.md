@@ -38,6 +38,69 @@ corrected renderer (257,518 captured commands), as did the original reproducer
 and the disabled-renderer translation-unit compilation. The saved original
 source still reproduces the historical ASan error when requested explicitly.
 
+## Phase 2: 512-run batching
+
+The second change lowers only `MAX_THUMB_RUNS`, from 1536 to 512, retaining the
+pre-row reservation and 96-entry open arrays introduced by the bounds fix.
+Worst-case rows have 96 runs: a checkerboard batch fits five such rows (480
+runs), then flushes before the sixth. Partially filled batches can reach exactly
+512 runs; a regression covers that boundary and the following row.
+
+The four scratch arrays now occupy `512*6 + 64 + 2*96*2 = 3,520 B`. Relative to
+the bounds-corrected renderer, this recovers 6,272 B; relative to the original
+unsafe renderer, it recovers 6,080 B, including the larger open-index arrays.
+Merging and palette grouping remain active within each batch. A flush ends
+vertical merging at that boundary, as in the original batching design; a run
+below the boundary is drawn in a separate rectangle, covering different pixels.
+The total command count can therefore increase even when the image is identical.
+
+The expanded suite checks 43 images against their expected source pixels, both
+with the phase-1 renderer and the 512-run renderer. It checks every pixel and
+its write count, rather than requiring identical rectangle streams across
+different batch boundaries. The original 17-row ASan reproducer also passes.
+
+The third clean PlatformIO build succeeded:
+
+| Version | Static RAM | Flash (PlatformIO) |
+| --- | ---: | ---: |
+| Original renderer | 34,540 B | 253,268 B |
+| Bounds-corrected, 1536 runs | 34,732 B | 253,260 B |
+| Bounds-corrected, **512 runs** | **28,460 B** | **253,260 B** |
+| Batching change versus bounds correction | **−6,272 B** | **0 B** |
+| Final versus original renderer | **−6,080 B** | **−8 B** |
+
+The final `.data` is 1,084 B and `.bss` is 27,376 B. ELF symbol differences
+attribute the batching savings exactly to `thumb_runs` (−6,144 B) and
+`thumb_run_emitted` (−128 B), with no residual padding delta. All other RAM
+symbol sizes are unchanged. Configuration, version and PlatformIO settings
+hashes match across all three builds; the only differing Marlin source is
+`ThumbRender.cpp`. No audit-only compiler flags were added.
+
+Build sizes, configuration/source/ELF/bin hashes and host-test summaries are
+recorded in [thumbnail-buffering-measurements.json](thumbnail-buffering-measurements.json).
+Local copied configurations, renderer sources, ELF/bin/map and symbol reports
+are under `.pio/thumbnail-validation/{baseline,fixed,batched}-artifacts/`;
+logs are `.pio/thumbnail-validation/{baseline,fixed,batched}.log`. The isolated
+source directories have the corresponding case names. Each build used a new
+object directory and the same installed dependencies, with
+`pio run -d <isolated-case-directory> -e STM32F103RET6_creality -j 4`.
+
+| Image | Phase 1 palette/fill commands | 512-run palette/fill commands |
+| --- | ---: | ---: |
+| Solid 96×96 | 1 / 1 | 1 / 1 |
+| 96 vertical columns | 2 / 96 | 2 / 96 |
+| Checkerboard 96×96 | 12 / 9,216 | 40 / 9,216 |
+| 9,216 distinct colors | 9,216 / 9,216 | 9,216 / 9,216 |
+| Background-separated merging | 2 / 1,344 | 8 / 1,632 |
+
+Both versions render every expected foreground pixel exactly once and leave
+backgrounds unchanged. More fills in the last case reflect shorter vertical
+rectangles at batch boundaries. The host pacing model reports a maximum burst
+of ten commands and maximum watchdog interval of 17,230 µs for both versions.
+Pause counts for individual images can differ by one due to the preserved
+throttle counter continuing across renders. These modeled values do not include
+CPU processing, SD latency or actual panel behavior.
+
 ## Host regression tests
 
 ```sh
@@ -47,7 +110,7 @@ python3 buildroot/tests/memory_audit/reproduce_thumbnail_overflow.py
 
 The tests compile the actual `ThumbRender.cpp` with mocked card, HAL and DWIN
 interfaces under AddressSanitizer and UndefinedBehaviorSanitizer. The complete
-suite covers 42 images, including 96×96 checkerboards and unique colors,
+suite covers 43 images, including 96×96 checkerboards and unique colors,
 96 vertically merged columns, solid images, backgrounds, original 1480+96-run
 overflow input, truncated rows/EOF, open failures, narrow images and 24 seeded
 random images. Each non-background pixel must be written exactly once with the
