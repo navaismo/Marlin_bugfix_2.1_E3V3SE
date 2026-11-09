@@ -1999,7 +1999,6 @@
   //#define M20_TIMESTAMP_SUPPORT         // Include timestamps by adding the 'T' flag to M20 commands
 
   #define SCROLL_LONG_FILENAMES// Scroll long filenames in the SD card menu
-  #define DWIN_LCD_BEEP
 
   //#define SD_ABORT_NO_COOLDOWN          // Leave the heaters on after Stop Print (not recommended!)
 
@@ -2216,6 +2215,16 @@
 #endif
 
 //
+// The host-only print-card protocol uses bounded Base64 batches, without a framebuffer.
+#if ENABLED(OCTOPRINT_PLUGIN) && DISABLED(SDSUPPORT)
+  #define M9001_DRAW_PROTOCOL
+#endif
+
+// Native encoder sound is independent of SD printing.
+#if ENABLED(DWIN_CREALITY_LCD)
+  #define DWIN_LCD_BEEP
+#endif
+
 // Additional options for DGUS / DWIN displays
 //
 #if HAS_DGUS_LCD

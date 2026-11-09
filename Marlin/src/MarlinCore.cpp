@@ -29,6 +29,9 @@
  */
 
 #include "MarlinCore.h"
+#if ENABLED(M9001_DRAW_PROTOCOL)
+  #include "e3v3se/LcdDraw.h"
+#endif
 
 #include "HAL/shared/Delay.h"
 #include "HAL/shared/esp_wifi.h"
@@ -882,6 +885,7 @@ void Marlin::idle(const bool no_stepper_sleep/*=false*/) {
 
   // Manage Fixed-time Motion Control
   TERN_(FT_MOTION, ftMotion.loop());
+  TERN_(M9001_DRAW_PROTOCOL, LcdDraw::tick());
 
   // Handle UI input / draw events
   #if ENABLED(SOVOL_SV06_RTS)

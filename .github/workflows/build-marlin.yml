@@ -1,6 +1,6 @@
 name: Build E3V3SE Firmware
 
-# c13_octoprint branch (C13, OctoPrint host). The committed configuration of this branch is the
+# c13_octoprint_cleanup branch (C13, host-only printing). The committed configuration of this branch is the
 # starting point, and the inputs below override features and their dependencies for this build.
 # Defaults match the branch: plugin and MeatPack on, one-click print and resonance tests off.
 on:
@@ -34,10 +34,6 @@ on:
         description: "DWIN_INPUT_SHAPING_MENU (legacy motion only; disabled with FT_MOTION)"
         type: boolean
         default: false
-      dwin_render_thumbnail:
-        description: "DWIN_RENDER_THUMBNAIL (render G-code thumbnail on the LCD)"
-        type: boolean
-        default: true
       dwin_skew_menu:
         description: "DWIN_SKEW_MENU (requires SKEW_CORRECTION)"
         type: boolean
@@ -62,20 +58,8 @@ on:
         description: "MEATPACK_ON_SERIAL_PORT_1 (host transmission compression)"
         type: boolean
         default: true
-      octoprint_plugin:
-        description: "OCTOPRINT_PLUGIN (Octoprint-LCD_E3V3SE plugin layer)"
-        type: boolean
-        default: true
-      one_click_print:
-        description: "ONE_CLICK_PRINT (SD card only; off for OctoPrint)"
-        type: boolean
-        default: false
       pinput_resonance_events:
         description: "RESONANCE_TEST + PINPUT_RESONANCE_EVENTS (Pinput_Shaping; enables FT_MOTION and X/Y shaping)"
-        type: boolean
-        default: false
-      power_loss_recovery:
-        description: "POWER_LOSS_RECOVERY + DWIN_PLR_MENU (SD recovery and advanced LCD menu; uses memory)"
         type: boolean
         default: false
       preheat_alert:
@@ -118,18 +102,15 @@ jobs:
             DWIN_CUSTOM_EXTRUDE=${{ inputs.dwin_custom_extrude }} \
             DWIN_DIMM_MENU=${{ inputs.dwin_dimm_menu }} \
             DWIN_INPUT_SHAPING_MENU=${{ inputs.dwin_input_shaping_menu && !inputs.ft_motion }} \
-            DWIN_PLR_MENU=${{ inputs.power_loss_recovery }} \
-            DWIN_RENDER_THUMBNAIL=${{ inputs.dwin_render_thumbnail }} \
+            DWIN_RENDER_THUMBNAIL=true \
             DWIN_SKEW_MENU=${{ inputs.dwin_skew_menu }} \
             DWIN_ZHOME_MENU=${{ inputs.dwin_zhome_menu }} \
             E3V3SE_IGNORE_BED_MINTEMP=${{ inputs.e3v3se_ignore_bed_mintemp }} \
             EXTRA_PREHEAT_LABELS=${{ inputs.extra_preheat_labels }} \
             FT_MOTION=${{ inputs.ft_motion }} \
             MEATPACK_ON_SERIAL_PORT_1=${{ inputs.meatpack }} \
-            OCTOPRINT_PLUGIN=${{ inputs.octoprint_plugin }} \
-            ONE_CLICK_PRINT=${{ inputs.one_click_print }} \
+            OCTOPRINT_PLUGIN=true \
             PINPUT_RESONANCE_EVENTS=${{ inputs.pinput_resonance_events }} \
-            POWER_LOSS_RECOVERY=${{ inputs.power_loss_recovery }} \
             PREHEAT_ALERT=${{ inputs.preheat_alert }} \
             RESONANCE_TEST=${{ inputs.pinput_resonance_events }} \
             SKEW_CORRECTION=${{ inputs.skew_correction }} \

@@ -151,3 +151,53 @@ The Makefile/test runner supports `GIT_RESET_HARD`, which can run `git reset --h
 - Native regressions cover manual/workflow feature combinations, menu edits and bounds, Stepper delay/enabled/damping state, ISR restoration and synchronization. Physical resonance tuning still requires printer testing.
 - The Stepper frequency setter now casts only the enabled delay calculation, preserving the integer off sentinel on 32-bit timers instead of converting it through float. Regression coverage includes 16-bit and 32-bit timer types.
 - Visibility regression `test/test_dwin_input_shaping_visibility.py` enters via the real Control and Motion handlers, records the actual label/icon drawing calls, checks viewport bounds and post-draw visibility, and returns from the real submenu. It covers image/text labels, optional jerk/skew rows and menu disabled. The redundant Skew drawing call using a pixel Y as a row was removed. Skew menu measurement variables also have definitions initialized from the configured XY defaults, fixing the existing link failure when its menu is selected.
+
+## C13 host-only cleanup (2026-11-08)
+
+- Work is on `c13_octoprint_cleanup`, based on stable `244be9d801`; the paired plugin branch is `main_cleanup`. No deleted rendering branch was merged.
+- `SDSUPPORT` is off; native MAIN Print shows an upload-to-host message. Bootloader SD firmware updates and BL24CXX EEPROM are independent. Native ThumbTune, print controls, dialogs and safety/filament/motion algorithms remain.
+- Host-side run merging and color buckets feed a 76-byte M9001 v2 print-card executor. It uses 42-byte CRC/sequence-protected G-free Base64 batches, bounded STRIP fallback and a final LCD fence. No MAIN takeover, global framebuffer, heartbeats or pause/resume rendering gate.
+- Plugin uses one counted OctoPrint file-stream hold, acquired in the synchronous beforePrintStarted script hook (also on file selection), released only by its owner on completion/failure. Actual job data handles asynchronous FileSelected delivery.
+- Clean STM32F103RET6_creality build: RAM 22620 bytes (.data 716, .bss 21904), PlatformIO Flash 211272 bytes. Saves 5640 RAM and 34692 Flash against the 28260/245964 baseline. Runtime peak stack is not measured.
+- EEPROM V93 remains 787 bytes / 64 fields / 134 serialization operations in this configuration. See `docs/c13-cleanup.md`, its JSON evidence and `buildroot/tests/c13_cleanup/`. Physical LCD/printing validation is pending; no flash/install/commit/push was performed.
+
+### Print-card hardware feedback (2026-11-08)
+
+- Removed the overlapping right-hand host metadata grid. Native progress remains
+  above; cyan Layers / Layer Height / ETA / Elapsed rows use y=127/143/159/175.
+  Return from ThumbTune restores labels and values without retransmitting pixels.
+- Host thumbnail is still 96x96 at (12,26); complete green frame x=10..109,
+  y=25..122 is outside filename scrolling and Tune clearing. Both protocol peers
+  enforce y=25..122. Update firmware and plugin together.
+- Confirmed Stop clears to MAIN even before host printing starts; plugin preview
+  cancellation releases its own hold and only cancels printing/paused host jobs.
+- Build: STM32F103RET6_creality RAM 22620, Flash 211392 bytes. Source regressions
+  pass; validate layout, Tune return and idle/active Stop physically. See
+  docs/c13-cleanup.md. Existing user icon/banner edits remain intact.
+
+### Centered values / layer-height recovery (2026-11-08)
+
+- Metadata values are centered in x=124..233; clears start at x=120 and cover
+  16-pixel cells. A conservative 8-pixel glyph width fits `65535 / 65535` intact
+  without erasing Layer Height. Staggering and Tune restoration remain intact.
+- Plugin recovers missing/invalid cached layer_height from the stored local
+  G-code footer (up to 64 KiB; header fallback up to 64 KiB), persists the result
+  and ignores first/support/min/max layer heights. Exact trailing keys after
+  EXECUTABLE_BLOCK_END take priority. Existing uploads need no re-upload.
+- Build RAM 22620 / Flash 211400 bytes. UI bounds/max-value tests and 41 distinct
+  plugin cases pass across host/container environments. Four real G-code
+  files, up to 38.8 MB, return 0.2 mm. Physical LCD confirmation is pending.
+
+### Fixed ETA / static-value colors / cube caption (2026-11-08)
+
+- M9000 E<minutes> supplies the initial total estimate once before S1. ETA uses
+  that snapshot in HH:MM (yellow), never live M73 R time-left. MAIN clears it;
+  unknown estimates send E0. Elapsed still uses the live print timer (white).
+- Current layer/slash are white; total layers yellow, centered together with
+  full `65535 / 65535` coverage. Layer height remains white; labels cyan.
+- Cyan Progress at (139,107), below current cube artwork, ends at y=122 and is
+  redrawn after native progress resources to survive their background padding.
+  Position is for the current 92x92 cube assets, not the old circle artwork.
+- Build RAM 22620 / Flash 211528 bytes. All regressions and 43 distinct plugin
+  cases pass across host/container. Physical color/timing/caption check pending.
+  See docs/c13-cleanup.md and docs/c13-cleanup/static-eta.json.

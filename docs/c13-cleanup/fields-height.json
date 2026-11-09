@@ -1,0 +1,50 @@
+{
+  "binary": ".pio/build/STM32F103RET6_creality/firmware-20261108-190133.bin",
+  "binary_sha256": "42635ac47c85dc0ab439604289b6cbf67569bac7d4a722ae1bb3d14f6aec0c22",
+  "sections": {
+    ".data": 716,
+    ".bss": 21904,
+    ".text": 195792,
+    ".rodata": 14892
+  },
+  "RAM": 22620,
+  "Flash": 211400,
+  "vector": "0x8007000",
+  "firmware_source_sha256": "c1a24f58de4667b708388763ccb89206f67658ee553eb2f65cc358acd31bb248",
+  "tested_plugin_source_sha256": {
+    "octoprint_LCD_E3V3SE/__init__.py": "2980ee47da82816f3a3b80dfd54eabff6fcd2e4d7f812574293e87e0608628ae",
+    "tests/test_print_lifecycle.py": "b3c2f9402b1025f12c709c4e80cf994c1a32e26619d3ca714ad0e9c1345538a2",
+    "docs/host-only-rendering.md": "991aed1a4a169e182c1c4bb9e639305490086143bec6e20c72caf72f71f8440c"
+  },
+  "validation": "14 programs PASS",
+  "plugin_cases": {
+    "distinct": 41,
+    "host_pass": 15,
+    "host_skip": 26,
+    "octoprint_pass": 40,
+    "octoprint_skip": 1
+  },
+  "real_gcode_results": {
+    "HoovesV4_PLA_6h8m.gcode": {
+      "size_bytes": 38769517,
+      "layer_height_mm": 0.2,
+      "result": "PASS"
+    },
+    "608_PETG_13m15s.gcode": {
+      "size_bytes": 1230332,
+      "layer_height_mm": 0.2,
+      "result": "PASS"
+    },
+    "CH2_PETG_36m13s.gcode": {
+      "size_bytes": 1655675,
+      "layer_height_mm": 0.2,
+      "result": "PASS"
+    },
+    "MyMini_Benchy2_PETG_13m37s.gcode": {
+      "size_bytes": 930802,
+      "layer_height_mm": 0.2,
+      "result": "PASS"
+    }
+  },
+  "hardware_validation": "pending"
+}

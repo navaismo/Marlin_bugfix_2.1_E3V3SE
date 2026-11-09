@@ -75,6 +75,9 @@ lin 3D Printer Firmware
 
 #include "../../../e3v3se/AutoOffset.h"
 #include "../../../e3v3se/OctoHost.h"
+#if ENABLED(M9001_DRAW_PROTOCOL)
+  #include "../../../e3v3se/LcdDraw.h"
+#endif
 #include "../../../e3v3se/PLRSettings.h"
 
 // #include <QRCodeGenerator.h>
@@ -150,8 +153,10 @@ constexpr uint16_t TROWS = 6, MROWS = TROWS - 1, // Total rows, and other-than-B
 
 char shift_name[101];
 char current_file_name[30];
+#if HAS_MEDIA
 static char *print_name = card.longest_filename();
 static uint8_t print_len_name = strlen(print_name);
+#endif
 int8_t shift_amt;  // = 0
 millis_t shift_ms; // = 0
 static uint8_t left_move_index = 0;
@@ -212,11 +217,13 @@ typedef struct
   }
 } select_t;
 
+#if HAS_MEDIA
 typedef struct
 {
   char filename[FILENAME_LENGTH];
   char longfilename[LONG_FILENAME_BYTES];
 } PrintFile_InfoTypeDef;
+#endif
 
 select_t select_page{0}, select_file{0}, select_print{0}, select_prepare{0}, select_control{0}, select_axis{0}, select_temp{0}, select_motion{0}, select_tune{0}, select_advset{0}, select_PLA{0}, select_ABS{0}, select_TPU{0},  select_PETG{0},  
         select_speed{0}, select_acc{0}, select_jerk{0}, select_step{0}, 
@@ -496,7 +503,9 @@ static void Auto_in_out_feedstock(bool dir) // 0 returns material, 1 feeds
 
 
 #if ENABLED(OCTOPRINT_PLUGIN)
+  #if DISABLED(M9001_DRAW_PROTOCOL)
   uint16_t OctoImageLine[OctoIMAGE_WIDTH];
+  #endif
   //vars to scroll title when octoprinting
   uint8_t scrollOffset = 0;
   millis_t lastScrollTime = 0;
@@ -504,10 +513,13 @@ static void Auto_in_out_feedstock(bool dir) // 0 returns material, 1 feeds
   char visibleText[31] = {0};
 
   //clear the image map to black
+  #if DISABLED(M9001_DRAW_PROTOCOL)
   void initializeImageMap() {
     memset(OctoImageLine, 0, sizeof(OctoImageLine));
     //SERIAL_ECHOLN("OctoImageLine initialized to 0:");
   }
+
+  #endif
 
   // Function to create a shortened filename without extension
   void octo_make_name_without_ext(char *dst, char *src, size_t maxlen = MENU_CHAR_LIMIT)
@@ -568,6 +580,7 @@ static void Auto_in_out_feedstock(bool dir) // 0 returns material, 1 feeds
 #endif
 
 /*Get the specified g file information *short_file_name: short file name *file: file information pointer Return value*/
+#if HAS_MEDIA
 void get_file_info(char *short_file_name, PrintFile_InfoTypeDef *file)
 {
   if (!card.isMounted())
@@ -586,6 +599,8 @@ void get_file_info(char *short_file_name, PrintFile_InfoTypeDef *file)
   strcpy(file->filename, card.filename);
   strcpy(file->longfilename, card.longFilename);
 }
+#endif
+
 
 inline bool HMI_IsJapanese() { return HMI_flag.language == DACAI_JAPANESE; }
 
@@ -1023,7 +1038,7 @@ void ICON_Tune()
     {
       DWIN_ICON_Show(HMI_flag.language, LANGUAGE_Setup_1, WORD_SET_X, WORD_SET_Y);
     }
-    DWIN_Draw_Rectangle(0, Color_White, RECT_SET_X1, RECT_SET_Y1, RECT_SET_X2 - 1, RECT_SET_Y2 - 1);
+    //DWIN_Draw_Rectangle(0, Color_White, RECT_SET_X1, RECT_SET_Y1, RECT_SET_X2 - 1, RECT_SET_Y2 - 1);
   }
   else
   {
@@ -1049,7 +1064,7 @@ void ICON_Pause()
     {
       DWIN_ICON_Show(HMI_flag.language, LANGUAGE_Pause_1, WORD_PAUSE_X, WORD_PAUSE_Y);
     }
-    DWIN_Draw_Rectangle(0, Color_White, ICON_PAUSE_X, ICON_PAUSE_Y, ICON_PAUSE_X + 68 - 1, ICON_PAUSE_Y + 64 - 1);
+    //DWIN_Draw_Rectangle(0, Color_White, ICON_PAUSE_X, ICON_PAUSE_Y, ICON_PAUSE_X + 68 - 1, ICON_PAUSE_Y + 64 - 1);
   }
   else
   {
@@ -1080,7 +1095,7 @@ void ICON_Continue()
     {
       DWIN_ICON_Show(HMI_flag.language, LANGUAGE_keep_print_1, WORD_PAUSE_X, WORD_PAUSE_Y);
     }
-    DWIN_Draw_Rectangle(0, Color_White, ICON_PAUSE_X, ICON_PAUSE_Y, ICON_PAUSE_X + 68 - 1, ICON_PAUSE_Y + 64 - 1);
+    //DWIN_Draw_Rectangle(0, Color_White, ICON_PAUSE_X, ICON_PAUSE_Y, ICON_PAUSE_X + 68 - 1, ICON_PAUSE_Y + 64 - 1);
   }
   else
   {
@@ -1107,7 +1122,7 @@ void ICON_Stop()
       DWIN_ICON_Show(HMI_flag.language, LANGUAGE_Stop_1, WORD_STOP_X, WORD_STOP_Y);
     }
 
-    DWIN_Draw_Rectangle(0, Color_White, ICON_STOP_X, ICON_STOP_Y, ICON_STOP_X + 68 - 1, ICON_STOP_Y + 64 - 1);
+    //DWIN_Draw_Rectangle(0, Color_White, ICON_STOP_X, ICON_STOP_Y, ICON_STOP_X + 68 - 1, ICON_STOP_Y + 64 - 1);
   }
   else
   {
@@ -1189,6 +1204,7 @@ void Clear_Menu_Area()
 
 void Clear_Main_Window()
 {
+  TERN_(M9001_DRAW_PROTOCOL, LcdDraw::cancel());
   Clear_Title_Bar();
   Clear_Menu_Area();
   // DWIN_ICON_Show(ICON ,ICON_Clear_Screen, TITLE_X, TITLE_Y);  //rock_20220718
@@ -1378,10 +1394,13 @@ static void Level_Scroll_Menu(const uint8_t dir, uint8_t select_num)
   // Display the current point data again
   Draw_Dots_On_Screen(&mesh_Count, 1, Select_Block_Color);
 }
+#if HAS_MEDIA
 inline uint16_t nr_sd_menu_items()
 {
   return card.get_num_items() + !card.flag.workDirIsRoot;
 }
+#endif
+
 
 void Draw_Menu_Icon(const uint8_t line, const uint8_t icon)
 {
@@ -3427,6 +3446,7 @@ void Draw_Print_ProgressBar()
     if(hasThumbnail)
     {
       DWIN_ICON_Not_Filter_Show(Background_ICON, BG_PRINTING_CIRCLE_MIN + ui.get_progress_percent(), 125, 27);
+      //TERN_(M9001_DRAW_PROTOCOL, HostPrint::progress_caption());
     }else{
       DWIN_ICON_Not_Filter_Show(Background_ICON, BG_PRINTING_CIRCLE_MIN + ui.get_progress_percent(), ICON_PERCENT_X, ICON_PERCENT_Y);
     }
@@ -3522,6 +3542,10 @@ void Draw_Print_ProgressElapsed()
     void Draw_Layer_Number(bool force_refresh = false)
     {
 
+      #if ENABLED(M9001_DRAW_PROTOCOL)
+        if (force_refresh) HostPrint::refresh(true);
+        return;
+      #else
       if(!hasThumbnail) return; // rerturn if no thumbnail
 
       static int last_current_layer = -1;
@@ -3546,6 +3570,7 @@ void Draw_Print_ProgressElapsed()
       // Clear the area and draw the string
       DWIN_Draw_Rectangle(1, Color_Bg_Black, 75, 165, 240, 177);
       DWIN_Draw_String(false, false, font6x12, Color_White, Color_Bg_Black, (DWIN_WIDTH + 80 - strlen(buffer_layer) * MENU_CHR_W) / 2, 165, buffer_layer); 
+      #endif
     }
 
 
@@ -3780,6 +3805,9 @@ static bool G29_small(void) //
     ui.get_current_layer();
     Draw_Print_ProgressBar();
     
+    #if ENABLED(M9001_DRAW_PROTOCOL)
+      HostPrint::refresh(true);
+    #else
     #if ENABLED(OCTOPRINT_PLUGIN)
       DWIN_Draw_String(false, false, font6x12, Color_Yellow, Color_Bg_Black, 12, 123, F("Print Time:")); // Label Print Time
       Draw_Print_Time();
@@ -3794,6 +3822,8 @@ static bool G29_small(void) //
     DWIN_Draw_String(false, false, font6x12, Color_Yellow, Color_Bg_Black, 12, 165, F("Layer:"));      // Label Print Time
     // DWIN_Draw_String(false, false, font6x12, Color_White, Color_Bg_Black, 80, 165, F(show_layers));    // Label Print Time
     Draw_Layer_Number(true);
+
+    #endif
 
     ICON_Tune();
     // Pause --Pause
@@ -3847,6 +3877,7 @@ void Goto_PrintProcess()
   // stop button
   ICON_Stop();
   // Copy into filebuf string before entry
+  #if HAS_MEDIA
   char shift_name[31];
   char *name = card.longest_filename();
 
@@ -3870,6 +3901,7 @@ void Goto_PrintProcess()
   DWIN_ICON_Show(ICON, ICON_PrintTime, ICON_PRINT_TIME_X, ICON_PRINT_TIME_Y);    // Print time icon
   DWIN_ICON_Show(ICON, ICON_RemainTime, ICON_RAMAIN_TIME_X, ICON_RAMAIN_TIME_Y); // Remaining time icon
 #endif
+  #endif // HAS_MEDIA
   Draw_Print_ProgressBar();     // Show current printing progress
   Draw_Print_ProgressElapsed(); // Show current time
   Draw_Print_ProgressRemain();  // Show remaining time
@@ -3889,6 +3921,7 @@ void Goto_MainMenu()
     ui.set_total_layers(0);     // Reset total layers
     #if ENABLED(OCTOPRINT_PLUGIN)
       ui.set_print_time(0);     // Reset print time
+      TERN_(M9001_DRAW_PROTOCOL, HostPrint::total_minutes = 0);
       OctoRefresh = false;
     #endif
     
@@ -3914,14 +3947,16 @@ void Goto_MainMenu()
   if (HMI_flag.language < Language_Max)
   {
     #if ENABLED(OCTOPRINT_PLUGIN)
-      if (serial_connection_active)
-        DWIN_Draw_String(false, false, DWIN_FONT_HEAD, Color_White, Color_Bg_Blue, 0, 4, F(" ~(o.O)~ OctoPrint Connected"));
-      else
+      if (serial_connection_active){        
+        DWIN_Draw_String(false, false, DWIN_FONT_HEAD, Color_White, Color_Bg_Blue, 0, 4, F("     OctoPrint Connected"));
+        // Add a small green rectangle to indicate connection status
+        DWIN_Draw_Rectangle(1, Color_Blue, 20, 4, 30, 14);
+      }else{
         DWIN_ICON_Show(HMI_flag.language, LANGUAGE_Main, TITLE_X, TITLE_Y); // Rock j
     #else
       DWIN_ICON_Show(HMI_flag.language, LANGUAGE_Main, TITLE_X, TITLE_Y); // Rock j
     #endif
-
+      }  
 
     // DWIN_ICON_Show(HMI_flag.language, LANGUAGE_Main, TITLE_X, TITLE_Y); //rock_j
   }
@@ -3939,8 +3974,12 @@ inline ENCODER_DiffState get_encoder_state()
   if (PENDING(ms, Encoder_ms))
     return ENCODER_DIFF_NO;
   const ENCODER_DiffState state = Encoder_ReceiveAnalyze();
-  if (state != ENCODER_DIFF_NO)
+  if (state != ENCODER_DIFF_NO) {
+    #if ENABLED(M9001_DRAW_PROTOCOL)
+      LcdDraw::cancel();
+    #endif
     Encoder_ms = ms + ENCODER_WAIT_MS;
+  }
   return state;
 }
 
@@ -5332,6 +5371,7 @@ void update_middle_variable()
 #define strcasecmp_P(a, b) strcasecmp((a), (b))
 #endif
 
+#if HAS_MEDIA
 void make_name_without_ext(char *dst, char *src, size_t maxlen = MENU_CHAR_LIMIT)
 {
   char *const name = card.longest_filename();
@@ -5358,9 +5398,14 @@ void make_name_without_ext(char *dst, char *src, size_t maxlen = MENU_CHAR_LIMIT
   while (pos--)
     dst[pos] = src[pos];
 }
+#endif
 
 
+
+#if HAS_MEDIA
 void HMI_SDCardInit() { card.cdroot(); }
+#endif
+
 
 // void MarlinUI::refresh() { /* Nothing to see here */ }
 // void MarlinUI::kill_screen(PGM_P lcd_error, PGM_P lcd_component) {
@@ -5377,7 +5422,7 @@ void HMI_SDCardInit() { card.cdroot(); }
 
 #define ICON_Folder ICON_More
 
-#if ENABLED(SCROLL_LONG_FILENAMES)
+#if ALL(SDSUPPORT, SCROLL_LONG_FILENAMES)
 
 // Init the shift name based on the highlighted item
 void Init_Shift_Name()
@@ -5406,6 +5451,7 @@ void Init_SDItem_Shift()
 /**
  *Display an SD item, adding a CDUP for subfolders.
  */
+#if HAS_MEDIA
 void Draw_SDItem(const uint16_t item, int16_t row = -1)
 {
   if (row < 0)
@@ -5420,7 +5466,7 @@ void Draw_SDItem(const uint16_t item, int16_t row = -1)
   card.selectFileByIndexSorted(item - is_subdir);
   char *const name = card.longest_filename();
 
-#if ENABLED(SCROLL_LONG_FILENAMES)
+#if ALL(SDSUPPORT, SCROLL_LONG_FILENAMES)
   // Init the current selected name
   // This is used during scroll drawing
   if (item == select_file.now - 1)
@@ -5435,8 +5481,10 @@ void Draw_SDItem(const uint16_t item, int16_t row = -1)
   make_name_without_ext(str, name);
   Draw_Menu_Line(row, card.flag.filenameIsDir ? ICON_Folder : ICON_File, str);
 }
+#endif
 
-#if ENABLED(SCROLL_LONG_FILENAMES)
+
+#if ALL(SDSUPPORT, SCROLL_LONG_FILENAMES)
 
 void Draw_SDItem_Shifted(uint8_t &shift)
 {
@@ -5460,6 +5508,7 @@ void Draw_SDItem_Shifted(uint8_t &shift)
 #endif
 
 // Redraw the first set of SD Files
+#if HAS_MEDIA
 void Redraw_SD_List()
 {
   select_file.reset();
@@ -5484,27 +5533,36 @@ void Redraw_SD_List()
   //   DWIN_Draw_String(false, false, font16x32, Color_Yellow, Color_Bg_Red, ((DWIN_WIDTH) -8 *16) /2, MBASE(3), F("No Media"));
   // }
 }
+#endif
+
 
 bool DWIN_lcd_sd_status = false;
 bool pause_action_flag = false;
 
+#if HAS_MEDIA
 void SDCard_Up()
 {
   card.cdup();
   Redraw_SD_List();
   DWIN_lcd_sd_status = false; // On next DWIN_Update
 }
+#endif
 
+
+#if HAS_MEDIA
 void SDCard_Folder(char *const dirname)
 {
   card.cd(dirname);
   Redraw_SD_List();
   DWIN_lcd_sd_status = false; // On next DWIN_Update
 }
+#endif
+
 
 //
 // Watch for media mount /unmount
 //
+#if HAS_MEDIA
 void HMI_SDCardUpdate()
 {
   // The card pulling action is not detected when the interface returns to home, add ||HMI_flag.disallow_recovery_flag
@@ -5541,7 +5599,7 @@ void HMI_SDCardUpdate()
       {
         // TODO: Move card removed abort handling
         //       to CardReader::manage_media.
-        card.abortFilePrintSoon();
+        TERN_(SDSUPPORT, card.abortFilePrintSoon());
         // wait_for_heatup = wait_for_user = false;
         dwin_abort_flag = true; //Reset feedrate, return to Home
         need_lcd_update = true;
@@ -5563,6 +5621,8 @@ void HMI_SDCardUpdate()
     // Flag.mounted
   }
 }
+#endif
+
 
 //
 // The status area is always on-screen, except during
@@ -5854,6 +5914,7 @@ void Draw_Info_Menu()
 #endif
 }
 
+#if HAS_MEDIA
 void Draw_Print_File_Menu()
 {
   Clear_Title_Bar();
@@ -5864,6 +5925,15 @@ void Draw_Print_File_Menu()
   }
   Redraw_SD_List();
 }
+#else
+void Draw_Print_File_Menu() {
+  Clear_Main_Window();
+  Draw_Back_First();
+  DWIN_Draw_String(false, false, font8x16, Color_White, Color_Bg_Black, 64, 112, F("Upload to Host"));
+  DWIN_Draw_String(false, false, font8x16, Color_White, Color_Bg_Black, 36, 136, F("and start from there"));
+}
+#endif
+
 
 void HMI_Select_language()
 {
@@ -6209,6 +6279,7 @@ static void Display_Estimated_Time(int time) // Display remaining time.
 }
 
 // Picture preview details display
+#if HAS_MEDIA
 static void Image_Preview_Information_Show(uint8_t ret)
 {
 
@@ -6246,10 +6317,13 @@ static void Image_Preview_Information_Show(uint8_t ret)
 
 #endif
 }
+#endif
+
 
 
 // Image preview interface
 #if ENABLED(DWIN_RENDER_THUMBNAIL)
+#if HAS_MEDIA
   void Goto_ThumbPreview(){
 
     // SERIAL_ECHOLNPGM("Image Preview Info");
@@ -6297,8 +6371,11 @@ static void Image_Preview_Information_Show(uint8_t ret)
   }
 #endif
 
+#endif
+
 // Open the file preview dialog for the file currently selected in the card
 // reader. Shared by manual file selection and One Click Print.
+#if HAS_MEDIA
 void Goto_FilePreview()
 {
   strncpy(my_short_fn, card.filename, sizeof(my_short_fn) - 1);
@@ -6348,8 +6425,11 @@ void Goto_FilePreview()
 
   #endif
 }
+#endif
+
 
 // Select (and Print) File
+#if HAS_MEDIA
 void HMI_SelectFile()
 {
   ENCODER_DiffState encoder_diffState = get_encoder_state();
@@ -6358,7 +6438,7 @@ void HMI_SelectFile()
 
   if (encoder_diffState == ENCODER_DIFF_NO)
   {
-#if ENABLED(SCROLL_LONG_FILENAMES)
+#if ALL(SDSUPPORT, SCROLL_LONG_FILENAMES)
     if (shift_ms && select_file.now >= 1 + hasUpDir)
     {
       // Scroll selected filename every second
@@ -6486,6 +6566,12 @@ void HMI_SelectFile()
   }
   DWIN_UpdateLCD();
 }
+#else
+void HMI_SelectFile() {
+  if (get_encoder_state() == ENCODER_DIFF_ENTER) Goto_MainMenu();
+}
+#endif
+
 
 /* Printing */
 void HMI_Printing()
@@ -6704,7 +6790,11 @@ void HMI_PauseOrStop()
           isPaused = false;
           SERIAL_ECHOLNPGM("M9000 cancel-job");
           hostui.cancel();
-
+          #if ENABLED(M9001_DRAW_PROTOCOL)
+            // A selected host file may not be printing yet. Always leave its card.
+            select_page.set(0);
+            Goto_MainMenu();
+          #endif
         }
         else
         {
@@ -6736,7 +6826,7 @@ void HMI_PauseOrStop()
           // checkkey = Popup_Window;
           Popup_Window_Home(true); // Rock 20221018
 
-          card.abortFilePrintSoon(); // Let the main loop handle SD abort  //rock_20211020
+          TERN_(SDSUPPORT, card.abortFilePrintSoon()); // Let the main loop handle SD abort  //rock_20211020
           checkkey = Back_Main;
           if (HMI_flag.cloud_printing_flag)
           {
@@ -6937,7 +7027,7 @@ void HMI_Filament()
 #endif
       Popup_Window_Home(true);
       // Let the main loop handle SD abort  //rock_20211020
-      card.abortFilePrintSoon();
+      TERN_(SDSUPPORT, card.abortFilePrintSoon());
       checkkey = Back_Main;
       if (HMI_flag.cloud_printing_flag)
       {
@@ -6954,6 +7044,7 @@ void HMI_Filament()
 }
 
 /* Remove card window */
+#if HAS_MEDIA
 void HMI_Remove_card()
 {
   ENCODER_DiffState encoder_diffState = get_encoder_state();
@@ -6982,6 +7073,8 @@ void HMI_Remove_card()
   }
   DWIN_UpdateLCD();
 }
+#endif
+
 #endif
 void CR_Touch_error_func()
 {
@@ -11409,7 +11502,7 @@ void HMI_Init()
   // SERIAL_ECHOLNPGM(" ----HMI_flag.boot_step: ", HMI_flag.boot_step);
   // SERIAL_ECHOLNPGM(" ----HMI_flag.language: ", HMI_flag.language);
   // SERIAL_ECHOLNPGM(" ----HMI_flag.Need_boot_flag: ", HMI_flag.Need_boot_flag);
-  HMI_SDCardInit();
+  TERN_(SDSUPPORT, HMI_SDCardInit());
   if ((HMI_flag.language < Chinese) || (HMI_flag.language >= Language_Max)) // The language is confusing when you power on, so set it to English first.
   {
     HMI_flag.language = English;
@@ -11437,24 +11530,25 @@ void MarlinUI::init_lcd() { HMI_Init(); }
 
 void DWIN_Update()
 {
-  HMI_SDCardUpdate(); // SD card update
+  #if ENABLED(M9001_DRAW_PROTOCOL)
+    if (LcdDraw::active()) { DWIN_HandleScreen(); return; }
+  #endif
+  TERN_(SDSUPPORT, HMI_SDCardUpdate()); // SD card update
+  #if HAS_MEDIA
   if (!HMI_flag.disallow_recovery_flag)
   {
     // SD card print
-    if (TERN(POWER_LOSS_RECOVERY, recovery.info.sd_printing_flag, card.isPrinting()))
+    if (TERN(POWER_LOSS_RECOVERY, recovery.info.sd_printing_flag, TERN0(SDSUPPORT, card.isPrinting())))
     {
       // Rock 20210814
       Remove_card_window_check();
     }
-    // SD card print
-    #if !HAS_FILAMENT_SENSOR
-    if (HMI_flag.cloud_printing_flag || card.isPrinting())
-    {
-      // check filament update
-      Check_Filament_Update();
-    }
-    #endif
   }
+  #endif // HAS_MEDIA
+  #if !HAS_FILAMENT_SENSOR
+    if (!HMI_flag.disallow_recovery_flag && (HMI_flag.cloud_printing_flag || TERN0(SDSUPPORT, card.isPrinting())))
+      Check_Filament_Update();
+  #endif
 
   EachMomentUpdate(); // Status update
 
@@ -11468,8 +11562,8 @@ void Check_Filament_Update(void)
 {
   static uint32_t lMs = millis();
   static uint8_t lNoMatCnt = 0;
-  if ((card.isPrinting() || (!HMI_flag.filement_resume_flag)) && (!temp_cutting_line_flag))
-  // if(card.isPrinting() && (!temp_cutting_line_flag) || !HMI_flag.filement_resume_flag)//SD card printing or cloud printing
+  if ((TERN0(SDSUPPORT, card.isPrinting()) || (!HMI_flag.filement_resume_flag)) && (!temp_cutting_line_flag))
+  // if(TERN0(SDSUPPORT, card.isPrinting()) && (!temp_cutting_line_flag) || !HMI_flag.filement_resume_flag)//SD card printing or cloud printing
   {
     if (millis() - lMs > 500)
     {
@@ -11521,6 +11615,7 @@ void Check_Filament_Update(void)
 #endif // !HAS_FILAMENT_SENSOR
 
 // The card monitoring
+#if HAS_MEDIA
 void Remove_card_window_check(void)
 {
   static bool lSDCardStatus = false;
@@ -11534,7 +11629,7 @@ void Remove_card_window_check(void)
     // sd card removed
     lSDCardStatus = card.isSDCardInserted();
     // remove SD card when printing
-    if (card.isPrinting() && (!temp_remove_card_flag))
+    if (TERN0(SDSUPPORT, card.isPrinting()) && (!temp_remove_card_flag))
     {
       checkkey = Popup_Window;
       HMI_flag.remove_card_flag = true;
@@ -11555,6 +11650,8 @@ void Remove_card_window_check(void)
     lSDCardStatus = card.isSDCardInserted();
   }
 }
+#endif
+
 
 #if ENABLED(DWIN_PLR_MENU)
   enum PLRMenuItem : uint8_t {
@@ -11783,6 +11880,9 @@ void Remove_card_window_check(void)
 void EachMomentUpdate()
 {
   TERN_(PREHEAT_ALERT, Preheat_alert());
+  #if ENABLED(M9001_DRAW_PROTOCOL)
+    if (OctoRefresh && checkkey == ThumbPrint) HostPrint::refresh();
+  #endif
     static bool heat_dir = false, heat_dir_bed = false, high_dir = false;
   static uint8_t heat_index = BG_NOZZLE_MIN, bed_heat_index = BG_BED_MIN;
   static millis_t next_var_update_ms = 0, next_rts_update_ms = 0, next_heat_flash_ms = 0, next_heat_bed_flash_ms = 0, next_high_ms = 0, next_move_file_name_ms = 0;
@@ -11803,6 +11903,7 @@ void EachMomentUpdate()
       // update_variable(); //The bottom parameter is refreshed only when the flag bit is 0
     }
   }
+  #if HAS_MEDIA
   if (checkkey == PrintProcess) // Dynamically display the file name being printed during printing
   {
     if (strlen(print_name) > 30)
@@ -11821,6 +11922,7 @@ void EachMomentUpdate()
     }
   }
 
+  #endif // HAS_MEDIA
   if (thermalManager.degTargetHotend(0) > 0) // Nozzle heating animation processing
   {
     if (ELAPSED(ms, next_heat_flash_ms))
@@ -12098,9 +12200,9 @@ void EachMomentUpdate()
   }
 
   #if ENABLED(DWIN_RENDER_THUMBNAIL)
-    if (card.isPrinting() && (checkkey == PrintProcess || checkkey == ThumbPrint))
+    if (TERN0(SDSUPPORT, card.isPrinting()) && (checkkey == PrintProcess || checkkey == ThumbPrint))
   #else
-    if (card.isPrinting() && (checkkey == PrintProcess))
+    if (TERN0(SDSUPPORT, card.isPrinting()) && (checkkey == PrintProcess))
   #endif
   {
     if(!OctoRefresh){
@@ -12175,6 +12277,7 @@ void EachMomentUpdate()
   hal.watchdog_refresh();
 }
 
+#if HAS_MEDIA
 void Show_G_Pic(void)
 {
   static bool flag = false;
@@ -12229,7 +12332,7 @@ void Show_G_Pic(void)
       if (card.isSDCardInserted()) // Have a card
       {
 #if ENABLED(USER_LEVEL_CHECK) // Using the leveling calibration function
-        if (HMI_flag.Level_check_flag && (!card.isPrinting()))
+        if (HMI_flag.Level_check_flag && (!TERN0(SDSUPPORT, card.isPrinting())))
         {
           // Popup window home();
           HMI_flag.Level_check_start_flag = true; // Leveling calibration start mark position 1
@@ -12310,6 +12413,8 @@ void Show_G_Pic(void)
   }
   DWIN_UpdateLCD();
 }
+#endif
+
 
 void Draw_Select_language()
 {
@@ -12582,7 +12687,7 @@ void DWIN_HandleScreen()
     break;
 #endif
   case Remove_card_window:
-    HMI_Remove_card();
+    TERN_(SDSUPPORT, HMI_Remove_card());
     break;
   case TemperatureID:
     HMI_Temperature();
@@ -12776,7 +12881,7 @@ void DWIN_HandleScreen()
     HMI_StepXYZE();
     break;
   case Show_gcode_pic:
-    Show_G_Pic();
+    TERN_(SDSUPPORT, Show_G_Pic());
     break;
   case Selectlanguage:
     HMI_Select_language();
@@ -13206,6 +13311,9 @@ void HMI_Auto_Bed_PID(void)
 
     Draw_Print_ProgressBar(); // draw progress bar at 100%
     
+    #if ENABLED(M9001_DRAW_PROTOCOL)
+      HostPrint::finish_fields();
+    #else
     #if ENABLED(OCTOPRINT_PLUGIN)
       DWIN_Draw_String(false, false, font6x12, Color_Yellow, Color_Bg_Black, 12, 123, F("Print Time:")); // Label Print Time
       Draw_Print_Time();
@@ -13221,6 +13329,8 @@ void HMI_Auto_Bed_PID(void)
     // DWIN_Draw_String(false, false, font6x12, Color_White, Color_Bg_Black, 80, 165, F(show_layers));    // Label Print Time
     Draw_Layer_Number(true);
 
+    #endif
+
     // show print done confirm
     if (HMI_flag.language < Language_Max) // Rock 20211120
     {
@@ -13234,6 +13344,13 @@ void HMI_Auto_Bed_PID(void)
 
   void DWIN_OctoUpdate() {
     
+      #if ENABLED(M9001_DRAW_PROTOCOL)
+        if (checkkey != ThumbPrint) return;
+        static uint16_t last_progress = 0xFFFF;
+        const uint16_t progress = ui.get_progress_permyriad();
+        if (progress != last_progress) { last_progress = progress; Draw_Print_ProgressBar(); }
+        octoUpdateScroll();
+      #else
       //We use a static variable to keep the "step" account.
       static uint8_t updateStep = 0;
       
@@ -13264,9 +13381,10 @@ void HMI_Auto_Bed_PID(void)
       
       //Increase the counter and restart it upon reaching 3 (0 to 3)
       updateStep = (updateStep + 1) % 4;
-    
+      #endif
   }
 
+  #if DISABLED(M9001_DRAW_PROTOCOL)
   void DWIN_RenderOctoLine(uint16_t y) {
     if (y >= 96) return;
     uint16_t pixel_count = 0; // Track drawn pixels for batched delay
@@ -13300,6 +13418,7 @@ void HMI_Auto_Bed_PID(void)
     SERIAL_ECHOLNPGM("M9001 ACK LINE ", y);
   }
 
+#endif // M9001_DRAW_PROTOCOL
 #endif // OCTOPRINT_PLUGIN
 
 // Function to send string to LCD

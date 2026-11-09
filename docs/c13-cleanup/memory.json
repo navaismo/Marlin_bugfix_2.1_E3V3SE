@@ -1,0 +1,1668 @@
+{
+  "stages": {
+    "baseline": {
+      "data": 1084,
+      "bss": 27176,
+      "ram": 28260,
+      "flash": 245964,
+      "flash_allocated_load_sections": 246572,
+      "linker_stack_heap_reservation": 1536,
+      "vector_address": "0x8007000"
+    },
+    "phase-a": {
+      "data": 704,
+      "bss": 22000,
+      "ram": 22704,
+      "flash": 209204,
+      "flash_allocated_load_sections": 209804,
+      "linker_stack_heap_reservation": 1536,
+      "vector_address": "0x8007000"
+    },
+    "phase-b": {
+      "data": 704,
+      "bss": 21888,
+      "ram": 22592,
+      "flash": 210660,
+      "flash_allocated_load_sections": 211260,
+      "linker_stack_heap_reservation": 1536,
+      "vector_address": "0x8007000"
+    },
+    "phase-c": {
+      "data": 716,
+      "bss": 21896,
+      "ram": 22612,
+      "flash": 210712,
+      "flash_allocated_load_sections": 211312,
+      "linker_stack_heap_reservation": 1536,
+      "vector_address": "0x8007000"
+    },
+    "final": {
+      "data": 716,
+      "bss": 21904,
+      "ram": 22620,
+      "flash": 211272,
+      "flash_allocated_load_sections": 211872,
+      "linker_stack_heap_reservation": 1536,
+      "vector_address": "0x8007000"
+    }
+  },
+  "frame_scope": "Compiler per-function frames (-fno-lto); not call-chain, ISR or runtime peak stack.",
+  "frames": [
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:5778:6:void Draw_PStats_Menu()",
+      "bytes": 144,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/e3v3se/LcdDraw.cpp:78:8:void LcdDraw::command(const char*)",
+      "bytes": 112,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:780:6:void DWIN_Draw_Z_Offset_Float(uint8_t, uint16_t, uint16_t, uint8_t, uint8_t, uint16_t, uint16_t, long int)",
+      "bytes": 96,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/e3v3se/LcdDrawIO.cpp:24:8:void LcdDrawIO::reply(const char*, uint32_t, uint16_t)",
+      "bytes": 88,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:13417:6:void DWIN_Show_M117(char*)",
+      "bytes": 88,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:5011:6:void HMI_AUTO_PID_Value_Set()",
+      "bytes": 80,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:5627:6:void Draw_Status_Area(bool)",
+      "bytes": 72,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:5714:6:void Draw_Mid_Status_Area(bool)",
+      "bytes": 72,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:6873:6:void HMI_Filament()",
+      "bytes": 72,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/e3v3se/OctoHost.cpp:35:15:void HostPrint::draw_field(uint8_t, bool)",
+      "bytes": 64,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:3095:6:void Draw_Dots_On_Screen(xy_int8_t*, uint8_t, uint16_t)",
+      "bytes": 64,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:3460:6:void Draw_Print_ProgressElapsed()",
+      "bytes": 64,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:5117:6:void update_variable()",
+      "bytes": 64,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:5246:6:void update_middle_variable()",
+      "bytes": 64,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:9471:6:void Draw_HM_PID_Set()",
+      "bytes": 64,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:9706:6:void Draw_Steps_Menu()",
+      "bytes": 64,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:815:6:void DWIN_Draw_Signed_Float(uint8_t, uint16_t, uint8_t, uint8_t, uint16_t, uint16_t, long int)",
+      "bytes": 56,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:828:6:void DWIN_Draw_Signed_Float_Temp(uint8_t, uint16_t, uint8_t, uint8_t, uint16_t, uint16_t, long int)",
+      "bytes": 56,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:3577:12:void Draw_Print_Time()",
+      "bytes": 56,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:4107:6:void HMI_Zoffset()",
+      "bytes": 56,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:4928:6:void HMI_StepXYZE()",
+      "bytes": 56,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:4978:6:void HMI_HM_PID_Value_Set()",
+      "bytes": 56,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:5070:6:void _update_axis_value(AxisEnum, uint16_t, uint16_t, bool, bool)",
+      "bytes": 56,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:8377:6:void HMI_Levling_Change()",
+      "bytes": 56,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:8431:6:void HMI_Leveling_Edit()",
+      "bytes": 56,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/inc/../HAL/../HAL/STM32/../../core/serial_base.h:202:18:void SerialBase<Child>::printNumber_unsigned(uint_fixed_print_t, PrintBase) [with Child = MeatpackSerial<BaseSerial<MarlinSerial> >]",
+      "bytes": 56,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/e3v3se/LcdDraw.cpp:143:8:void LcdDraw::tick()",
+      "bytes": 48,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:11387:15:void Draw_Pause_Options()",
+      "bytes": 48,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:333:6:void In_out_feedtock_level(uint16_t, uint16_t, bool)",
+      "bytes": 48,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:354:6:void In_out_feedtock(uint16_t, uint16_t, bool)",
+      "bytes": 48,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2297:6:void Item_Tune_Bed(uint8_t)",
+      "bytes": 48,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:3590:6:void Draw_Print_ProgressRemain()",
+      "bytes": 48,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:4080:6:void HMI_Move_E()",
+      "bytes": 48,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:4188:6:void HMI_ETemp()",
+      "bytes": 48,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:4334:6:void HMI_EFlow()",
+      "bytes": 48,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:4393:6:void HMI_BedTemp()",
+      "bytes": 48,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:4737:6:void HMI_PrintSpeed()",
+      "bytes": 48,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2148:6:void Draw_Control_Menu()",
+      "bytes": 48,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:9501:6:void Draw_Auto_PID_Set()",
+      "bytes": 48,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:8680:6:void HMI_Temperature()",
+      "bytes": 48,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:9529:6:void Draw_Max_Speed_Menu()",
+      "bytes": 48,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:9563:6:void Draw_Max_Accel_Menu()",
+      "bytes": 48,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:11297:6:void HMI_Step()",
+      "bytes": 48,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:12936:6:void HMI_Hm_Set_PID()",
+      "bytes": 48,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2235:13:void Show_Temp_Default_Data(uint8_t, uint8_t)",
+      "bytes": 40,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/../../../libs/duration_t.h:130:9:char* duration_t::toString(char*) const",
+      "bytes": 40,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2257:6:void Item_Tune_Speed(uint8_t)",
+      "bytes": 40,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2269:6:void Item_Tune_Temp(uint8_t)",
+      "bytes": 40,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2283:6:void Item_Tune_Flow(uint8_t)",
+      "bytes": 40,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2312:6:void Item_Tune_Fan(uint8_t)",
+      "bytes": 40,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2442:10:void Thumb_Draw_Menu_Line(uint8_t, uint8_t, const char*, bool)",
+      "bytes": 40,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2471:10:void Thumb_Item_Tune_Speed(uint8_t)",
+      "bytes": 40,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2479:10:void Thumb_Item_Tune_Temp(uint8_t)",
+      "bytes": 40,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2487:10:void Thumb_Item_Tune_Flow(uint8_t)",
+      "bytes": 40,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2495:10:void Thumb_Item_Tune_Bed(uint8_t)",
+      "bytes": 40,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2503:10:void Thumb_Item_Tune_Fan(uint8_t)",
+      "bytes": 40,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:4056:6:void HMI_Move_Z()",
+      "bytes": 40,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:4577:6:void HMI_FanSpeed()",
+      "bytes": 40,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:4780:6:void HMI_MaxFeedspeedXYZE()",
+      "bytes": 40,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:4804:6:void HMI_MaxAccelerationXYZE()",
+      "bytes": 40,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:7088:6:void DWIN_CalibrationFailed(bool)",
+      "bytes": 40,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:10201:6:void HMI_HomeOffN(AxisEnum, float&, const_float_t, const_float_t)",
+      "bytes": 40,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:10268:6:void HMI_ProbeOffN(float&, float&)",
+      "bytes": 40,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:10599:6:void HMI_Tune()",
+      "bytes": 40,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:10718:6:void HMI_PLAPreheatSetting()",
+      "bytes": 40,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:10786:6:void HMI_TPUPreheatSetting()",
+      "bytes": 40,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:10994:6:void HMI_MaxSpeed()",
+      "bytes": 40,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:11033:6:void HMI_MaxAcceleration()",
+      "bytes": 40,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:7771:6:void HMI_Prepare()",
+      "bytes": 40,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:13042:6:void HMI_Auto_set_PID()",
+      "bytes": 40,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:11872:6:void EachMomentUpdate()",
+      "bytes": 40,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:13515:6:void DWIN_Draw_Checkbox(uint16_t, uint16_t, uint16_t, uint16_t, bool)",
+      "bytes": 40,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:10477:6:void HMI_ThumbTune()",
+      "bytes": 40,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:11396:8:static void MarlinUI::pause_show_message(PauseMessage, PauseMode, uint8_t)",
+      "bytes": 40,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/../../../module/temperature.h:1030:19:static void Temperature::setTargetHotend(celsius_t, uint8_t)",
+      "bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:302:6:void Draw_Leveling_Highlight(bool)",
+      "bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:869:6:void ICON_Prepare()",
+      "bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:558:8:void octoUpdateScroll()",
+      "bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:966:6:void Draw_Menu_Line_UP(uint8_t, uint8_t, uint8_t, bool)",
+      "bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1424:6:void Draw_Menu_Item(uint8_t, uint8_t, const char*, bool)",
+      "bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1773:6:void Item_Prepare_Offset(uint8_t)",
+      "bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1828:6:void Item_Prepare_PLA(uint8_t)",
+      "bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1851:6:void Item_Prepare_TPU(uint8_t)",
+      "bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2326:6:void Item_Tune_Zoffset(uint8_t)",
+      "bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2419:10:void Scroll_Menu_Thumb(uint8_t)",
+      "bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2511:10:void Thumb_Item_Tune_Zoffset(uint8_t)",
+      "bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:3217:6:void Draw_Show_G_Select_Highlight(bool)",
+      "bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:3261:6:void Draw_Select_Highlight(bool)",
+      "bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:3305:6:void Popup_window_PauseOrStop()",
+      "bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:3341:6:void Popup_window_boot(uint8_t)",
+      "bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:4018:6:void HMI_Move_X()",
+      "bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:4037:6:void HMI_Move_Y()",
+      "bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2001:6:void Draw_Prepare_Menu()",
+      "bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2341:6:void Draw_Tune_Menu()",
+      "bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:7357:6:void Draw_HomeOff_Menu()",
+      "bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:7373:6:void Draw_ProbeOff_Menu()",
+      "bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:8094:6:void Draw_Temperature_Menu()",
+      "bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:8546:6:void HMI_AxisMove()",
+      "bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:10152:6:void HMI_HomeOff()",
+      "bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:10227:6:void HMI_ProbeOff()",
+      "bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:13177:6:void HMI_Auto_Bed_PID()",
+      "bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/MarlinCore.cpp:1207:6:void setup()",
+      "bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/e3v3se/LcdDrawIO.cpp:16:11:uint8_t LcdDrawIO::send(const uint8_t*, uint8_t)",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/../../../module/temperature.h:1101:19:static void Temperature::start_watching_bed()",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:550:8:void Draw_OctoTitle(const char*)",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:841:6:void ICON_Print()",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:906:6:void ICON_Control()",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:936:6:void ICON_StartInfo(bool)",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:978:6:void ICON_Leveling(bool)",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1166:6:void Draw_Title(const char*)",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1296:6:void Move_Highlight_Lguage(int16_t, uint16_t)",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1315:6:void Scroll_Menu(uint8_t)",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1336:6:void Scroll_Menu_Full(uint8_t)",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1346:6:void Scroll_Menu_Language(uint8_t)",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1450:6:void Draw_Back_Label()",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1651:6:void DWIN_Draw_Label(uint16_t, char*)",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1660:6:void DWIN_Draw_Small_Label(uint16_t, char*)",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1669:6:void draw_move_en(uint16_t)",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1678:6:void DWIN_Frame_TitleCopy(uint8_t, uint16_t, uint16_t, uint16_t, uint16_t)",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1699:6:void Item_Prepare_Disable(uint8_t)",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1721:6:void Item_Prepare_Home(uint8_t)",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1747:6:void Item_Prepare_Height(uint8_t)",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1902:6:void Item_Prepare_Cool(uint8_t)",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1925:6:void Item_Prepare_Lang(uint8_t)",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2082:6:void Item_Control_Info(uint16_t)",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2454:10:void Thumb_Draw_Back_Label()",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2522:10:void Draw_ThumbTune_Menu()",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2568:6:void draw_max_en(uint16_t)",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2572:6:void draw_max_accel_en(uint16_t)",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2577:6:void draw_speed_en(uint16_t, uint16_t)",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2581:6:void draw_jerk_en(uint16_t)",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2585:6:void draw_steps_per_mm(uint16_t)",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2614:6:void say_x(uint16_t, uint16_t)",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2618:6:void say_y(uint16_t, uint16_t)",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2622:6:void say_z(uint16_t, uint16_t)",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2626:6:void say_e(uint16_t, uint16_t)",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:3023:6:void Popup_Window_Feedstork_Finish(bool)",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:3162:6:void Refresh_Leveling_Value()",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:3914:6:void Goto_MainMenu()",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:3982:6:void HMI_Plan_Move(feedRate_t)",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:3992:6:void HMI_Move_Done(AxisEnum)",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:5095:6:void _draw_xyz_position(bool)",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:5840:6:void Draw_Info_Menu()",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:5925:6:void Draw_Print_File_Menu()",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:5934:6:void HMI_Select_language()",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:7259:6:void Draw_Move_Menu()",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:8483:6:void HMI_Leveling()",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:12411:6:void Draw_Select_language()",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:11553:6:void Check_Filament_Update()",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/MarlinCore.cpp:318:8:static void Marlin::wait_for_user_response(millis_t, bool)",
+      "bytes": 24,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:13519:1:cpp)",
+      "bytes": 20,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/e3v3se/LcdDraw.cpp:135:15:bool LcdDraw::frame(const uint8_t*, uint8_t, uint32_t)",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/e3v3se/../gcode/parser.h:423:20:static bool GCodeParser::boolval(char, bool)",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/e3v3se/OctoHost.cpp:63:8:void HostPrint::refresh(bool)",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/e3v3se/OctoHost.cpp:115:6:static void GcodeSuite::M9000()",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:13025:16:uint8_t Check_temp_low()",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:525:8:void octo_make_name_without_ext(char*, char*, size_t)",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1028:6:void ICON_Tune()",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1055:6:void ICON_Pause()",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1111:6:void ICON_Stop()",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1138:6:void Clear_Title_Bar()",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1085:6:void ICON_Continue()",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1148:6:void Clear_Remain_Time()",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1157:6:void Clear_Print_Time()",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1188:6:void Clear_Menu_Area()",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1214:6:void Clear_Below_Area()",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1220:6:void Clear_Popup_Area()",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1230:6:void Draw_Popup_Bkgd_105()",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1242:6:void Draw_ThumbPopup_Bkgd_60()",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1268:6:void Draw_Menu_Cursor(uint8_t)",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1278:6:void Draw_laguage_Cursor(uint8_t)",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1282:6:void Erase_Menu_Cursor(uint8_t)",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1305:6:void Add_Menu_Line()",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1415:6:void Erase_Menu_Text(uint8_t)",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1434:6:void Draw_Menu_Line(uint8_t, uint8_t, const char*, bool)",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1467:6:void Draw_Back_First(bool)",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1809:6:void Item_Prepare_instork(uint8_t)",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1818:6:void Item_Prepare_outstork(uint8_t)",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2401:10:void Thumb_Draw_Menu_Cursor(uint8_t)",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2405:10:void Erase_Menu_Cursor_Thumb(uint8_t)",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2414:10:void Add_Menu_Line_Thumb()",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2463:10:void Thumb_Draw_Back_First(bool)",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2741:6:void DWIN_Popup_Temperature(bool, int8_t)",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2819:6:void Draw_Popup_Bkgd_60()",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2920:6:void Popup_Window_Height(uint8_t)",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:3178:6:void Popup_Window_Leveling()",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:3295:6:void Clear_Thumb_UpperArea()",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:3694:6:void Popup_window_Remove_card()",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:3966:26:ENCODER_DiffState get_encoder_state()",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2997:6:void Popup_Window_Feedstork_Tip(bool)",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:6061:6:void Draw_Level_Menu()",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:6093:6:void HMI_Level_Menu()",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:7142:6:void HMI_Confirm()",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:7448:6:void HMI_Display_Menu()",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:9962:6:void HMI_Motion()",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:10039:6:void HMI_AdvSet()",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:12431:6:void Draw_Poweron_Select_language()",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:11491:6:void HMI_Init()",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:13458:6:void DWIN_CompletedHoming()",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1444:6:void Draw_Chkb_Line(uint8_t, bool)",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/../../../inc/../core/serial.h:135:28:void SERIAL_ECHOLN(T) [with T = const char*]",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:3788:8:void Goto_ThumbPrint(bool)",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:6573:6:void HMI_Printing()",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:10364:6:void HMI_ThumbPrint()",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:12566:6:void DWIN_HandleScreen()",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/module/stepper/../../feature/../lcd/../libs/buzzer.h:79:19:static void Buzzer::init()",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/MarlinCore.cpp:983:6:static void Marlin::minkill(bool)",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/MarlinCore.cpp:449:6:static void Marlin::manage_inactivity(bool)",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/inc/../HAL/../HAL/STM32/../../core/serial_base.h:215:18:void SerialBase<Child>::printNumber_signed(int_fixed_print_t, PrintBase) [with Child = MeatpackSerial<BaseSerial<MarlinSerial> >]",
+      "bytes": 16,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/e3v3se/LcdDraw.cpp:21:19:uint32_t LcdDraw::crc(uint32_t, const uint8_t*, uint8_t)",
+      "bytes": 12,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/e3v3se/LcdDraw.cpp:61:8:void LcdDraw::cancel()",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/e3v3se/LcdDrawIO.cpp:12:8:bool LcdDrawIO::allowed()",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/e3v3se/LcdDrawIO.cpp:23:7:int LcdDrawIO::read()",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/e3v3se/../gcode/parser.h:144:17:static bool GCodeParser::seen(char)",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/e3v3se/../gcode/parser.h:251:15:static bool GCodeParser::seenval(char)",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/e3v3se/../gcode/parser.h:286:15:static bool GCodeParser::value_bool()",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/e3v3se/OctoHost.cpp:60:8:void HostPrint::finish_fields()",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:666:13:void Save_Auto_PID_Value()",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1487:13:bool Apply_Encoder(const ENCODER_DiffState&, T&) [with T = float]",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/../../marlinui.h:381:23:static uint32_t MarlinUI::_calculated_remaining_time()",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:612:6:void HMI_ResetLanguage()",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:769:13:void Show_JPN_pause_title()",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:760:13:void Show_JPN_print_title()",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1205:6:void Clear_Main_Window()",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1291:6:void Move_Highlight(int16_t, uint16_t)",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1679:6:void Item_Prepare_Move(uint8_t)",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1873:6:void Item_Prepare_PETG(uint8_t)",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1886:6:void Item_Prepare_ABS(uint8_t)",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1962:8:void Item_Prepare_Display(uint8_t)",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1976:6:void Item_Prepare_CExtrude(uint8_t)",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2103:6:void Item_Control_Stats(uint8_t)",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2409:10:void Move_Highlight_Thumb(int16_t, uint16_t)",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2829:6:void Popup_Window_ETempTooLow()",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2849:6:void Draw_PID_Error()",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2884:6:void Popup_Window_Resume()",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2903:6:void Leveling_Error()",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2981:6:void Popup_Window_Home(bool)",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:3416:6:void Draw_Printing_Screen()",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:3435:6:void Draw_Print_ProgressBar()",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:3658:6:void Popup_window_Filament()",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2631:6:void Draw_Motion_Menu()",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:3848:6:void Goto_PrintProcess()",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:6151:6:void HMI_MainMenu()",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:6566:6:void HMI_SelectFile()",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:7071:6:void CR_Touch_error_func()",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:7213:6:void HMI_Auto_In_Feedstock()",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:7242:6:void HMI_Auto_IN_Out_Feedstock()",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:7319:6:void Draw_AdvSet_Menu()",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:7409:6:void Draw_Display_Menu()",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:8178:6:void HMI_Control()",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:9428:6:void Draw_auto_nozzle_PID()",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:9454:6:void Draw_auto_bed_PID()",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:9932:6:void ThumbPopup_PauseOrStop()",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:10292:6:void HMI_Info()",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:10313:6:void HMI_Pstats()",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:10348:6:void HMI_M117Info()",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:672:6:void HMI_SetLanguage()",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:11482:6:void dwinInitScreen()",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:12459:6:void HMI_Poweron_Select_language()",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:13107:6:void HMI_PID_Temp_Error()",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:13127:6:void HMI_Auto_Nozzle_PID()",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:13292:8:void Goto_ThumbFinish()",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:13337:8:void DWIN_OctoUpdate()",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:13499:6:void DWIN_CompletedHeight()",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:6717:6:void HMI_PauseOrStop()",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:11523:6:void DWIN_Update()",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/MarlinCore.cpp:284:6:void safe_delay(millis_t)",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/MarlinCore.cpp:387:6:static void Marlin::startOrResumeJob()",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/MarlinCore.cpp:953:6:static void Marlin::kill(FSTR_P, FSTR_P, bool)",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/MarlinCore.cpp:812:6:static void Marlin::idle(bool)",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/MarlinCore.cpp:1033:6:static void Marlin::stop()",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/MarlinCore.cpp:1826:6:void loop()",
+      "bytes": 8,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/e3v3se/LcdDraw.cpp:28:19:uint32_t LcdDraw::word32(const uint8_t*)",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/e3v3se/LcdDraw.cpp:32:17:int8_t LcdDraw::digit(char)",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/e3v3se/LcdDraw.cpp:60:15:void LcdDraw::reply(const char*)",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/e3v3se/LcdDraw.cpp:59:8:bool LcdDraw::active()",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/e3v3se/LcdDraw.cpp:64:8:void LcdDraw::before_command(char, uint16_t)",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/e3v3se/../inc/../core/../feature/meatpack.h:154:18:void MeatpackSerial<SerialT>::write(uint8_t) [with SerialT = BaseSerial<MarlinSerial>]",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/e3v3se/LcdDrawIO.cpp:11:12:uint32_t LcdDrawIO::now()",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/e3v3se/../gcode/parser.h:273:18:static int32_t GCodeParser::value_long()",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/e3v3se/../gcode/parser.h:274:19:static uint32_t GCodeParser::value_ulong()",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/e3v3se/OctoHost.cpp:216:6:static void GcodeSuite::M9001()",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/../../../inc/../core/macros.h:104:64:constexpr void LIMIT(V&, N1, N2) [with V = short int; N1 = int; N2 = int]",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/../../../inc/../core/macros.h:104:64:constexpr void LIMIT(V&, N1, N2) [with V = short int; N1 = int; N2 = short int]",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/../../../inc/../core/../feature/meatpack.h:154:18:void MeatpackSerial<SerialT>::write(uint8_t) [with SerialT = BaseSerial<MarlinSerial>]",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1487:13:bool Apply_Encoder(const ENCODER_DiffState&, T&) [with T = short int]",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/../../../module/temperature.h:950:17:static void Temperature::zero_fan_speeds()",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:204:8:bool select_t::dec()",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:210:8:bool select_t::inc(uint8_t)",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:607:6:void HMI_SetLanguageCache()",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:649:6:void Save_Boot_Step_Value()",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:747:6:void HMI_ToggleLanguage()",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1079:6:void Item_Control_Reset(uint16_t)",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1171:6:void Draw_Title(const __FlashStringHelper*)",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1248:6:void Draw_More_Icon(uint8_t)",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1257:6:void Draw_Language_Icon_AND_Word(uint8_t, uint16_t)",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1405:6:void Draw_Menu_Icon(uint8_t, uint8_t)",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1655:6:void DWIN_Draw_Label(uint16_t, const __FlashStringHelper*)",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:1664:6:void DWIN_Draw_Small_Label(uint16_t, const __FlashStringHelper*)",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2434:10:void Thumb_Draw_Menu_Icon(uint8_t, uint8_t)",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:2438:10:void Thumb_Draw_More_Icon(uint8_t)",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:3282:6:void Draw_ThumbSelect_Highlight(bool)",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:3299:6:void Clear_Thumb_Area()",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:3541:10:void Draw_Layer_Number(bool)",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:5772:6:void HMI_StartFrame(bool)",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:6245:6:void DC_Show_defaut_image()",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:7391:6:void HMI_AudioFeedback(bool)",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:10219:6:void HMI_HomeOffX()",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:10220:6:void HMI_HomeOffY()",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:10221:6:void HMI_HomeOffZ()",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:10286:6:void HMI_ProbeOffX()",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:10287:6:void HMI_ProbeOffY()",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:11335:6:void HMI_Boot_Set()",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:11521:6:static void MarlinUI::init_lcd()",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/lcd/dwin/creality/dwin.cpp:13508:6:void DWIN_CompletedLeveling()",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/inc/../core/../feature/meatpack.h:154:18:void MeatpackSerial<SerialT>::write(uint8_t) [with SerialT = BaseSerial<MarlinSerial>]",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/MarlinCore.cpp:355:6:static bool Marlin::pin_is_protected(pin_t)",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/MarlinCore.cpp:373:6:static bool Marlin::printJobOngoing()",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/MarlinCore.cpp:378:6:static bool Marlin::printingIsActive()",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/MarlinCore.cpp:366:6:static bool Marlin::printer_busy()",
+      "bytes": 0,
+      "kind": "static"
+    },
+    {
+      "function": "Marlin/src/MarlinCore.cpp:383:6:static bool Marlin::printingIsPaused()",
+      "bytes": 0,
+      "kind": "static"
+    }
+  ],
+  "absent_from_final_elf": {
+    "thumb_runs": true,
+    "thumb_open_prev": true,
+    "thumb_open_cur": true,
+    "thumb_run_emitted": true,
+    "OctoImageLine": true,
+    "CardReader::": true
+  },
+  "executor_symbols": [
+    "200011f8 0000004c b LcdDraw::state"
+  ]
+}

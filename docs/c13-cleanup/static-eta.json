@@ -1,0 +1,40 @@
+{
+  "binary": ".pio/build/STM32F103RET6_creality/firmware-20261108-191844.bin",
+  "sha256": "7a9f451999eb2dfce110b5f2f335a2d852766e5d38410096519fac56f3459eb0",
+  "RAM": 22620,
+  "Flash": 211528,
+  "sections": {
+    ".data": 716,
+    ".bss": 21904,
+    ".text": 195912,
+    ".rodata": 14900
+  },
+  "vector": "0x8007000",
+  "firmware_source_sha256": {
+    "Marlin/src/e3v3se/OctoHost.cpp": "bf60a5c97f077984a2c84b33e6e7bfb09100cdad15b03f28cc67fc551eeeed8c",
+    "Marlin/src/e3v3se/OctoHost.h": "cc201d487e668bea750e152f970528fec5f984f8826565e98f25bcb15e832a18",
+    "Marlin/src/lcd/dwin/creality/dwin.cpp": "957ed1fcce5215b305d48d33345f538d86ffec7ee4a49b4fd02c818dc18c5e04"
+  },
+  "tested_plugin_source_sha256": {
+    "octoprint_LCD_E3V3SE/__init__.py": "2ccff63e362b6183ead6053f9a1bcdcc497ad50f5894d796b9859de07781149c",
+    "tests/test_print_lifecycle.py": "840e256480290b4b3ca92cfaeffc8d0f88d878ffd647e130020bd65951a4d44a",
+    "docs/host-only-rendering.md": "b93815b7f6f0ab3bf8e7a50b8ca5472ed818d2e188eaa21123515f11f6d70bce"
+  },
+  "regressions": "14 programs PASS",
+  "plugin_cases": {
+    "distinct": 43,
+    "host_pass": 15,
+    "host_skip": 28,
+    "octoprint_pass": 42,
+    "octoprint_skip": 1
+  },
+  "native_ui": "PASS fixed M9000 E total, time-left independence, live elapsed, split layer colors, max counters/times, unknown total, Tune/finish/Stop and caption order/bounds",
+  "caption": {
+    "x": 139,
+    "y": 107,
+    "bottom": 122,
+    "visible_cube_artwork_bottom": 105,
+    "cube_resources_checked": 101
+  },
+  "hardware_validation": "pending"
+}

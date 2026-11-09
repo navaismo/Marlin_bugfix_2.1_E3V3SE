@@ -6,7 +6,7 @@
 #include "../inc/MarlinConfigPre.h"
 #include "../inc/MarlinConfig.h"
 
-#if ALL(DWIN_CREALITY_LCD, DWIN_RENDER_THUMBNAIL)
+#if HAS_MEDIA && ALL(DWIN_CREALITY_LCD, DWIN_RENDER_THUMBNAIL)
 
 #include "../lcd/dwin/creality/dwin_lcd.h"
 #include "../sd/cardreader.h"

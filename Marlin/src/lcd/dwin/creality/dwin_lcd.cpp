@@ -674,6 +674,7 @@ void DWIN_ICON_SHOW_SRAM(uint16_t x,uint16_t y,uint16_t addr)
 
 
 
+#if HAS_MEDIA
 // ----
 #define ORCA_FOOTER_WINDOW    32768UL     //Bytes from the end that we are going to scan
 
@@ -1019,4 +1020,5 @@ uint8_t read_gcode_model_information(const char* fileName) {
 }
 
 
+#endif // HAS_MEDIA
 #endif // Dwin creality lcd

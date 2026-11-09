@@ -3168,8 +3168,8 @@ static_assert(NUM_SERVOS <= NUM_SERVO_PLUGS, "NUM_SERVOS (or some servo index) i
  * Ender-3 V2 controller has some limitations
  */
 #if ENABLED(DWIN_CREALITY_LCD)
-  #if !HAS_MEDIA
-    #error "DWIN_CREALITY_LCD requires SDSUPPORT to be enabled."
+  #if !HAS_MEDIA && DISABLED(OCTOPRINT_PLUGIN)
+    #error "DWIN_CREALITY_LCD requires SDSUPPORT or OCTOPRINT_PLUGIN."
   #elif HAS_PID_HEATING && !HAS_PREHEAT
     #error "DWIN_CREALITY_LCD and HAS_PID_HEATING requires temperature presets."
   #elif ANY(PID_EDIT_MENU, PID_AUTOTUNE_MENU)
@@ -4962,3 +4962,18 @@ static_assert(WITHIN(MULTISTEPPING_LIMIT, 1, 128) && IS_POWER_OF_2(MULTISTEPPING
 #undef _TEST_PWM
 #undef _NUM_AXES_STR
 #undef _LOGICAL_AXES_STR
+
+#if ENABLED(M9001_DRAW_PROTOCOL)
+  #if DISABLED(OCTOPRINT_PLUGIN) || DISABLED(DWIN_RENDER_THUMBNAIL) || ENABLED(SDSUPPORT)
+    #error "M9001_DRAW_PROTOCOL requires the host-only OctoPrint thumbnail layout."
+  #endif
+  #if NUM_SERIAL != 1
+    #error "M9001_DRAW_PROTOCOL currently requires one host serial port."
+  #endif
+  #if MAX_CMD_SIZE < 96
+    #error "M9001 v2 requires MAX_CMD_SIZE >= 96, including numbered-line overhead."
+  #endif
+  #if defined(LCD_BAUDRATE) && LCD_BAUDRATE != 115200
+    #error "M9001 v2 pacing is qualified for LCD_BAUDRATE 115200."
+  #endif
+#endif

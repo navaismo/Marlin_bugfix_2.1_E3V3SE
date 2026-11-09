@@ -1,0 +1,37 @@
+{
+  "firmware": ".pio/build/STM32F103RET6_creality/firmware-20261108-181743.bin",
+  "sections": {
+    ".data": 716,
+    ".bss": 21904,
+    ".text": 195784,
+    ".rodata": 14892
+  },
+  "RAM": 22620,
+  "Flash": 211392,
+  "vector": "0x8007000",
+  "firmware_sha256": "ac98da4863411a3792a44d2c32fc26d81939298a93c09eae34fabdc34b3aaae9",
+  "plugin_branch": "main_cleanup",
+  "plugin_tested_source_hashes": {
+    "octoprint_LCD_E3V3SE/print_card.py": "f1a26f065bddea78720a5a538321572a0245f55bb2446e1b187b835aacddc611",
+    "octoprint_LCD_E3V3SE/drawing.py": "e47c4e01afab76a35b7e099ad7f46e4672442863c181bee6a8e20f382197c50c",
+    "octoprint_LCD_E3V3SE/__init__.py": "44357d79b20e96db586271a6c600a37ca9c0fb7b61212f3c07b3ac792a85e5d0",
+    "tests/test_drawing.py": "10dd7756b62d287758c56284d1595adf2fb523434240574c95cf440b74a12900",
+    "tests/test_print_lifecycle.py": "de8d3e8caa4b456d466cd5b14e386d6f08b425232b5f96b85c41a816136dc38c",
+    "docs/host-only-rendering.md": "0125b3da910e3ff7d55b567ab0b7077011663dd357e7bf7f0b4f0c2791962b98",
+    "README.md": "c150867308e1d868a8e938ae99df75625a760cef6cca8dabbac6ef23114bd965"
+  },
+  "firmware_source_hashes": {
+    "Marlin/src/e3v3se/OctoHost.cpp": "a0d59fd28bbbd4cafb8ba7672a406f9ea043b07bd9e4cdae88637acc6f5fde12",
+    "Marlin/src/e3v3se/LcdDraw.cpp": "addc4758143eefbb7f974efeb2380158b90f2eedb4ee391d08b2e7c46fd68b03",
+    "Marlin/src/e3v3se/LcdDraw.h": "9fc47bcd79343e21afc8f64b25c845c79d98d46b962787e2ff1bb694ae7b8849",
+    "Marlin/src/lcd/dwin/creality/dwin.cpp": "6b41f16ff97a9920d85a6ab8de08a6824b21f38563922565d6ca4e1d663d38b3"
+  },
+  "tests": {
+    "ASan_UBSan": 14,
+    "sender_executor_integration": 4,
+    "plugin_distinct_cases": 33,
+    "native_UI": "PASS cyan/geometry/Tune-return/confirmed idle Stop/declined Stop/staggered values",
+    "full_validator": "14 programs PASS",
+    "physical_LCD": "pending"
+  }
+}

@@ -136,7 +136,6 @@ Configuration.h D NOZZLE_PARK_MOVE
 Configuration.h E NOZZLE_PARK_Z_RAISE_MIN 5
 Configuration.h E NOZZLE_PARK_Z_FEEDRATE 15
 Configuration.h E PRINTCOUNTER
-Configuration.h E SDSUPPORT
 Configuration.h E ENCODER_PULSES_PER_STEP 4
 Configuration.h E ENCODER_STEPS_PER_MENU_ITEM 1
 Configuration.h E LCD_FEEDBACK_FREQUENCY_DURATION_MS 2

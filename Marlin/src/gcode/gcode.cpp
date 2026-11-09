@@ -26,6 +26,9 @@
  */
 
 #include "gcode.h"
+#if ENABLED(M9001_DRAW_PROTOCOL)
+  #include "../e3v3se/LcdDraw.h"
+#endif
 GcodeSuite gcode;
 
 #if ENABLED(WIFI_CUSTOM_COMMAND)
@@ -339,6 +342,7 @@ void GcodeSuite::dwell(const millis_t time) {
  * Process the parsed command and dispatch it to its handler
  */
 void GcodeSuite::process_parsed_command(bool no_ok/*=false*/) {
+  TERN_(M9001_DRAW_PROTOCOL, LcdDraw::before_command(parser.command_letter, parser.codenum));
   TERN_(HAS_FANCHECK, fan_check.check_deferred_error());
 
   KEEPALIVE_STATE(IN_HANDLER);

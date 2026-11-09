@@ -1,0 +1,153 @@
+[
+  {
+    "name": "test_c13_cleanup_protocol",
+    "returncode": 0,
+    "command": [
+      "/home/shaka/.platformio/penv/bin/python3",
+      "/home/shaka/Projects/Marlin/Marlin_c13_octoprint/test/test_c13_cleanup_protocol.py"
+    ],
+    "cwd": "/home/shaka/Projects/Marlin/Marlin_c13_octoprint",
+    "log": "/home/shaka/Projects/Marlin/Marlin_c13_octoprint/.pio/c13-cleanup/logs/test_c13_cleanup_protocol.log"
+  },
+  {
+    "name": "test_c13_cleanup_integration",
+    "returncode": 0,
+    "command": [
+      "/home/shaka/.platformio/penv/bin/python3",
+      "/home/shaka/Projects/Marlin/Marlin_c13_octoprint/test/test_c13_cleanup_integration.py"
+    ],
+    "cwd": "/home/shaka/Projects/Marlin/Marlin_c13_octoprint",
+    "log": "/home/shaka/Projects/Marlin/Marlin_c13_octoprint/.pio/c13-cleanup/logs/test_c13_cleanup_integration.log"
+  },
+  {
+    "name": "test_c13_cleanup_ui",
+    "returncode": 0,
+    "command": [
+      "/home/shaka/.platformio/penv/bin/python3",
+      "/home/shaka/Projects/Marlin/Marlin_c13_octoprint/test/test_c13_cleanup_ui.py"
+    ],
+    "cwd": "/home/shaka/Projects/Marlin/Marlin_c13_octoprint",
+    "log": "/home/shaka/Projects/Marlin/Marlin_c13_octoprint/.pio/c13-cleanup/logs/test_c13_cleanup_ui.log"
+  },
+  {
+    "name": "test_dwin_advanced_pause",
+    "returncode": 0,
+    "command": [
+      "/home/shaka/.platformio/penv/bin/python3",
+      "/home/shaka/Projects/Marlin/Marlin_c13_octoprint/test/test_dwin_advanced_pause.py"
+    ],
+    "cwd": "/home/shaka/Projects/Marlin/Marlin_c13_octoprint",
+    "log": "/home/shaka/Projects/Marlin/Marlin_c13_octoprint/.pio/c13-cleanup/logs/test_dwin_advanced_pause.log"
+  },
+  {
+    "name": "test_dwin_pause_purge",
+    "returncode": 0,
+    "command": [
+      "/home/shaka/.platformio/penv/bin/python3",
+      "/home/shaka/Projects/Marlin/Marlin_c13_octoprint/test/test_dwin_pause_purge.py"
+    ],
+    "cwd": "/home/shaka/Projects/Marlin/Marlin_c13_octoprint",
+    "log": "/home/shaka/Projects/Marlin/Marlin_c13_octoprint/.pio/c13-cleanup/logs/test_dwin_pause_purge.log"
+  },
+  {
+    "name": "test_dwin_thumbnail_progress",
+    "returncode": 0,
+    "command": [
+      "/home/shaka/.platformio/penv/bin/python3",
+      "/home/shaka/Projects/Marlin/Marlin_c13_octoprint/test/test_dwin_thumbnail_progress.py"
+    ],
+    "cwd": "/home/shaka/Projects/Marlin/Marlin_c13_octoprint",
+    "log": "/home/shaka/Projects/Marlin/Marlin_c13_octoprint/.pio/c13-cleanup/logs/test_dwin_thumbnail_progress.log"
+  },
+  {
+    "name": "test_dwin_runout_owner",
+    "returncode": 0,
+    "command": [
+      "/home/shaka/.platformio/penv/bin/python3",
+      "/home/shaka/Projects/Marlin/Marlin_c13_octoprint/test/test_dwin_runout_owner.py"
+    ],
+    "cwd": "/home/shaka/Projects/Marlin/Marlin_c13_octoprint",
+    "log": "/home/shaka/Projects/Marlin/Marlin_c13_octoprint/.pio/c13-cleanup/logs/test_dwin_runout_owner.log"
+  },
+  {
+    "name": "test_dwin_calibration_error",
+    "returncode": 0,
+    "command": [
+      "/home/shaka/.platformio/penv/bin/python3",
+      "/home/shaka/Projects/Marlin/Marlin_c13_octoprint/test/test_dwin_calibration_error.py"
+    ],
+    "cwd": "/home/shaka/Projects/Marlin/Marlin_c13_octoprint",
+    "log": "/home/shaka/Projects/Marlin/Marlin_c13_octoprint/.pio/c13-cleanup/logs/test_dwin_calibration_error.log"
+  },
+  {
+    "name": "test_dwin_move_exit",
+    "returncode": 0,
+    "command": [
+      "/home/shaka/.platformio/penv/bin/python3",
+      "/home/shaka/Projects/Marlin/Marlin_c13_octoprint/test/test_dwin_move_exit.py"
+    ],
+    "cwd": "/home/shaka/Projects/Marlin/Marlin_c13_octoprint",
+    "log": "/home/shaka/Projects/Marlin/Marlin_c13_octoprint/.pio/c13-cleanup/logs/test_dwin_move_exit.log"
+  },
+  {
+    "name": "test_autooffset_safety",
+    "returncode": 0,
+    "command": [
+      "/home/shaka/.platformio/penv/bin/python3",
+      "/home/shaka/Projects/Marlin/Marlin_c13_octoprint/test/test_autooffset_safety.py"
+    ],
+    "cwd": "/home/shaka/Projects/Marlin/Marlin_c13_octoprint",
+    "log": "/home/shaka/Projects/Marlin/Marlin_c13_octoprint/.pio/c13-cleanup/logs/test_autooffset_safety.log"
+  },
+  {
+    "name": "profile",
+    "returncode": 0,
+    "command": [
+      "/home/shaka/.platformio/penv/bin/python3",
+      "buildroot/share/e3v3se/config_profile.py",
+      "--profile",
+      "c13_octoprint",
+      "check"
+    ],
+    "cwd": "/home/shaka/Projects/Marlin/Marlin_c13_octoprint",
+    "log": "/home/shaka/Projects/Marlin/Marlin_c13_octoprint/.pio/c13-cleanup/logs/profile.log"
+  },
+  {
+    "name": "eeprom",
+    "returncode": 0,
+    "command": [
+      "/home/shaka/.platformio/penv/bin/python3",
+      "buildroot/share/e3v3se/check_eeprom_upgrade.py",
+      "--ref",
+      "244be9d8012cca3c4eb1efbfa084f1f9df0fa1d4",
+      "--output",
+      "docs/c13-cleanup/eeprom.json"
+    ],
+    "cwd": "/home/shaka/Projects/Marlin/Marlin_c13_octoprint",
+    "log": "/home/shaka/Projects/Marlin/Marlin_c13_octoprint/.pio/c13-cleanup/logs/eeprom.log"
+  },
+  {
+    "name": "plugin_host",
+    "returncode": 0,
+    "command": [
+      "/home/shaka/.platformio/penv/bin/python3",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests"
+    ],
+    "cwd": "/tmp/c13-static-eta/plugin",
+    "log": "/home/shaka/Projects/Marlin/Marlin_c13_octoprint/.pio/c13-cleanup/logs/plugin_host.log"
+  },
+  {
+    "name": "plugin_frontend",
+    "returncode": 0,
+    "command": [
+      "node",
+      "tests/test_purge_frontend.js"
+    ],
+    "cwd": "/tmp/c13-static-eta/plugin",
+    "log": "/home/shaka/Projects/Marlin/Marlin_c13_octoprint/.pio/c13-cleanup/logs/plugin_frontend.log"
+  }
+]

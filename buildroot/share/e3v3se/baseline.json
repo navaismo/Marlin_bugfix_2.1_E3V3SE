@@ -56,8 +56,8 @@
   ],
   "build": {
     "STM32F103RET6_creality": {
-      "flash": 243308,
-      "ram": 29236
+      "flash": 211272,
+      "ram": 22620
     }
   }
 }

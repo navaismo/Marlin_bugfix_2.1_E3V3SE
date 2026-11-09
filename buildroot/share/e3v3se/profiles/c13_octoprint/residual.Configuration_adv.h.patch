@@ -94,7 +94,8 @@
  #if ANY(INPUT_SHAPING_X, INPUT_SHAPING_Y, INPUT_SHAPING_Z)
    #if ENABLED(INPUT_SHAPING_X)
      #define SHAPING_FREQ_X  42.0        // (Hz) The default dominant resonant frequency on the X axis.
-@@ -1323,3 +1323,9 @@
+@@ -1322,6 +1322,12 @@
+ 
  #if ANY(INPUT_SHAPING_X, INPUT_SHAPING_Y, INPUT_SHAPING_Z, FTM_SHAPER_ZV, FTM_SHAPER_ZVD, FTM_SHAPER_ZVDD, FTM_SHAPER_ZVDDD, FTM_SHAPER_EI, FTM_SHAPER_2HEI, FTM_SHAPER_3HEI, FTM_SHAPER_MZV)
    //#define RESONANCE_TEST              // Sine sweep motion for resonance study
 +  #if ENABLED(RESONANCE_TEST)
@@ -104,6 +105,8 @@
 +    #endif
 +  #endif
  #endif
+ 
+ // @section motion
 @@ -1590,6 +1596,7 @@
  // Change values more rapidly when the encoder is rotated faster
  #define ENCODER_RATE_MULTIPLIER
@@ -187,15 +190,25 @@
    #endif
  
    // Allow international symbols in long filenames. To display correctly, the
-@@ -1979,6 +1998,7 @@
-   //#define M20_TIMESTAMP_SUPPORT         // Include timestamps by adding the 'T' flag to M20 commands
+@@ -2195,6 +2214,17 @@
+ #endif
  
-   #define SCROLL_LONG_FILENAMES// Scroll long filenames in the SD card menu
+ //
++// The host-only print-card protocol uses bounded Base64 batches, without a framebuffer.
++#if ENABLED(OCTOPRINT_PLUGIN) && DISABLED(SDSUPPORT)
++  #define M9001_DRAW_PROTOCOL
++#endif
++
++// Native encoder sound is independent of SD printing.
++#if ENABLED(DWIN_CREALITY_LCD)
 +  #define DWIN_LCD_BEEP
- 
-   //#define SD_ABORT_NO_COOLDOWN          // Leave the heaters on after Stop Print (not recommended!)
- 
-@@ -2395,6 +2415,7 @@
++#endif
++
++//
+ // Additional options for DGUS / DWIN displays
+ //
+ #if HAS_DGUS_LCD
+@@ -2395,6 +2425,7 @@
   * Requires a display with a controllable backlight
   */
  //#define LCD_BACKLIGHT_TIMEOUT_MINS 1  // (minutes) Timeout before turning off the backlight
@@ -203,7 +216,7 @@
  
  #if defined(DISPLAY_SLEEP_MINUTES) || defined(LCD_BACKLIGHT_TIMEOUT_MINS)
    #define EDITABLE_DISPLAY_TIMEOUT      // Edit sleep / backlight timeout with M255 S<minutes> and a menu item
-@@ -2464,6 +2485,28 @@
+@@ -2464,6 +2495,28 @@
    #endif
  #endif
  
@@ -232,7 +245,7 @@
  // @section extruder
  
  /**
-@@ -2578,7 +2621,11 @@
+@@ -2578,7 +2631,11 @@
    #define PROBING_MARGIN_LEFT PROBING_MARGIN
    #define PROBING_MARGIN_RIGHT PROBING_MARGIN+10
    #define PROBING_MARGIN_FRONT PROBING_MARGIN
@@ -244,7 +257,7 @@
  #endif
  
  #if ANY(MESH_BED_LEVELING, AUTO_BED_LEVELING_UBL)
-@@ -3463,6 +3510,10 @@
+@@ -3463,6 +3520,10 @@
    #define  X_SLAVE_ADDRESS 0x03
    #define  Y_SLAVE_ADDRESS 0x03
    #define  Z_SLAVE_ADDRESS 0x03
@@ -255,7 +268,7 @@
    //#define X2_SLAVE_ADDRESS 0
    //#define Y2_SLAVE_ADDRESS 0
    //#define Z2_SLAVE_ADDRESS 0
-@@ -3474,7 +3525,7 @@
+@@ -3474,7 +3535,7 @@
    //#define  U_SLAVE_ADDRESS 0
    //#define  V_SLAVE_ADDRESS 0
    //#define  W_SLAVE_ADDRESS 0
@@ -264,7 +277,7 @@
    //#define E1_SLAVE_ADDRESS 0
    //#define E2_SLAVE_ADDRESS 0
    //#define E3_SLAVE_ADDRESS 0
-@@ -4265,9 +4316,7 @@
+@@ -4265,9 +4326,7 @@
  #if ENABLED(GCODE_MACROS)
    #define GCODE_MACROS_SLOTS       5  // Up to 10 may be used
    #define GCODE_MACROS_SLOT_SIZE  50  // Maximum length of a single macro
@@ -274,7 +287,7 @@
  #endif
  
  /**
-@@ -4562,9 +4611,7 @@
+@@ -4562,9 +4621,7 @@
  #if ENABLED(FREEZE_FEATURE)
    //#define FREEZE_PIN   -1   // Override the default (KILL) pin here
    #define FREEZE_STATE  LOW   // State of pin indicating freeze
@@ -284,7 +297,7 @@
    /**
     * Command P000 (REALTIME_REPORTING_COMMANDS and EMERGENCY_PARSER) or
     * FREEZE_PIN (FREEZE_FEATURE) initiates a soft feed hold that keeps
-@@ -4577,9 +4624,7 @@
+@@ -4577,9 +4634,7 @@
     * NOTE: Affects Laser PWM but DOES NOT pause Spindle, Fans, Heaters or other devices.
     */
    //#define SOFT_FEED_HOLD

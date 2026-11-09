@@ -1,0 +1,258 @@
+{
+  "scope": "Thumbnail-only comparison uses the same initialized black 96x96 destination and exact RGB565 pixels.",
+  "timing": "Host CPU/IPC wall time only. Harness clock is simulated. Physical panel timing is unmeasured.",
+  "meatpack": "Actual local OctoPrint encoder, NSP enabled; numbered N1...; mode-negotiation bytes excluded from all cases.",
+  "fixtures": {
+    "solid": {
+      "baseline_sender_host_seconds": 0.0028471719997469336,
+      "new_packet_encoding_host_seconds": 6.71620000503026e-05,
+      "legacy_idle": {
+        "commands": 482,
+        "ascii_bytes": 43940,
+        "numbered_bytes": 47795,
+        "meatpack_numbered_bytes": 37680
+      },
+      "legacy_numbered": {
+        "commands": 770,
+        "ascii_bytes": 48230,
+        "numbered_bytes": 54369,
+        "meatpack_numbered_bytes": 43700
+      },
+      "optimized": {
+        "commands": 3,
+        "ascii_bytes": 92,
+        "numbered_bytes": 110,
+        "meatpack_numbered_bytes": 132
+      },
+      "encoding_only": {
+        "hex24": {
+          "commands": 1,
+          "ascii_bytes": 62,
+          "numbered_bytes": 69,
+          "meatpack_numbered_bytes": 47
+        },
+        "g_free_base64_42": {
+          "commands": 1,
+          "ascii_bytes": 44,
+          "numbered_bytes": 50,
+          "meatpack_numbered_bytes": 63
+        }
+      },
+      "old_tjc_frames": 18432,
+      "old_tjc_bytes": 221184,
+      "old_application_replies": 99,
+      "old_operations": 9216,
+      "new_tjc_frames": 5,
+      "new_tjc_bytes": 54,
+      "new_application_replies": 3,
+      "new_operations": 4,
+      "prepare_host_seconds": 0.0006110819995228667,
+      "sender_and_executor_host_seconds": 0.000481234001199482,
+      "pixel_comparison": "exact; all 9216 pixels match",
+      "physical_render_seconds": null
+    },
+    "alternating": {
+      "baseline_sender_host_seconds": 0.002906873000029009,
+      "new_packet_encoding_host_seconds": 0.00026653800159692764,
+      "legacy_idle": {
+        "commands": 482,
+        "ascii_bytes": 43940,
+        "numbered_bytes": 47795,
+        "meatpack_numbered_bytes": 33072
+      },
+      "legacy_numbered": {
+        "commands": 770,
+        "ascii_bytes": 48230,
+        "numbered_bytes": 54369,
+        "meatpack_numbered_bytes": 39092
+      },
+      "optimized": {
+        "commands": 15,
+        "ascii_bytes": 1008,
+        "numbered_bytes": 1107,
+        "meatpack_numbered_bytes": 1402
+      },
+      "encoding_only": {
+        "hex24": {
+          "commands": 25,
+          "ascii_bytes": 1738,
+          "numbered_bytes": 1907,
+          "meatpack_numbered_bytes": 1236
+        },
+        "g_free_base64_42": {
+          "commands": 13,
+          "ascii_bytes": 960,
+          "numbered_bytes": 1044,
+          "meatpack_numbered_bytes": 1332
+        }
+      },
+      "old_tjc_frames": 18432,
+      "old_tjc_bytes": 221184,
+      "old_application_replies": 99,
+      "old_operations": 9216,
+      "new_tjc_frames": 101,
+      "new_tjc_bytes": 1394,
+      "new_application_replies": 15,
+      "new_operations": 100,
+      "prepare_host_seconds": 0.004158757998084184,
+      "sender_and_executor_host_seconds": 0.003463214001385495,
+      "pixel_comparison": "exact; all 9216 pixels match",
+      "physical_render_seconds": null
+    },
+    "black": {
+      "baseline_sender_host_seconds": 0.0015393600006063934,
+      "new_packet_encoding_host_seconds": 2.765200042631477e-05,
+      "legacy_idle": {
+        "commands": 482,
+        "ascii_bytes": 43940,
+        "numbered_bytes": 47795,
+        "meatpack_numbered_bytes": 28464
+      },
+      "legacy_numbered": {
+        "commands": 770,
+        "ascii_bytes": 48230,
+        "numbered_bytes": 54369,
+        "meatpack_numbered_bytes": 34484
+      },
+      "optimized": {
+        "commands": 3,
+        "ascii_bytes": 84,
+        "numbered_bytes": 103,
+        "meatpack_numbered_bytes": 120
+      },
+      "encoding_only": {
+        "hex24": {
+          "commands": 1,
+          "ascii_bytes": 46,
+          "numbered_bytes": 53,
+          "meatpack_numbered_bytes": 40
+        },
+        "g_free_base64_42": {
+          "commands": 1,
+          "ascii_bytes": 36,
+          "numbered_bytes": 42,
+          "meatpack_numbered_bytes": 50
+        }
+      },
+      "old_tjc_frames": 0,
+      "old_tjc_bytes": 0,
+      "old_application_replies": 99,
+      "old_operations": 0,
+      "new_tjc_frames": 3,
+      "new_tjc_bytes": 30,
+      "new_application_replies": 3,
+      "new_operations": 2,
+      "prepare_host_seconds": 0.0009109409984375816,
+      "sender_and_executor_host_seconds": 0.00020675899941124953,
+      "pixel_comparison": "exact; all 9216 pixels match",
+      "physical_render_seconds": null
+    },
+    "unique": {
+      "baseline_sender_host_seconds": 0.001482600000599632,
+      "new_packet_encoding_host_seconds": 0.00067710900111706,
+      "legacy_idle": {
+        "commands": 482,
+        "ascii_bytes": 43940,
+        "numbered_bytes": 47776,
+        "meatpack_numbered_bytes": 36765
+      },
+      "legacy_numbered": {
+        "commands": 770,
+        "ascii_bytes": 48230,
+        "numbered_bytes": 54295,
+        "meatpack_numbered_bytes": 42730
+      },
+      "optimized": {
+        "commands": 579,
+        "ascii_bytes": 41556,
+        "numbered_bytes": 46160,
+        "meatpack_numbered_bytes": 58613
+      },
+      "encoding_only": {
+        "hex24": {
+          "commands": 1057,
+          "ascii_bytes": 77038,
+          "numbered_bytes": 85603,
+          "meatpack_numbered_bytes": 62552
+        },
+        "g_free_base64_42": {
+          "commands": 577,
+          "ascii_bytes": 41508,
+          "numbered_bytes": 46095,
+          "meatpack_numbered_bytes": 58540
+        }
+      },
+      "old_tjc_frames": 18432,
+      "old_tjc_bytes": 221184,
+      "old_application_replies": 99,
+      "old_operations": 9216,
+      "new_tjc_frames": 18435,
+      "new_tjc_bytes": 221214,
+      "new_application_replies": 579,
+      "new_operations": 578,
+      "prepare_host_seconds": 0.013685592999536311,
+      "sender_and_executor_host_seconds": 0.11055463299999246,
+      "pixel_comparison": "exact; all 9216 pixels match",
+      "physical_render_seconds": null
+    },
+    "thumbnail": {
+      "baseline_sender_host_seconds": 0.0014683790031995159,
+      "new_packet_encoding_host_seconds": 0.00035026999830733985,
+      "legacy_idle": {
+        "commands": 482,
+        "ascii_bytes": 43940,
+        "numbered_bytes": 47779,
+        "meatpack_numbered_bytes": 30580
+      },
+      "legacy_numbered": {
+        "commands": 770,
+        "ascii_bytes": 48230,
+        "numbered_bytes": 54362,
+        "meatpack_numbered_bytes": 36609
+      },
+      "optimized": {
+        "commands": 127,
+        "ascii_bytes": 9508,
+        "numbered_bytes": 10431,
+        "meatpack_numbered_bytes": 13203
+      },
+      "encoding_only": {
+        "hex24": {
+          "commands": 242,
+          "ascii_bytes": 17092,
+          "numbered_bytes": 18940,
+          "meatpack_numbered_bytes": 12939
+        },
+        "g_free_base64_42": {
+          "commands": 125,
+          "ascii_bytes": 9460,
+          "numbered_bytes": 10370,
+          "meatpack_numbered_bytes": 13131
+        }
+      },
+      "old_tjc_frames": 3814,
+      "old_tjc_bytes": 45768,
+      "old_application_replies": 99,
+      "old_operations": 1907,
+      "new_tjc_frames": 995,
+      "new_tjc_bytes": 13814,
+      "new_application_replies": 127,
+      "new_operations": 994,
+      "prepare_host_seconds": 0.0011401709998608567,
+      "sender_and_executor_host_seconds": 0.00432739299867535,
+      "pixel_comparison": "exact; all 9216 pixels match",
+      "physical_render_seconds": null
+    }
+  },
+  "complete_card": {
+    "commands": 141,
+    "ascii_bytes": 10612,
+    "numbered_bytes": 11655,
+    "meatpack_numbered_bytes": 14754,
+    "operations": 1112,
+    "tjc_frames": 1113,
+    "tjc_bytes": 15446,
+    "host_seconds": 0.00399065899910056,
+    "physical_seconds": null
+  }
+}

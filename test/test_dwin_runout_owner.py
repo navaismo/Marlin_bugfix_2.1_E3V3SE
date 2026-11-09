@@ -11,6 +11,8 @@ STUBS = r'''
 #include <string>
 #include "Marlin/src/core/macros.h"
 #define POWER_LOSS_RECOVERY 0
+#define HAS_MEDIA 1
+#define SDSUPPORT 1
 struct {bool disallow_recovery_flag=false,cloud_printing_flag=false;} HMI_flag;
 struct {bool printing=true;bool isPrinting(){return printing;}} card;
 struct {bool enabled=true,host_handling=false;} runout;
