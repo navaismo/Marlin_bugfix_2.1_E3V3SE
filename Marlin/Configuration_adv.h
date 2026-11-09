@@ -1321,9 +1321,9 @@
 #endif
 
 #if ANY(INPUT_SHAPING_X, INPUT_SHAPING_Y, INPUT_SHAPING_Z, FTM_SHAPER_ZV, FTM_SHAPER_ZVD, FTM_SHAPER_ZVDD, FTM_SHAPER_ZVDDD, FTM_SHAPER_EI, FTM_SHAPER_2HEI, FTM_SHAPER_3HEI, FTM_SHAPER_MZV)
-  //#define RESONANCE_TEST            // Sine sweep motion for resonance study (off by default)
+  #define RESONANCE_TEST            // Sine sweep motion for resonance study (off by default)
   #if ENABLED(RESONANCE_TEST)
-    //#define PINPUT_RESONANCE_EVENTS // Pinput_Shaping M495 host events (off by default). See docs/resonance-host-events.md.
+    #define PINPUT_RESONANCE_EVENTS // Pinput_Shaping M495 host events (off by default). See docs/resonance-host-events.md.
     #if ENABLED(PINPUT_RESONANCE_EVENTS)
       //#define PINPUT_RESONANCE_PROGRESS // Best-effort 1 Hz updates; requires nonblocking TX capacity reporting.
     #endif
