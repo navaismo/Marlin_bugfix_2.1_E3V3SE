@@ -670,6 +670,7 @@ extern enum DC_language current_language;
 // Color  FE29
 #define Color_White       0xFFFF
 #define Color_Cyan        0x07FF
+#define Color_Purple      0xB47F  // #B78CFF in RGB565
 #define Color_Green       0x07E0
 #define Color_Gray        0x8410
 #define Color_Yellow      0xFE29

@@ -863,13 +863,13 @@ void DWIN_Draw_Signed_Float_Temp(uint8_t size, uint16_t bColor, uint8_t iNum, ui
 {
   if (value < 0)
   {
-    DWIN_Draw_FloatValue(true, true, 0, size, Color_Cyan, bColor, iNum, fNum, x, y + 2, -value);
-    DWIN_Draw_String(false, true, font6x12, Color_Cyan, bColor, x + 2, y + 2, F("-"));
+    DWIN_Draw_FloatValue(true, true, 0, size, Color_Purple, bColor, iNum, fNum, x, y + 2, -value);
+    DWIN_Draw_String(false, true, font6x12, Color_Purple, bColor, x + 2, y + 2, F("-"));
   }
   else
   {
-    DWIN_Draw_FloatValue(true, true, 0, size, Color_Cyan, bColor, iNum, fNum, x, y + 2, value);
-    DWIN_Draw_String(false, true, font6x12, Color_Cyan, bColor, x + 2, y + 2, F(""));
+    DWIN_Draw_FloatValue(true, true, 0, size, Color_Purple, bColor, iNum, fNum, x, y + 2, value);
+    DWIN_Draw_String(false, true, font6x12, Color_Purple, bColor, x + 2, y + 2, F(""));
   }
 }
 void ICON_Print()
@@ -881,7 +881,7 @@ void ICON_Print()
   if (select_page.now == 0)
   {
     DWIN_ICON_Not_Filter_Show(ICON, ICON_Print_1, ICON_PRINT_X, ICON_PRINT_Y);
-    DWIN_Draw_Rectangle(0, Color_White, ICON_PRINT_X, ICON_PRINT_Y, ICON_PRINT_X + ICON_W, ICON_PRINT_Y + ICON_H);
+    // DWIN_Draw_Rectangle(0, Color_White, ICON_PRINT_X, ICON_PRINT_Y, ICON_PRINT_X + ICON_W, ICON_PRINT_Y + ICON_H);
     if (HMI_flag.language < Language_Max)
     {
       // rock_j print 1
@@ -908,7 +908,7 @@ void ICON_Prepare()
   if (select_page.now == 1)
   {
     DWIN_ICON_Not_Filter_Show(ICON, ICON_Prepare_1, ICON_PREPARE_X, ICON_PREPARE_Y);
-    DWIN_Draw_Rectangle(0, Color_White, ICON_PREPARE_X, ICON_PREPARE_Y, ICON_PREPARE_X + ICON_W, ICON_PREPARE_Y + ICON_H);
+    // DWIN_Draw_Rectangle(0, Color_White, ICON_PREPARE_X, ICON_PREPARE_Y, ICON_PREPARE_X + ICON_W, ICON_PREPARE_Y + ICON_H);
     if (HMI_flag.language < Language_Max)
     {
       // DWIN_Frame_AreaCopy(1, 31, 447, 58, 460, 186, 201);
@@ -945,7 +945,7 @@ void ICON_Control()
   if (select_page.now == 2)
   {
     DWIN_ICON_Not_Filter_Show(ICON, ICON_Control_1, ICON_CONTROL_X, ICON_CONTROL_Y);
-    DWIN_Draw_Rectangle(0, Color_White, ICON_CONTROL_X, ICON_CONTROL_Y, ICON_CONTROL_X + ICON_W, ICON_CONTROL_Y + ICON_H);
+    // DWIN_Draw_Rectangle(0, Color_White, ICON_CONTROL_X, ICON_CONTROL_Y, ICON_CONTROL_X + ICON_W, ICON_CONTROL_Y + ICON_H);
     if (HMI_flag.language < Language_Max)
     {
       DWIN_ICON_Show(HMI_flag.language, LANGUAGE_Control_1, WORD_CONTROL_X, WORD_CONTROL_Y);
@@ -1017,7 +1017,7 @@ void ICON_Leveling(bool show)
   if (show)
   {
     DWIN_ICON_Not_Filter_Show(ICON, ICON_Leveling_1, ICON_LEVEL_X, ICON_LEVEL_Y);
-    DWIN_Draw_Rectangle(0, Color_White, ICON_LEVEL_X, ICON_LEVEL_Y, ICON_LEVEL_X + ICON_W, ICON_LEVEL_Y + ICON_H);
+    // DWIN_Draw_Rectangle(0, Color_White, ICON_LEVEL_X, ICON_LEVEL_Y, ICON_LEVEL_X + ICON_W, ICON_LEVEL_Y + ICON_H);
     if (HMI_flag.language < Language_Max)
     {
       if (HMI_flag.language == Russian)
@@ -5336,7 +5336,7 @@ void update_variable()
   }
 #endif
   DWIN_ICON_Show(ICON, ICON_Zoffset, ICON_ZOFFSET_X, ICON_ZOFFSET_Y);
-  _update_axis_value(Z_AXIS, NUM_ZOFFSET_X, NUM_ZOFFSET_Y, false, true, Color_Cyan);
+  _update_axis_value(Z_AXIS, NUM_ZOFFSET_X, NUM_ZOFFSET_Y, false, true, Color_Purple);
 #endif
   _draw_xyz_position(false);
 }
@@ -5446,11 +5446,11 @@ void update_middle_variable()
   if (_new_fanspeed)
   {
     _fanspeed = fans[0].speed;
-    DWIN_Draw_IntValue_N0SPACE(true, true, 0, DWIN_FONT_STAT, Color_Cyan, Color_Bg_Black, 3, 175 + 2 * STAT_CHR_W, NUM_FAN_Y, _fanspeed);
+    DWIN_Draw_IntValue_N0SPACE(true, true, 0, DWIN_FONT_STAT, Color_Purple, Color_Bg_Black, 3, 175 + 2 * STAT_CHR_W, NUM_FAN_Y, _fanspeed);
   }
 #endif
   DWIN_ICON_Show(ICON, ICON_Zoffset, ICON_ZOFFSET_X, ICON_ZOFFSET_Y);
-  _update_axis_value(Z_AXIS, NUM_ZOFFSET_X, NUM_ZOFFSET_Y, false, true, Color_Cyan);
+  _update_axis_value(Z_AXIS, NUM_ZOFFSET_X, NUM_ZOFFSET_Y, false, true, Color_Purple);
 #endif
 }
 /**
@@ -5755,7 +5755,7 @@ void Draw_Status_Area(bool with_update)
 
 #if HAS_ZOFFSET_ITEM
   DWIN_ICON_Show(ICON, ICON_Zoffset, ICON_ZOFFSET_X, ICON_ZOFFSET_Y);
-  _update_axis_value(Z_AXIS, NUM_ZOFFSET_X, NUM_ZOFFSET_Y, false, true, Color_Cyan);
+  _update_axis_value(Z_AXIS, NUM_ZOFFSET_X, NUM_ZOFFSET_Y, false, true, Color_Purple);
 #endif // HAS_ZOFFSET_ITEM
   DWIN_Draw_Rectangle(1, Line_Color, 0, 449, DWIN_WIDTH, 451);
   DWIN_ICON_Show(ICON, ICON_MaxSpeedX, 10, 456);
@@ -5791,7 +5791,7 @@ void Draw_Status_Area(bool with_update)
 
 #if HAS_ZOFFSET_ITEM
   DWIN_ICON_Show(ICON, ICON_Zoffset, ICON_ZOFFSET_X, ICON_ZOFFSET_Y);
-  _update_axis_value(Z_AXIS, NUM_ZOFFSET_X, NUM_ZOFFSET_Y, false, true, Color_Cyan);
+  _update_axis_value(Z_AXIS, NUM_ZOFFSET_X, NUM_ZOFFSET_Y, false, true, Color_Purple);
 #endif // HAS_ZOFFSET_ITEM
 
   DWIN_Draw_Rectangle(1, Line_Color, 0, 291, DWIN_WIDTH, 292);
@@ -5849,13 +5849,13 @@ void Draw_Mid_Status_Area(bool with_update)
 
 #if HAS_FAN
   DWIN_ICON_Show(ICON, ICON_FanSpeed, ICON_FAN_X, ICON_FAN_Y);
-  DWIN_Draw_IntValue_N0SPACE(true, true, 0, DWIN_FONT_STAT, Color_Cyan, Color_Bg_Black, 3, 175 + 2 * STAT_CHR_W, NUM_FAN_Y, fans[0].speed);
+  DWIN_Draw_IntValue_N0SPACE(true, true, 0, DWIN_FONT_STAT, Color_Purple, Color_Bg_Black, 3, 175 + 2 * STAT_CHR_W, NUM_FAN_Y, fans[0].speed);
   // DWIN_Draw_IntValue(true, true, 0, DWIN_MIDDLE_FONT_STAT, Color_White, Color_Bg_Black, 3, NUM_FAN_X , ICON_FAN_Y, fans[0].speed);
 #endif
 
 #if HAS_ZOFFSET_ITEM
   DWIN_ICON_Show(ICON, ICON_Zoffset, ICON_ZOFFSET_X, ICON_ZOFFSET_Y);
-  _update_axis_value(Z_AXIS, NUM_ZOFFSET_X, NUM_ZOFFSET_Y, false, true, Color_Cyan);
+  _update_axis_value(Z_AXIS, NUM_ZOFFSET_X, NUM_ZOFFSET_Y, false, true, Color_Purple);
 #endif // HAS_ZOFFSET_ITEM
 
 #endif
