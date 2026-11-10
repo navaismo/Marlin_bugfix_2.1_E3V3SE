@@ -669,7 +669,7 @@ extern enum DC_language current_language;
 #define Color_Bg_Red      0xF00F  // Red background color
 #define Popup_Text_Color  0xD6BA  // Popup font background color
 #define Line_Color        0x3A6A  // Split line color
-#define Rectangle_Color   0xFE29//0xEE2F  //Blue square cursor color
+#define Rectangle_Color   0x4FE5  // 0xFE29//0xEE2F  //Blue square cursor color
 #define Percent_Color     0xFE29  // Percentage color
 #define BarFill_Color     0x10E4  // Fill color of progress bar
 #define Select_Color      0x33BB  // Selected color

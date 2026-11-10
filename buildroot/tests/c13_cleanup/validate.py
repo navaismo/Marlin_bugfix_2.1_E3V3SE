@@ -12,7 +12,7 @@ p=argparse.ArgumentParser();p.add_argument('--plugin-root',type=Path,default=Pat
 args=p.parse_args();plugin=args.plugin_root.resolve()
 logs=ROOT/'.pio/c13-cleanup/logs';logs.mkdir(parents=True,exist_ok=True)
 cases=[(name,[sys.executable,str(ROOT/'test'/(name+'.py'))],ROOT) for name in (
- 'test_c13_cleanup_protocol','test_c13_cleanup_integration','test_c13_cleanup_ui',
+ 'test_c13_cleanup_protocol','test_c13_cleanup_integration','test_c13_cleanup_ui','test_dwin_host_status',
  'test_dwin_advanced_pause','test_dwin_pause_purge','test_dwin_thumbnail_progress',
  'test_dwin_runout_owner','test_dwin_calibration_error','test_dwin_move_exit','test_autooffset_safety')]
 cases += [('profile',[sys.executable,'buildroot/share/e3v3se/config_profile.py','--profile','c13_octoprint','check'],ROOT),

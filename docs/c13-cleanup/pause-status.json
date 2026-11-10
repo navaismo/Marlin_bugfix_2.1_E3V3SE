@@ -1,0 +1,36 @@
+{
+  "firmware": ".pio/build/STM32F103RET6_creality/firmware-20261109-173239.bin",
+  "sha256": "eedd1c2558ad952da44debca8d9204150683b6a7f3af254fd4ddecd5b2a0a9b1",
+  "RAM": 23208,
+  "Flash": 229268,
+  "sections": {
+    ".data": 1080,
+    ".bss": 22128,
+    ".text": 211520,
+    ".rodata": 16668
+  },
+  "vector": "0x8007000",
+  "firmware_sources": {
+    "Marlin/src/e3v3se/OctoHost.cpp": "61e7b1ad85746aa21d40360e561cb55dd30a8d832a86ffc497e1796e05372df6",
+    "Marlin/src/e3v3se/OctoHost.h": "44acef1e826504a2d8eb379a67c5e031a79ce7b2ead4b748d577eb9ed5986c32",
+    "Marlin/src/lcd/dwin/creality/dwin.cpp": "974c7bbacf1bbd0ab5723f9479f2017c04450a50e423fbce8a7167f6623c0f49",
+    "Marlin/src/lcd/dwin/creality/dwin.h": "ef40046ca2d9d1eb90b65da7aee7fa249306cbcacf342bae2f686e78f26bb4a2",
+    "Marlin/src/inc/Version.h": "17a0f298bc84ed05a65df778b134c378a278f514e01ea176437263f6cec51ad7"
+  },
+  "plugin_tested_sources": {
+    "octoprint_LCD_E3V3SE/__init__.py": "5990b46a1590db2f31ddad59b08c88312a87323a465afaaf3774f8da9f587814",
+    "tests/test_print_lifecycle.py": "7eb3f0216d088b17363c9f8123654bf331321ed56dc1544660bfa3d449cee973",
+    "docs/host-only-rendering.md": "a5cd626b9d772a9baa1789658bd05ad285edb50a7ffed838bfaa0a3b2a13e21d"
+  },
+  "plugin_base_after_concurrent_changes": "70af76dca519c227181791d302e6013615574b14",
+  "plugin_tests": "66 passed, offline OctoPrint with local Pillow",
+  "native_status": "PASS under ASan/UBSan: pause icons/state, title-only print/paused M117, 15 seconds, replacement, wrap, menus, prompts and idle",
+  "validation_programs": {
+    "passed": 14,
+    "failed": {
+      "profile": "Configuration_adv.h already out of sync; both configs match starting HEAD"
+    }
+  },
+  "hardware_validation": "pending",
+  "user_version_and_popup_color": "preserved"
+}

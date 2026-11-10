@@ -201,3 +201,16 @@ The Makefile/test runner supports `GIT_RESET_HARD`, which can run `git reset --h
 - Build RAM 22620 / Flash 211528 bytes. All regressions and 43 distinct plugin
   cases pass across host/container. Physical color/timing/caption check pending.
   See docs/c13-cleanup.md and docs/c13-cleanup/static-eta.json.
+
+### Host pause synchronization and M117 (2026-11-09)
+
+- Plugin PrintPaused/PrintResumed events send M9000 R1/R0 once per event. These
+  update only LCD pause state, icon and title; no S1, timer reset or motion resume.
+  Encoder highlights use the same flag. Native modals retain their own screen.
+- Active-card M117 reuses the scrolling-title buffer, preserves the filename and
+  screen/progress, and expires after 15 seconds through EachMomentUpdate. New
+  messages restart expiry; MAIN/new-card/finish clear it. Idle keeps info/Back.
+- Build STM32F103RET6_creality: RAM 23208, Flash 229268 bytes with current config.
+  All 66 plugin tests pass in offline OctoPrint/Pillow, native UI/protocol checks
+  pass. The existing Configuration_adv.h profile mismatch remains; config files
+  match starting HEAD 5fa34e8388 and were not edited. See docs/c13-host-status.md.

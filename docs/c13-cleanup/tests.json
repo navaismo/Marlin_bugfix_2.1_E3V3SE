@@ -30,6 +30,16 @@
     "log": "/home/shaka/Projects/Marlin/Marlin_c13_octoprint/.pio/c13-cleanup/logs/test_c13_cleanup_ui.log"
   },
   {
+    "name": "test_dwin_host_status",
+    "returncode": 0,
+    "command": [
+      "/home/shaka/.platformio/penv/bin/python3",
+      "/home/shaka/Projects/Marlin/Marlin_c13_octoprint/test/test_dwin_host_status.py"
+    ],
+    "cwd": "/home/shaka/Projects/Marlin/Marlin_c13_octoprint",
+    "log": "/home/shaka/Projects/Marlin/Marlin_c13_octoprint/.pio/c13-cleanup/logs/test_dwin_host_status.log"
+  },
+  {
     "name": "test_dwin_advanced_pause",
     "returncode": 0,
     "command": [
@@ -101,7 +111,7 @@
   },
   {
     "name": "profile",
-    "returncode": 0,
+    "returncode": 1,
     "command": [
       "/home/shaka/.platformio/penv/bin/python3",
       "buildroot/share/e3v3se/config_profile.py",
@@ -137,7 +147,7 @@
       "-s",
       "tests"
     ],
-    "cwd": "/tmp/c13-static-eta/plugin",
+    "cwd": "/tmp/c13-pause-status/plugin-current",
     "log": "/home/shaka/Projects/Marlin/Marlin_c13_octoprint/.pio/c13-cleanup/logs/plugin_host.log"
   },
   {
@@ -147,7 +157,7 @@
       "node",
       "tests/test_purge_frontend.js"
     ],
-    "cwd": "/tmp/c13-static-eta/plugin",
+    "cwd": "/tmp/c13-pause-status/plugin-current",
     "log": "/home/shaka/Projects/Marlin/Marlin_c13_octoprint/.pio/c13-cleanup/logs/plugin_frontend.log"
   }
 ]

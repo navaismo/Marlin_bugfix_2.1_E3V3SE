@@ -132,6 +132,7 @@ static void copy_title(char *dst, const size_t dstlen, const char *src) {
  *  N<title>  Job title
  *  H<um>     Known layer height in micrometers (0 = unavailable)
  *  E<min>    Fixed total estimated duration, shown as HH:MM (0 = unavailable)
+ *  R<0|1>    Host pause state (1 paused, 0 resumed); updates the LCD only
  *  D1        Refresh values after the host card finishes
  *  S1        Open the print screen
  */
@@ -152,6 +153,7 @@ void GcodeSuite::M9000() {
   #if ENABLED(M9001_DRAW_PROTOCOL)
     if (parser.seenval('H')) HostPrint::layer_height_um = parser.value_ushort();
     if (parser.seenval('E')) HostPrint::total_minutes = parser.value_ulong();
+    if (parser.seenval('R')) HostPrint::set_paused(parser.value_bool());
     if (parser.boolval('D')) HostPrint::refresh(true);
   #endif
 
@@ -164,6 +166,7 @@ void GcodeSuite::M9000() {
     #if ENABLED(M9001_DRAW_PROTOCOL)
       if (marlin.printingIsPaused() || planner.has_blocks_queued() || marlin.wait_for_user
           || (checkkey != MainMenu && checkkey != SelectFile && checkkey != ThumbPrint && checkkey != M117Info)) return;
+      HostPrint::clear_status();
     #endif
     Clear_Thumb_UpperArea();
     Clear_Title_Bar();

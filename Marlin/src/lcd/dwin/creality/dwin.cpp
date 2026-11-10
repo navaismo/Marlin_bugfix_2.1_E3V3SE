@@ -3791,8 +3791,12 @@ static bool G29_small(void) //
     #if ENABLED(OCTOPRINT_PLUGIN)
       OctoRefresh = true;
       hasThumbnail = true; 
-      Clear_Title_Bar();
-      Draw_OctoTitle(title);
+      #if ENABLED(M9001_DRAW_PROTOCOL)
+        HostPrint::draw_title();
+      #else
+        Clear_Title_Bar();
+        Draw_OctoTitle(title);
+      #endif
     #endif
     
     checkkey = ThumbPrint;
@@ -3844,6 +3848,58 @@ static bool G29_small(void) //
 
   }
 
+#endif
+
+#if ENABLED(M9001_DRAW_PROTOCOL)
+  namespace HostPrint {
+    static millis_t status_until;
+    static bool status_active;
+
+    void clear_status() { status_active = false; }
+
+    void draw_title() {
+      if (status_active && ELAPSED(millis(), status_until)) status_active = false;
+      scrollOffset = 0;
+      lastScrollTime = millis();
+      Clear_Title_Bar();
+      if (status_active) {
+        strncpy(visibleText, shift_name, sizeof(visibleText) - 1);
+        visibleText[sizeof(visibleText) - 1] = '\0';
+        DWIN_Draw_String(false, false, DWIN_FONT_HEAD, Color_Yellow, Color_Bg_Black, 4, 4, visibleText);
+      }
+      else
+        Draw_OctoTitle(title);
+    }
+
+    bool show_status(const char * const text) {
+      if (!hasThumbnail || !(OctoRefresh || isPaused || marlin.printJobOngoing() || marlin.printingIsPaused())) return false;
+      // Reuse the scrolling title buffer; keep the original job title intact.
+      strncpy(shift_name, text, sizeof(shift_name) - 1);
+      shift_name[sizeof(shift_name) - 1] = '\0';
+      status_until = millis() + 15000UL;
+      status_active = true;
+      if (checkkey == ThumbPrint && !LcdDraw::active()) draw_title();
+      return true; // Native menus and safety prompts retain their own display.
+    }
+
+    void update_title() {
+      if (status_active && ELAPSED(millis(), status_until) && checkkey == ThumbPrint && !LcdDraw::active()) {
+        status_active = false;
+        draw_title();
+      }
+    }
+
+    void set_paused(const bool paused) {
+      const bool changed = isPaused != paused;
+      isPaused = paused;
+      HMI_flag.pause_flag = paused;
+      if (changed && checkkey == ThumbPrint) {
+        OctoRefresh = true;
+        draw_title();
+        if (paused) ICON_Continue(); else ICON_Pause();
+      }
+    }
+  }
 #endif
 
 void Goto_PrintProcess()
@@ -3922,6 +3978,10 @@ void Goto_MainMenu()
     #if ENABLED(OCTOPRINT_PLUGIN)
       ui.set_print_time(0);     // Reset print time
       TERN_(M9001_DRAW_PROTOCOL, HostPrint::total_minutes = 0);
+      #if ENABLED(M9001_DRAW_PROTOCOL)
+        HostPrint::clear_status();
+        isPaused = HMI_flag.pause_flag = false;
+      #endif
       OctoRefresh = false;
     #endif
     
@@ -10397,7 +10457,7 @@ void HMI_ThumbPrint()
         break;
       case 1:
         ICON_Tune();
-        if (marlin.printingIsPaused())
+        if (TERN(M9001_DRAW_PROTOCOL, isPaused, marlin.printingIsPaused()))
         {
           ICON_Continue();
         }
@@ -10407,7 +10467,7 @@ void HMI_ThumbPrint()
         }
         break;
       case 2:
-        if (marlin.printingIsPaused())
+        if (TERN(M9001_DRAW_PROTOCOL, isPaused, marlin.printingIsPaused()))
         {
 
           ICON_Continue();
@@ -10429,13 +10489,13 @@ void HMI_ThumbPrint()
       {
       case 0:
         ICON_Tune();
-        if (marlin.printingIsPaused())
+        if (TERN(M9001_DRAW_PROTOCOL, isPaused, marlin.printingIsPaused()))
           ICON_Continue();
         else
           ICON_Pause();
         break;
       case 1:
-        if (marlin.printingIsPaused())
+        if (TERN(M9001_DRAW_PROTOCOL, isPaused, marlin.printingIsPaused()))
           ICON_Continue();
         else
           ICON_Pause();
@@ -11881,6 +11941,7 @@ void EachMomentUpdate()
 {
   TERN_(PREHEAT_ALERT, Preheat_alert());
   #if ENABLED(M9001_DRAW_PROTOCOL)
+    HostPrint::update_title();
     if (OctoRefresh && checkkey == ThumbPrint) HostPrint::refresh();
   #endif
     static bool heat_dir = false, heat_dir_bed = false, high_dir = false;
@@ -13299,6 +13360,7 @@ void HMI_Auto_Bed_PID(void)
     // finishc job, clear controls and allow go back main window
   void Goto_ThumbFinish()
   {
+    TERN_(M9001_DRAW_PROTOCOL, HostPrint::clear_status());
     OctoRefresh = false; // stop octoprint updates
     checkkey = M117Info;
     Clear_Below_Area();
@@ -13424,6 +13486,9 @@ void HMI_Auto_Bed_PID(void)
 // Function to send string to LCD
 void DWIN_Show_M117(char *str)
 {
+  #if ENABLED(M9001_DRAW_PROTOCOL)
+    if (HostPrint::show_status(str)) return;
+  #endif
   #if ENABLED(OCTOPRINT_PLUGIN)
     OctoRefresh = false; // stop octoprint updates
   #endif

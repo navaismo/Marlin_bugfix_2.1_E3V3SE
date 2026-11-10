@@ -361,6 +361,12 @@ errors. The recent host-print timeouts/resends remain under investigation.
 The **Progress text label is currently disabled** by commenting out its draw
 call; this isolates one source of LCD traffic and is not a confirmed fix.
 
+Host pause/resume events use `M9000 R1` / `M9000 R0` to synchronize the LCD flag,
+icon and filename without reopening the print card. During printing or pause,
+`M117` uses the title bar for 15 seconds and then restores the filename; it does
+not clear the card or reset progress. Idle messages retain the info/Back window.
+See [pause and status validation](docs/c13-host-status.md).
+
 ### LCD screens
 
 These images are unmodified references from the local
