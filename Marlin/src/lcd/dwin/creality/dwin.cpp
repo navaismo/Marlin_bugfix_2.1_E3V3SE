@@ -601,7 +601,7 @@ static void Auto_in_out_feedstock(bool dir) // 0 returns material, 1 feeds
           strncpy(visibleText, shift_name + scrollOffset, 30); // copy the text to shift left
           visibleText[30] = '\0';
           // Draw the string
-          DWIN_Draw_String(false, false, DWIN_FONT_HEAD, Color_Yellow, Color_Bg_Black, 4, 4, visibleText);
+          DWIN_Draw_String(false, false, DWIN_FONT_HEAD, TERN(M9001_DRAW_PROTOCOL, HostPrint::title_color(), Color_Yellow), Color_Bg_Black, 4, 4, visibleText);
           
           // Inc and reset
           scrollOffset++;
@@ -881,7 +881,7 @@ void ICON_Print()
   if (select_page.now == 0)
   {
     DWIN_ICON_Not_Filter_Show(ICON, ICON_Print_1, ICON_PRINT_X, ICON_PRINT_Y);
-    DWIN_Draw_Rectangle(0, Color_White, ICON_PRINT_X, ICON_PRINT_Y, ICON_PRINT_X + ICON_W, ICON_PRINT_Y + ICON_H);
+    // DWIN_Draw_Rectangle(0, Color_White, ICON_PRINT_X, ICON_PRINT_Y, ICON_PRINT_X + ICON_W, ICON_PRINT_Y + ICON_H);
     if (HMI_flag.language < Language_Max)
     {
       // rock_j print 1
@@ -908,7 +908,7 @@ void ICON_Prepare()
   if (select_page.now == 1)
   {
     DWIN_ICON_Not_Filter_Show(ICON, ICON_Prepare_1, ICON_PREPARE_X, ICON_PREPARE_Y);
-    DWIN_Draw_Rectangle(0, Color_White, ICON_PREPARE_X, ICON_PREPARE_Y, ICON_PREPARE_X + ICON_W, ICON_PREPARE_Y + ICON_H);
+    // DWIN_Draw_Rectangle(0, Color_White, ICON_PREPARE_X, ICON_PREPARE_Y, ICON_PREPARE_X + ICON_W, ICON_PREPARE_Y + ICON_H);
     if (HMI_flag.language < Language_Max)
     {
       // DWIN_Frame_AreaCopy(1, 31, 447, 58, 460, 186, 201);
@@ -945,7 +945,7 @@ void ICON_Control()
   if (select_page.now == 2)
   {
     DWIN_ICON_Not_Filter_Show(ICON, ICON_Control_1, ICON_CONTROL_X, ICON_CONTROL_Y);
-    DWIN_Draw_Rectangle(0, Color_White, ICON_CONTROL_X, ICON_CONTROL_Y, ICON_CONTROL_X + ICON_W, ICON_CONTROL_Y + ICON_H);
+    // DWIN_Draw_Rectangle(0, Color_White, ICON_CONTROL_X, ICON_CONTROL_Y, ICON_CONTROL_X + ICON_W, ICON_CONTROL_Y + ICON_H);
     if (HMI_flag.language < Language_Max)
     {
       DWIN_ICON_Show(HMI_flag.language, LANGUAGE_Control_1, WORD_CONTROL_X, WORD_CONTROL_Y);
@@ -1017,7 +1017,7 @@ void ICON_Leveling(bool show)
   if (show)
   {
     DWIN_ICON_Not_Filter_Show(ICON, ICON_Leveling_1, ICON_LEVEL_X, ICON_LEVEL_Y);
-    DWIN_Draw_Rectangle(0, Color_White, ICON_LEVEL_X, ICON_LEVEL_Y, ICON_LEVEL_X + ICON_W, ICON_LEVEL_Y + ICON_H);
+    // DWIN_Draw_Rectangle(0, Color_White, ICON_LEVEL_X, ICON_LEVEL_Y, ICON_LEVEL_X + ICON_W, ICON_LEVEL_Y + ICON_H);
     if (HMI_flag.language < Language_Max)
     {
       if (HMI_flag.language == Russian)
@@ -3890,6 +3890,41 @@ static bool G29_small(void) //
     static bool status_active;
 
     void clear_status() { status_active = false; }
+    uint16_t title_color() { return status_active ? Color_Blue : Color_Yellow; }
+
+    static bool is_cancel_message(const char *text) {
+      while (*text == ' ' || *text == '\t') ++text;
+      size_t len = strlen(text);
+      while (len && (text[len - 1] == ' ' || text[len - 1] == '\t'
+                    || text[len - 1] == '.' || text[len - 1] == '!')) --len;
+      // Match complete notices, including the usual host cancel-script text.
+      // A generic mention of Cancel must remain an informational M117.
+      #define CANCEL_NOTICE(S) (len == sizeof(S) - 1 && !strncasecmp(text, S, len))
+      return CANCEL_NOTICE("Print was cancelled") || CANCEL_NOTICE("Print canceled")
+          || CANCEL_NOTICE("Printing cancelled") || CANCEL_NOTICE("Printing canceled")
+          || CANCEL_NOTICE("Impresion cancelada") || CANCEL_NOTICE("Impresión cancelada")
+          || CANCEL_NOTICE("IMPRESIÓN CANCELADA");
+      #undef CANCEL_NOTICE
+    }
+
+    bool cancel_status(const char * const text) {
+      if (!is_cancel_message(text)) return false;
+      const bool active = hasThumbnail || OctoRefresh || isPaused
+                       || marlin.printJobOngoing() || marlin.printingIsPaused();
+      clear_status();
+      OctoRefresh = isPaused = HMI_flag.pause_flag = HMI_flag.pause_action = false;
+      HMI_flag.print_finish = HMI_flag.done_confirm_flag = false;
+      LcdDraw::cancel();
+      TERN_(DWIN_LCD_BEEP, PrintDoneSound::cancel());
+      if (active) {
+        SERIAL_ECHOLNPGM("M9000 cancel-job");
+        marlin.end_waiting();
+        ui.abort_print();
+      }
+      select_page.set(0);
+      Goto_MainMenu();
+      return true;
+    }
 
     void draw_title() {
       if (status_active && ELAPSED(millis(), status_until)) status_active = false;
@@ -3899,7 +3934,7 @@ static bool G29_small(void) //
       if (status_active) {
         strncpy(visibleText, shift_name, sizeof(visibleText) - 1);
         visibleText[sizeof(visibleText) - 1] = '\0';
-        DWIN_Draw_String(false, false, DWIN_FONT_HEAD, Color_Yellow, Color_Bg_Black, 4, 4, visibleText);
+        DWIN_Draw_String(false, false, DWIN_FONT_HEAD, Color_Blue, Color_Bg_Black, 4, 4, visibleText);
       }
       else
         Draw_OctoTitle(title);
@@ -13560,6 +13595,7 @@ void HMI_Auto_Bed_PID(void)
 void DWIN_Show_M117(char *str)
 {
   #if ENABLED(M9001_DRAW_PROTOCOL)
+    if (HostPrint::cancel_status(str)) return;
     if (HostPrint::show_status(str)) return;
   #endif
   #if ENABLED(OCTOPRINT_PLUGIN)
