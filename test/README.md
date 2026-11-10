@@ -17,6 +17,8 @@ Add `--preview-dir /tmp/bed-level-preview` to export LCD command previews as SVG
 
 ### Marlin native unit tests
 
+Run `python3 test/test_dwin_print_done_sound.py` to replay the Creality LCD's print-completion alert with AddressSanitizer and UndefinedBehaviorSanitizer. It exercises the production menu and EEPROM byte packing, SD completion while another menu or host renderer is active, host `M9000 S1/F1` handling, duplicate completion notifications, enable/disable, pin release, nonblocking pulse timing and clock rollover. It compiles with the optional dimmer menu and SD support both enabled and disabled. These host tests do not verify the physical buzzer or an SD-enabled firmware build.
+
 Unit testing allows for functional testing of Marlin logic on a local machine. This strategy is available to all developers, and will be able to be used on generic GitHub workers to automate testing. While PlatformIO does support the execution of unit tests on target controllers, that is not yet implemented and not really practical. This would require dedicated testing labs, and would be less broadly usable than testing directly on the development or build machine.
 
 Unit tests verify the behavior of small discrete sections of Marlin code. By thoroughly unit testing important parts of Marlin code, we effectively provide "guard rails" which will prevent major regressions in behavior. As long as all submissions go through the Pull Request process and execute automated checks, it is possible to catch most major issues prior to completion of a PR.

@@ -205,6 +205,10 @@ The table lists switches, not a statement of the current state; check the define
 
 `PREHEAT_ALERT` sounds three short beeps when the nozzle and bed reach the targets selected from the LCD's **Prepare → Preheat** menu (PLA/TPU, plus PETG/ABS with `EXTRA_PREHEAT_LABELS`). It is off by default and can be enabled in the GitHub Actions build dialog. Editing or saving presets does not arm the alert; cooling down, changing heater targets, or starting a print cancels it. The beeps run without blocking the LCD or temperature management.
 
+**Prepare → Display Settings → Print done sound** enables a short completion alert for SD prints and host prints (`M9000 F1`). It is off by default and independent of the knob's beep setting. Select **Store** or send `M500` to keep it after restart; `M502` disables it. The option shares the existing LCD beeper EEPROM byte, preserving the settings layout and older 0/1 values. SD completion is detected even when another native menu is open. Repeated host completion notifications do not replay the alert until a new job opens with `M9000 S1`.
+
+The configured buzzer has a fixed pitch. Completion uses a short-short-long confirmation rhythm: 80 ms, 80 ms and 240 ms, with 80 ms gaps. Playback reuses the same small timer state, without audio samples, dynamic allocation, blocking delays or extra serial/LCD commands. The last pulse ends after a nominal 560 ms; the LCD update interval can extend it. This branch keeps SD printing disabled; the same completion option is available when building with SD support.
+
 `BED_LEVEL_VISUALIZER` adds **Leveling → Bed Level Map** to the Creality DWIN LCD. It displays the current bilinear bed mesh as a filled isometric surface with interpolated colors: blue below zero, green at zero, and red above zero. A mesh of 6×6 measured points forms 5×5 surface cells; all 36 measurements are used. The map title is centered in yellow in the header. The legend shows the color scale in millimeters; the header shows minimum, maximum, total height range, population standard deviation and the original bed-level assessment from `v1.0.9.8_1f`. Statistics use three decimal places and integer-based formatting, so they remain visible without floating-point printf support. The view omits the mesh-size banner and fixed origin label. Reference axes X, Y and Z are drawn behind the heatmap using the same projection, with their labels outside the colored surface. Vertical displacement is exaggerated automatically so the shape is visible. Single-pixel scan bands overlap at their far edge to avoid gaps on panels with exclusive rectangle endpoints. The QR links to the original bed-leveling help at `https://bit.ly/navaismo-bed-leveling`, preserving the URL's case and a white quiet zone. It is also available when there is no mesh.
 
 The assessment selects the best rating that satisfies **both** original limits:
@@ -254,16 +258,14 @@ To build this branch for the plugin's resonance-test flow, enable all of the fol
 ```cpp
 #define FT_MOTION
 // Keep at least one FTM_SHAPER_* algorithm enabled (the branch already provides them).
-#define INPUT_SHAPING_X
-#define INPUT_SHAPING_Y
 #define RESONANCE_TEST
 #define PINPUT_RESONANCE_EVENTS
 #define EMERGENCY_PARSER
 ```
 
-The exact flag is **`PINPUT_RESONANCE_EVENTS`**. `PINPUT_RESONANCE_PROGRESS` is optional and remains disabled. The firmware requires a 32-bit CPU; M495/M496 dispatch in this checkout also requires `FT_MOTION` at compile time. `INPUT_SHAPING_X/Y` compile the standard-motion shapers; FT Motion's shaper algorithms remain configured through `FTM_SHAPER_*` and `M493`. Selecting a shaping mode with `M493` alone does not compile in resonance testing or host events.
+The exact flag is **`PINPUT_RESONANCE_EVENTS`**. `PINPUT_RESONANCE_PROGRESS` is optional and remains disabled. The firmware requires a 32-bit CPU; M495/M496 dispatch in this checkout also requires `FT_MOTION` at compile time. `INPUT_SHAPING_X/Y` compile the independent standard-motion shapers and are not required by resonance testing. FT Motion's shaper algorithms remain configured through `FTM_SHAPER_*` and `M493`. Selecting a shaping mode with `M493` alone does not compile in resonance testing or host events.
 
-In this OctoPrint branch's GitHub Actions workflow, select **RESONANCE_TEST + PINPUT_RESONANCE_EVENTS**. This single option defaults to off and enables both flags together with FT Motion, X/Y shaping and the emergency parser for that build. It takes precedence over an unchecked FT Motion option and disables the legacy LCD shaping menu.
+In this OctoPrint branch's GitHub Actions workflow, select **RESONANCE_TEST + PINPUT_RESONANCE_EVENTS**. This single option defaults to off and enables both flags together with FT Motion and the emergency parser for that build. It takes precedence over an unchecked FT Motion option and disables the legacy LCD shaping menu. It leaves `INPUT_SHAPING_X/Y` unchanged.
 
 After installing an enabled build, the plugin can query `M495 Q2` and must receive `echo:PIS:RT:READY:2` before using the host-armed flow. A start with `I<id> S W` performs homing and positioning, emits `HOMED` and `ARMED_WAIT`, and waits without exciting the axis. The plugin starts sensor acquisition, verifies fresh samples, then sends `M495 I<id> R`. `ARM_ACK` and `START` identify activation; `COMPLETE` follows actual motion drain. Without ARM, the pending session expires after 30 seconds. `M496` cancels the test. `M495 Q` and starts without W retain the version 1 flow.
 

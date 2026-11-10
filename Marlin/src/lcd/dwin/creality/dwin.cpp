@@ -246,6 +246,40 @@ uint8_t index_file = MROWS,
         index_select = 0;
 bool dwin_abort_flag = false; // Flag to reset feedrate, return to Home
 
+#if ENABLED(DWIN_LCD_BEEP)
+  namespace PrintDoneSound {
+    bool enabled = false; // Completion alert is independent of encoder clicks.
+    static uint8_t phase = 0;
+    static millis_t deadline = 0;
+
+    void cancel() {
+      #if PIN_EXISTS(BEEPER)
+        if (phase) WRITE(BEEPER_PIN, LOW);
+      #endif
+      phase = 0;
+    }
+
+    void start() {
+      if (!enabled || phase) return;
+      phase = 6;
+      deadline = millis();
+    }
+
+    void tick() {
+      if (!enabled) { cancel(); return; }
+      if (!phase || PENDING(millis(), deadline)) return;
+      // Fixed-frequency confirmation: short, short, long (80 / 80 / 240 ms),
+      // with 80 ms gaps. No delays, tone queue, samples or serial traffic.
+      const bool sounding = !(phase & 1);
+      #if PIN_EXISTS(BEEPER)
+        WRITE(BEEPER_PIN, sounding ? HIGH : LOW);
+      #endif
+      deadline = millis() + (phase == 2 ? 240 : 80);
+      --phase;
+    }
+  }
+#endif
+
 constexpr float default_max_feedrate[] = DEFAULT_MAX_FEEDRATE;
 
 #if ALL(SKEW_CORRECTION, DWIN_SKEW_MENU)
@@ -812,30 +846,30 @@ void DWIN_Draw_Z_Offset_Float(uint8_t size, uint16_t color, uint16_t bcolor, uin
 #endif // COMPACT_GRID_VALUES
 }
 #endif
-void DWIN_Draw_Signed_Float(uint8_t size, uint16_t bColor, uint8_t iNum, uint8_t fNum, uint16_t x, uint16_t y, long value)
+void DWIN_Draw_Signed_Float(uint8_t size, uint16_t bColor, uint8_t iNum, uint8_t fNum, uint16_t x, uint16_t y, long value, uint16_t color)
 {
   if (value < 0)
   {
-    DWIN_Draw_FloatValue(true, true, 0, size, Color_White, bColor, iNum, fNum, x, y + 2, -value);
-    DWIN_Draw_String(false, true, font6x12, Color_White, bColor, x + 2, y + 2, F("-"));
+    DWIN_Draw_FloatValue(true, true, 0, size, color, bColor, iNum, fNum, x, y + 2, -value);
+    DWIN_Draw_String(false, true, font6x12, color, bColor, x + 2, y + 2, F("-"));
   }
   else
   {
-    DWIN_Draw_FloatValue(true, true, 0, size, Color_White, bColor, iNum, fNum, x, y + 2, value);
-    DWIN_Draw_String(false, true, font6x12, Color_White, bColor, x + 2, y + 2, F(""));
+    DWIN_Draw_FloatValue(true, true, 0, size, color, bColor, iNum, fNum, x, y + 2, value);
+    DWIN_Draw_String(false, true, font6x12, color, bColor, x + 2, y + 2, F(""));
   }
 }
 void DWIN_Draw_Signed_Float_Temp(uint8_t size, uint16_t bColor, uint8_t iNum, uint8_t fNum, uint16_t x, uint16_t y, long value)
 {
   if (value < 0)
   {
-    DWIN_Draw_FloatValue(true, true, 0, size, Color_Yellow, bColor, iNum, fNum, x, y + 2, -value);
-    DWIN_Draw_String(false, true, font6x12, Color_Yellow, bColor, x + 2, y + 2, F("-"));
+    DWIN_Draw_FloatValue(true, true, 0, size, Color_Cyan, bColor, iNum, fNum, x, y + 2, -value);
+    DWIN_Draw_String(false, true, font6x12, Color_Cyan, bColor, x + 2, y + 2, F("-"));
   }
   else
   {
-    DWIN_Draw_FloatValue(true, true, 0, size, Color_Yellow, bColor, iNum, fNum, x, y + 2, value);
-    DWIN_Draw_String(false, true, font6x12, Color_Yellow, bColor, x + 2, y + 2, F(""));
+    DWIN_Draw_FloatValue(true, true, 0, size, Color_Cyan, bColor, iNum, fNum, x, y + 2, value);
+    DWIN_Draw_String(false, true, font6x12, Color_Cyan, bColor, x + 2, y + 2, F(""));
   }
 }
 void ICON_Print()
@@ -5131,7 +5165,7 @@ void HMI_AUTO_PID_Value_Set()
 }
 
 // Draw X, Y, Z and blink if in an un-homed or un-trusted state
-void _update_axis_value(const AxisEnum axis, const uint16_t x, const uint16_t y, const bool blink, const bool force)
+void _update_axis_value(const AxisEnum axis, const uint16_t x, const uint16_t y, const bool blink, const bool force, const uint16_t color = Color_White)
 {
   const bool draw_qmark = motion.axis_should_home(axis),
              draw_empty = NONE(HOME_AFTER_DEACTIVATE, DISABLE_REDUCED_ACCURACY_WARNING) && !draw_qmark && !motion.axis_is_trusted(axis);
@@ -5146,13 +5180,13 @@ void _update_axis_value(const AxisEnum axis, const uint16_t x, const uint16_t y,
   if (force || changed || draw_qmark || draw_empty)
   {
     if (blink && draw_qmark)
-      DWIN_Draw_String(false, true, font8x16, Color_White, Color_Bg_Black, x, y, F(" ???.?"));
+      DWIN_Draw_String(false, true, font8x16, color, Color_Bg_Black, x, y, F(" ???.?"));
     else if (blink && draw_empty)
-      DWIN_Draw_String(false, true, font8x16, Color_White, Color_Bg_Black, x, y, F("     "));
+      DWIN_Draw_String(false, true, font8x16, color, Color_Bg_Black, x, y, F("     "));
     else
-      // DWIN_Draw_FloatValue(true, true, 0, font8x16, Color_White, Color_Bg_Black, 3, 1, x, y, p *10);
+      // DWIN_Draw_FloatValue(true, true, 0, font8x16, color, Color_Bg_Black, 3, 1, x, y, p *10);
       // DWIN_Draw_Signed_Float(uint8_t size, uint16_t bColor, uint8_t iNum, uint8_t fNum, uint16_t x, uint16_t y, long value)
-      DWIN_Draw_Signed_Float(font8x16, Color_Bg_Black, 3, 1, x, y, p * 10);
+      DWIN_Draw_Signed_Float(font8x16, Color_Bg_Black, 3, 1, x, y, p * 10, color);
   }
 }
 
@@ -5302,7 +5336,7 @@ void update_variable()
   }
 #endif
   DWIN_ICON_Show(ICON, ICON_Zoffset, ICON_ZOFFSET_X, ICON_ZOFFSET_Y);
-  _update_axis_value(Z_AXIS, NUM_ZOFFSET_X, NUM_ZOFFSET_Y, false, true);
+  _update_axis_value(Z_AXIS, NUM_ZOFFSET_X, NUM_ZOFFSET_Y, false, true, Color_Cyan);
 #endif
   _draw_xyz_position(false);
 }
@@ -5383,13 +5417,13 @@ void update_middle_variable()
   DWIN_Draw_Signed_Float_Temp(DWIN_FONT_STAT, Color_Bg_Black, 3, 0, 25, NUM_NOZZ_Y - 2, _hotendtemp);
   if (_new_hotend_target)
   {
-    DWIN_Draw_IntValue_N0SPACE(true, true, 0, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 3, 18 + 4 * STAT_CHR_W + 6, NUM_NOZZ_Y, _hotendtarget);
+    DWIN_Draw_IntValue_N0SPACE(true, true, 0, DWIN_FONT_STAT, Color_Green, Color_Bg_Black, 3, 18 + 4 * STAT_CHR_W + 6, NUM_NOZZ_Y, _hotendtarget);
   }
   static int16_t _flow = planner.flow_percentage[0];
   if (_flow != planner.flow_percentage[0])
   {
     _flow = planner.flow_percentage[0];
-    DWIN_Draw_IntValue_N0SPACE(true, true, 0, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 3, 99 + 2 * STAT_CHR_W + 2, NUM_STEP_E_Y, _flow);
+    DWIN_Draw_IntValue_N0SPACE(true, true, 0, DWIN_FONT_STAT, Color_Gray, Color_Bg_Black, 3, 99 + 2 * STAT_CHR_W + 2, NUM_STEP_E_Y, _flow);
   }
 #endif
 
@@ -5397,7 +5431,7 @@ void update_middle_variable()
   DWIN_Draw_Signed_Float_Temp(DWIN_FONT_STAT, Color_Bg_Black, 3, 0, 25, NUM_BED_Y - 2, _bedtemp);
   if (_new_bed_target)
   {
-    DWIN_Draw_IntValue_N0SPACE(true, true, 0, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 3, 18 + 4 * STAT_CHR_W + 6, NUM_BED_Y, _bedtarget);
+    DWIN_Draw_IntValue_N0SPACE(true, true, 0, DWIN_FONT_STAT, Color_Green, Color_Bg_Black, 3, 18 + 4 * STAT_CHR_W + 6, NUM_BED_Y, _bedtarget);
   }
 #endif
 
@@ -5405,18 +5439,18 @@ void update_middle_variable()
   if (_feedrate != motion.feedrate_percentage)
   {
     _feedrate = motion.feedrate_percentage;
-    DWIN_Draw_IntValue_N0SPACE(true, true, 0, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 3, 99 + 2 * STAT_CHR_W + 2, NUM_SPEED_Y, _feedrate);
+    DWIN_Draw_IntValue_N0SPACE(true, true, 0, DWIN_FONT_STAT, Color_Gray, Color_Bg_Black, 3, 99 + 2 * STAT_CHR_W + 2, NUM_SPEED_Y, _feedrate);
   }
 
 #if HAS_FAN
   if (_new_fanspeed)
   {
     _fanspeed = fans[0].speed;
-    DWIN_Draw_IntValue_N0SPACE(true, true, 0, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 3, 175 + 2 * STAT_CHR_W, NUM_FAN_Y, _fanspeed);
+    DWIN_Draw_IntValue_N0SPACE(true, true, 0, DWIN_FONT_STAT, Color_Cyan, Color_Bg_Black, 3, 175 + 2 * STAT_CHR_W, NUM_FAN_Y, _fanspeed);
   }
 #endif
   DWIN_ICON_Show(ICON, ICON_Zoffset, ICON_ZOFFSET_X, ICON_ZOFFSET_Y);
-  _update_axis_value(Z_AXIS, NUM_ZOFFSET_X, NUM_ZOFFSET_Y, false, true);
+  _update_axis_value(Z_AXIS, NUM_ZOFFSET_X, NUM_ZOFFSET_Y, false, true, Color_Cyan);
 #endif
 }
 /**
@@ -5721,7 +5755,7 @@ void Draw_Status_Area(bool with_update)
 
 #if HAS_ZOFFSET_ITEM
   DWIN_ICON_Show(ICON, ICON_Zoffset, ICON_ZOFFSET_X, ICON_ZOFFSET_Y);
-  _update_axis_value(Z_AXIS, NUM_ZOFFSET_X, NUM_ZOFFSET_Y, false, true);
+  _update_axis_value(Z_AXIS, NUM_ZOFFSET_X, NUM_ZOFFSET_Y, false, true, Color_Cyan);
 #endif // HAS_ZOFFSET_ITEM
   DWIN_Draw_Rectangle(1, Line_Color, 0, 449, DWIN_WIDTH, 451);
   DWIN_ICON_Show(ICON, ICON_MaxSpeedX, 10, 456);
@@ -5757,7 +5791,7 @@ void Draw_Status_Area(bool with_update)
 
 #if HAS_ZOFFSET_ITEM
   DWIN_ICON_Show(ICON, ICON_Zoffset, ICON_ZOFFSET_X, ICON_ZOFFSET_Y);
-  _update_axis_value(Z_AXIS, NUM_ZOFFSET_X, NUM_ZOFFSET_Y, false, true);
+  _update_axis_value(Z_AXIS, NUM_ZOFFSET_X, NUM_ZOFFSET_Y, false, true, Color_Cyan);
 #endif // HAS_ZOFFSET_ITEM
 
   DWIN_Draw_Rectangle(1, Line_Color, 0, 291, DWIN_WIDTH, 292);
@@ -5788,11 +5822,11 @@ void Draw_Mid_Status_Area(bool with_update)
   // DWIN_Draw_IntValue(true, true, 0, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 3,  NUM_NOZZ_X + 5 *MENU_CHR_W, ICON_NOZZ_Y, thermalManager.degTargetHotend(0));
   // DWIN_Draw_IntValue(true, true, 0, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 3, 47, ICON_NOZZ_Y, thermalManager.wholeDegBed());;
   DWIN_Draw_String(false, false, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 22 + 3 * STAT_CHR_W + 5, NUM_NOZZ_Y - 1, F("/"));
-  DWIN_Draw_IntValue_N0SPACE(true, true, 0, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 3, 18 + 4 * STAT_CHR_W + 6, NUM_NOZZ_Y, thermalManager.degTargetHotend(0));
+  DWIN_Draw_IntValue_N0SPACE(true, true, 0, DWIN_FONT_STAT, Color_Green, Color_Bg_Black, 3, 18 + 4 * STAT_CHR_W + 6, NUM_NOZZ_Y, thermalManager.degTargetHotend(0));
 
   DWIN_ICON_Show(ICON, ICON_StepE, ICON_STEP_E_X, ICON_STEP_E_Y);
-  DWIN_Draw_IntValue_N0SPACE(true, true, 0, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 3, 99 + 2 * STAT_CHR_W + 2, NUM_STEP_E_Y, planner.flow_percentage[0]);
-  DWIN_Draw_String(false, false, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 99 + 5 * STAT_CHR_W, NUM_STEP_E_Y - 1, F("%"));
+  DWIN_Draw_IntValue_N0SPACE(true, true, 0, DWIN_FONT_STAT, Color_Gray, Color_Bg_Black, 3, 99 + 2 * STAT_CHR_W + 2, NUM_STEP_E_Y, planner.flow_percentage[0]);
+  DWIN_Draw_String(false, false, DWIN_FONT_STAT, Color_Gray, Color_Bg_Black, 99 + 5 * STAT_CHR_W, NUM_STEP_E_Y - 1, F("%"));
   // DWIN_Draw_IntValue(true, true, 0, DWIN_MIDDLE_FONT_STAT, Color_White, Color_Bg_Black, 3,NUM_STEP_E_X, ICON_STEP_E_Y, planner.flow_percentage[0]);
   // DWIN_Draw_String(false, false, DWIN_MIDDLE_FONT_STAT, Color_White, Color_Bg_Black, NUM_STEP_E_X + 4 *STAT_CHR_W, ICON_STEP_E_Y, F("%"));
 #endif
@@ -5804,24 +5838,24 @@ void Draw_Mid_Status_Area(bool with_update)
   // DWIN_Draw_IntValue(true, true, 0, DWIN_MIDDLE_FONT_STAT, Color_White, Color_Bg_Black, 3, NUM_BED_X+ 5*MENU_CHR_W,ICON_BED_Y, thermalManager.degTargetBed());
   // DWIN_Draw_IntValue(true, true, 0, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 3, 47, ICON_BED_Y, thermalManager.wholeDegBed());
   DWIN_Draw_String(false, false, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 22 + 3 * STAT_CHR_W + 5, NUM_BED_Y - 1, F("/"));
-  DWIN_Draw_IntValue_N0SPACE(true, true, 0, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 3, 18 + 4 * STAT_CHR_W + 6, NUM_BED_Y, thermalManager.degTargetBed());
+  DWIN_Draw_IntValue_N0SPACE(true, true, 0, DWIN_FONT_STAT, Color_Green, Color_Bg_Black, 3, 18 + 4 * STAT_CHR_W + 6, NUM_BED_Y, thermalManager.degTargetBed());
 #endif
 
   DWIN_ICON_Show(ICON, ICON_Speed, ICON_SPEED_X, ICON_SPEED_Y);
   // DWIN_Draw_IntValue(true, true, 0, DWIN_MIDDLE_FONT_STAT, Color_White, Color_Bg_Black, 3,NUM_SPEED_X ,ICON_SPEED_Y, motion.feedrate_percentage);
   // DWIN_Draw_String(false, false, DWIN_MIDDLE_FONT_STAT, Color_White, Color_Bg_Black, NUM_SPEED_X + 4*MENU_CHR_W, ICON_SPEED_Y, F("%"));
-  DWIN_Draw_IntValue_N0SPACE(true, true, 0, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 3, 99 + 2 * STAT_CHR_W + 2, NUM_SPEED_Y, motion.feedrate_percentage);
-  DWIN_Draw_String(false, false, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 99 + 5 * STAT_CHR_W, NUM_SPEED_Y - 1, F("%"));
+  DWIN_Draw_IntValue_N0SPACE(true, true, 0, DWIN_FONT_STAT, Color_Gray, Color_Bg_Black, 3, 99 + 2 * STAT_CHR_W + 2, NUM_SPEED_Y, motion.feedrate_percentage);
+  DWIN_Draw_String(false, false, DWIN_FONT_STAT, Color_Gray, Color_Bg_Black, 99 + 5 * STAT_CHR_W, NUM_SPEED_Y - 1, F("%"));
 
 #if HAS_FAN
   DWIN_ICON_Show(ICON, ICON_FanSpeed, ICON_FAN_X, ICON_FAN_Y);
-  DWIN_Draw_IntValue_N0SPACE(true, true, 0, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 3, 175 + 2 * STAT_CHR_W, NUM_FAN_Y, fans[0].speed);
+  DWIN_Draw_IntValue_N0SPACE(true, true, 0, DWIN_FONT_STAT, Color_Cyan, Color_Bg_Black, 3, 175 + 2 * STAT_CHR_W, NUM_FAN_Y, fans[0].speed);
   // DWIN_Draw_IntValue(true, true, 0, DWIN_MIDDLE_FONT_STAT, Color_White, Color_Bg_Black, 3, NUM_FAN_X , ICON_FAN_Y, fans[0].speed);
 #endif
 
 #if HAS_ZOFFSET_ITEM
   DWIN_ICON_Show(ICON, ICON_Zoffset, ICON_ZOFFSET_X, ICON_ZOFFSET_Y);
-  _update_axis_value(Z_AXIS, NUM_ZOFFSET_X, NUM_ZOFFSET_Y, false, true);
+  _update_axis_value(Z_AXIS, NUM_ZOFFSET_X, NUM_ZOFFSET_Y, false, true, Color_Cyan);
 #endif // HAS_ZOFFSET_ITEM
 
 #endif
@@ -7481,36 +7515,44 @@ void Draw_Display_Menu()
   HMI_flag.Refresh_bottom_flag = false; // Flag refresh bottom parameter
 
   // Back option
-  Draw_Back_First();
+  const uint8_t scroll = select_display.now > MROWS ? select_display.now - MROWS : 0;
+  if (!scroll) Draw_Back_First(select_display.now == 0);
   // Title
   Draw_Title(F("Display Settings"));
 
-  DWIN_Draw_Label(MBASE(1), F("Mute/Unmute Beeper"));
-  Draw_Menu_Line(1, ICON_Contact);
+  const uint8_t beep_row = 1 - scroll;
+  DWIN_Draw_Label(MBASE(beep_row), F("Mute/Unmute Beeper"));
+  Draw_Menu_Line(beep_row, ICON_Contact);
 
   #if ENABLED(DWIN_DIMM_MENU)
     // There's no graphical asset for this label, so we just write it as string
-    DWIN_Draw_Label(MBASE(2), F("Max Brightness(%)"));
-    Draw_Menu_Line(2, ICON_PrintSize);
-    DWIN_Draw_IntValue(true, true, 0, font8x16, Color_White, Color_Bg_Black, 3, VALUERANGE_X, MBASE(2) + 3, ((MAX_SCREEN_BRIGHTNESS - 164) * 100) / 66);
+    DWIN_Draw_Label(MBASE(2 - scroll), F("Max Brightness(%)"));
+    Draw_Menu_Line(2 - scroll, ICON_PrintSize);
+    DWIN_Draw_IntValue(true, true, 0, font8x16, Color_White, Color_Bg_Black, 3, VALUERANGE_X, MBASE(2 - scroll) + 3, ((MAX_SCREEN_BRIGHTNESS - 164) * 100) / 66);
 
     // There's no graphical asset for this label, so we just write it as string
-    DWIN_Draw_Label(MBASE(3), F("Dimm Brightness(%)"));
-    Draw_Menu_Line(3, ICON_Hardware_version);
-    DWIN_Draw_IntValue(true, true, 0, font8x16, Color_White, Color_Bg_Black, 3, VALUERANGE_X, MBASE(3) + 3, ((DIMM_SCREEN_BRIGHTNESS - 164) * 100) / 66);
+    DWIN_Draw_Label(MBASE(3 - scroll), F("Dimm Brightness(%)"));
+    Draw_Menu_Line(3 - scroll, ICON_Hardware_version);
+    DWIN_Draw_IntValue(true, true, 0, font8x16, Color_White, Color_Bg_Black, 3, VALUERANGE_X, MBASE(3 - scroll) + 3, ((DIMM_SCREEN_BRIGHTNESS - 164) * 100) / 66);
 
     // There's no graphical asset for this label, so we just write it as string
-    DWIN_Draw_Label(MBASE(4), F(" Mins Before Dimm"));
-    Draw_Menu_Line(4, ICON_PrintTime);
-    DWIN_Draw_IntValue(true, true, 0, font8x16, Color_White, Color_Bg_Black, 3, VALUERANGE_X, MBASE(4) + 3, TURN_OFF_TIME);
-
-    DWIN_ICON_Show(HMI_flag.language, LANGUAGE_Store, 60, MBASE(5) + JPN_OFFSET);
-    Draw_Menu_Line(5, ICON_WriteEEPROM);
+    DWIN_Draw_Label(MBASE(4 - scroll), F(" Mins Before Dimm"));
+    Draw_Menu_Line(4 - scroll, ICON_PrintTime);
+    DWIN_Draw_IntValue(true, true, 0, font8x16, Color_White, Color_Bg_Black, 3, VALUERANGE_X, MBASE(4 - scroll) + 3, TURN_OFF_TIME);
+    constexpr uint8_t done_item = 5, store_item = 6;
   #else
-
-    DWIN_ICON_Show(HMI_flag.language, LANGUAGE_Store, 60, MBASE(2) + JPN_OFFSET);
-    Draw_Menu_Line(2, ICON_WriteEEPROM);
-  #endif  
+    constexpr uint8_t done_item = 2, store_item = 3;
+  #endif
+  #if ENABLED(DWIN_LCD_BEEP)
+    DWIN_Draw_Label(MBASE(done_item - scroll), F("Print done sound"));
+    Draw_Menu_Line(done_item - scroll, ICON_Contact);
+    Draw_Chkb_Line(done_item - scroll, PrintDoneSound::enabled);
+  #endif
+  if (store_item <= MROWS + scroll) {
+    DWIN_ICON_Show(HMI_flag.language, LANGUAGE_Store, 60, MBASE(store_item - scroll) + JPN_OFFSET);
+    Draw_Menu_Line(store_item - scroll, ICON_WriteEEPROM);
+  }
+  if (select_display.now) Draw_Menu_Cursor(select_display.now - scroll);
 }
 
 void HMI_Display_Menu()
@@ -7523,17 +7565,22 @@ void HMI_Display_Menu()
   if (encoder_diffState == ENCODER_DIFF_CW)
   {
     #if ENABLED(DWIN_DIMM_MENU)
-      const int16_t max_items = 5;
+      const int16_t max_items = 6;
     #else
-      const int16_t max_items = 2;
+      const int16_t max_items = 3;
     #endif
-    if (select_display.inc(1 + max_items))
-      Move_Highlight(1, select_display.now);
+    if (select_display.inc(1 + max_items)) {
+      if (select_display.now > MROWS) Draw_Display_Menu();
+      else Move_Highlight(1, select_display.now);
+    }
   }
   else if (encoder_diffState == ENCODER_DIFF_CCW)
   {
-    if (select_display.dec())
-      Move_Highlight(-1, select_display.now);
+    const bool scrolled = select_display.now > MROWS;
+    if (select_display.dec()) {
+      if (scrolled) Draw_Display_Menu();
+      else Move_Highlight(-1, select_display.now);
+    }
   }
   else if (encoder_diffState == ENCODER_DIFF_ENTER)
   {
@@ -7567,12 +7614,21 @@ void HMI_Display_Menu()
       EncoderRate.enabled = true;
       break;
   
+    case 6:
+      settings.save();
+      break;
     case 5:
-      settings.save();
   #else
-    case 2:
+    case 3:
       settings.save();
+      break;
+    case 2:
   #endif
+      #if ENABLED(DWIN_LCD_BEEP)
+        PrintDoneSound::enabled = !PrintDoneSound::enabled;
+        if (!PrintDoneSound::enabled) PrintDoneSound::cancel();
+        Draw_Chkb_Line(select_display.now, PrintDoneSound::enabled);
+      #endif
       break;
     default:
       break;    
@@ -11590,6 +11646,13 @@ void MarlinUI::init_lcd() { HMI_Init(); }
 
 void DWIN_Update()
 {
+  #if ALL(DWIN_LCD_BEEP, SDSUPPORT)
+    // Observe media completion even while Tune or another native menu is open.
+    static bool sd_done_seen = false;
+    if (HMI_flag.print_finish && !sd_done_seen) PrintDoneSound::start();
+    sd_done_seen = HMI_flag.print_finish;
+  #endif
+  TERN_(DWIN_LCD_BEEP, PrintDoneSound::tick());
   #if ENABLED(M9001_DRAW_PROTOCOL)
     if (LcdDraw::active()) { DWIN_HandleScreen(); return; }
   #endif
@@ -11942,6 +12005,7 @@ void EachMomentUpdate()
   TERN_(PREHEAT_ALERT, Preheat_alert());
   #if ENABLED(M9001_DRAW_PROTOCOL)
     HostPrint::update_title();
+    HostPrint::update_finish();
     if (OctoRefresh && checkkey == ThumbPrint) HostPrint::refresh();
   #endif
     static bool heat_dir = false, heat_dir_bed = false, high_dir = false;
@@ -12421,7 +12485,8 @@ void Show_G_Pic(void)
         select_file.reset();
         // Start choice and print SD file
         HMI_flag.heat_flag = true;
-        HMI_flag.print_finish = false;
+        HMI_flag.done_confirm_flag = HMI_flag.print_finish = false;
+        TERN_(DWIN_LCD_BEEP, PrintDoneSound::cancel());
         HMI_ValueStruct.show_mode = 0;
         // Rock 20210819
         TERN_(POWER_LOSS_RECOVERY, recovery.info.sd_printing_flag = true);
@@ -13360,6 +13425,10 @@ void HMI_Auto_Bed_PID(void)
     // finishc job, clear controls and allow go back main window
   void Goto_ThumbFinish()
   {
+    if (!HMI_flag.done_confirm_flag) {
+      HMI_flag.done_confirm_flag = true;
+      TERN_(DWIN_LCD_BEEP, PrintDoneSound::start());
+    }
     TERN_(M9001_DRAW_PROTOCOL, HostPrint::clear_status());
     OctoRefresh = false; // stop octoprint updates
     checkkey = M117Info;
@@ -13371,6 +13440,10 @@ void HMI_Auto_Bed_PID(void)
     ui.set_current_layer(ui.get_total_layer_count()); // set current layer to total layers
     ui.set_remaining_time(0); // set remaining time to 0
 
+    #if ENABLED(M9001_DRAW_PROTOCOL)
+      // Preserve the thumbnail and its frame; clear the whole progress panel.
+      DWIN_Draw_Rectangle(1, Color_Bg_Black, 120, 25, DWIN_WIDTH - 1, 122);
+    #endif
     Draw_Print_ProgressBar(); // draw progress bar at 100%
     
     #if ENABLED(M9001_DRAW_PROTOCOL)

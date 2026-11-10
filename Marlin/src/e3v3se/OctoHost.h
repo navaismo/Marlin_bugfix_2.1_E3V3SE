@@ -26,6 +26,7 @@ extern bool serial_connection_active;
     void progress_caption();
     void refresh(bool force=false);
     void finish_fields();
+    void update_finish();
     void set_paused(bool paused);
     bool show_status(const char *text);
     void clear_status();

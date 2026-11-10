@@ -59,7 +59,7 @@ on:
         type: boolean
         default: true
       pinput_resonance_events:
-        description: "RESONANCE_TEST + PINPUT_RESONANCE_EVENTS (Pinput_Shaping; enables FT_MOTION and X/Y shaping)"
+        description: "RESONANCE_TEST + PINPUT_RESONANCE_EVENTS (Pinput_Shaping; enables FT_MOTION)"
         type: boolean
         default: false
       preheat_alert:

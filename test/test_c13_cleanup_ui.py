@@ -62,8 +62,9 @@ int checkkey=MainMenu;
 struct Selection {int now=0;void reset(){now=0;}void set(int n){now=n;}bool inc(int max){if(now>=max-1)return false;++now;return true;}bool dec(){if(!now)return false;--now;return true;}};
 Selection select_page,select_prepare,select_control,select_cextr,select_print;
 int index_prepare,index_control,MROWS=5;
-struct {bool abort_end_flag=false,Refresh_bottom_flag=false;bool select_flag=true,pause_flag=false;int language=0;} HMI_flag;
+struct {bool abort_end_flag=false,Refresh_bottom_flag=false,done_confirm_flag=false;bool select_flag=true,pause_flag=false;int language=0;} HMI_flag;
 constexpr int Language_Max=1,LANGUAGE_Main=0,TITLE_X=0,TITLE_Y=0,MAX_SCREEN_BRIGHTNESS=255,
+ LANGUAGE_LEVEL_FINISH=300,LANGUAGE_Confirm=301,OK_BUTTON_X=80,DWIN_WIDTH=240,
  Color_Yellow=4,Color_White=1,Color_Bg_Black=0,Color_Bg_Blue=2,Color_Blue=3,font8x16=1,font6x12=0,DWIN_FONT_HEAD=1;
 bool hasThumbnail=false,OctoRefresh=false,serial_connection_active=true,isPaused=false;
 char title[]="Test.gcode";
@@ -77,6 +78,8 @@ struct {uint32_t elapsed=300;uint32_t duration(){return elapsed;}} print_job_tim
 struct Text {int color,x,y;std::string text;};
 std::vector<Text> text_calls;
 std::vector<std::string> labels; int fills=0,icons=0,clears=0;
+bool completing=false,completed_title=false;int progress_clears=0;
+std::vector<uint32_t> row_times;
 void DWIN_Draw_String(bool,bool,int,int color,int,int x,int y,const char *s){
  if((color==Color_White||color==Color_Yellow)&&y>=127&&y<=175&&(y-127)%16==0){
   assert(x>=124&&x+strlen(s)*8<=234); // Conservative on-panel glyph width.
@@ -84,13 +87,14 @@ void DWIN_Draw_String(bool,bool,int,int color,int,int x,int y,const char *s){
  }
  labels.push_back(s);text_calls.push_back({color,x,y,s});
 }
-void DWIN_Draw_Rectangle(int,int,int x,int y,int xx,int yy){
+void DWIN_Draw_Rectangle(int,int color,int x,int y,int xx,int yy){
  if(y<25&&yy<25)return; // Existing MAIN connection marker stays in the title.
+ if(completing&&y==25){assert(color==Color_Bg_Black&&x==120&&xx==239&&yy==122);++progress_clears;return;}
  if(y<123) assert(false && "Native row update overwrote thumbnail/progress");
- if(y!=123){assert(x==120&&xx==233&&y>=127&&yy==y+15&&yy<=190);++fills;}
+ if(y!=123){assert(x==120&&xx==233&&y>=127&&yy==y+15&&yy<=190);++fills;row_times.push_back(clock_ms);if(completing)assert(completed_title);}
 }
 void DWIN_Backlight_SetLuminance(int){}
-void DWIN_ICON_Show(int,int,int,int){}
+void DWIN_ICON_Show(int,int pic,int,int){if(pic==LANGUAGE_LEVEL_FINISH)completed_title=true;}
 void Clear_Main_Window(){++clears;LcdDraw::cancel();}
 void Draw_Back_First(){labels.push_back("Back");}
 void ICON_Print(){++icons;}void ICON_Prepare(){++icons;}void ICON_Control(){++icons;}
@@ -127,7 +131,7 @@ for name in ('Goto_MainMenu','HMI_MainMenu'):
 host=(ROOT/'Marlin/src/e3v3se/OctoHost.cpp').read_text()
 a=host.index('namespace HostPrint {');b=host.index('\n#endif',a)
 code+='\n'+host[a:b]
-for name in ('Clear_Below_Area','Draw_Print_ProgressBar','Goto_ThumbPrint','HMI_PauseOrStop'):
+for name in ('Clear_Below_Area','Draw_Print_ProgressBar','Goto_ThumbPrint','HMI_PauseOrStop','Goto_ThumbFinish'):
     code+='\n'+function(s,'void '+name+'(')
 io=(ROOT/'Marlin/src/e3v3se/LcdDrawIO.cpp').read_text()
 code+='\nstruct {bool paused=false,wait_for_user=false;bool printJobOngoing(){return true;}bool printingIsPaused(){return paused;}} marlin;'
@@ -142,7 +146,7 @@ struct {char key=0;uint32_t value=0;const char *string_arg=nullptr;
  int value_int(){return value;}uint8_t value_byte(){return value;}float value_float(){return value;}
 } parser;
 struct GcodeSuite {static void M9000();};
-void Clear_Thumb_UpperArea(){}void Goto_ThumbFinish(){}
+void Clear_Thumb_UpperArea(){}
 '''
 code+='\n'+function(host,'static void copy_title(')+'\n'+function(host,'void GcodeSuite::M9000(')
 code+=r'''
@@ -202,8 +206,29 @@ int main(){
  // Unknown estimates clear a previous job's total; finishing does not turn it into time-left.
  parser.key='E';parser.value=0;GcodeSuite::M9000();HostPrint::refresh(true);
  assert(at(Color_Yellow,159).text=="--");
- parser.value=180;GcodeSuite::M9000();ui.remaining=0;HostPrint::finish_fields();
+ parser.value=180;GcodeSuite::M9000();ui.remaining=0;
+ // Exercise the real completion entry point: native graphics first, then one
+ // metadata row per deadline, with Elapsed kept in its own cell below the cube.
+ completing=true;row_times.clear();old_text=text_calls.size();
+ parser.key='F';parser.value=1;GcodeSuite::M9000();
+ assert(checkkey==M117Info&&completed_title&&progress_clears==1&&row_times.empty());
+ assert(text_calls.size()==old_text);uint32_t finish_start=clock_ms;
+ clock_ms+=79;HostPrint::update_finish();assert(row_times.empty());
+ for(int row=0;row<4;++row){clock_ms=finish_start+80*(row+1);HostPrint::update_finish();
+   assert(row_times.size()==unsigned(row+1));HostPrint::update_finish();assert(row_times.size()==unsigned(row+1));}
+ assert(at(Color_White,175).text=="1193046:28");
  assert(at(Color_Yellow,159).text=="03:00");
+ clock_ms+=5000;HostPrint::update_finish();assert(row_times.size()==4); // No periodic finish redraw.
+ // Leaving the confirmation cancels pending rows; returning to a new card
+ // also cancels them, including when the timer rolls over.
+ HostPrint::finish_fields();checkkey=MainMenu;clock_ms+=80;old_text=text_calls.size();
+ HostPrint::update_finish();assert(text_calls.size()==unsigned(old_text));
+ checkkey=M117Info;clock_ms=UINT32_MAX-40;HostPrint::finish_fields();
+ clock_ms+=79;HostPrint::update_finish();assert(text_calls.size()==unsigned(old_text));
+ ++clock_ms;HostPrint::update_finish();assert(row_times.size()==5);
+ checkkey=ThumbPrint;HostPrint::refresh(true);old_text=text_calls.size();
+ clock_ms+=80;HostPrint::update_finish();assert(text_calls.size()==unsigned(old_text));
+ completing=false;clock_ms=finish_start+10000;HMI_flag.done_confirm_flag=false;
  // Shorter values repaint the complete 16-pixel cell without stale digits.
  ui.current=1;ui.total=2;HostPrint::layer_height_um=200;print_job_timer.elapsed=0;
  HostPrint::refresh(true);assert(at(Color_White,127).text=="1 /"&&at(Color_Yellow,127).text=="2");

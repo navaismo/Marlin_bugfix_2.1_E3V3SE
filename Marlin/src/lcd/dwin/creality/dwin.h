@@ -33,6 +33,15 @@
 
 #include "../../../libs/duration_t.h"
 
+#if ENABLED(DWIN_LCD_BEEP)
+  namespace PrintDoneSound {
+    extern bool enabled;
+    void start();
+    void cancel();
+    void tick();
+  }
+#endif
+
 #if ANY(HAS_HOTEND, HAS_HEATED_BED, HAS_FAN) && PREHEAT_COUNT
   #define HAS_PREHEAT 1
   #if PREHEAT_COUNT < 2
@@ -660,6 +669,9 @@ extern enum DC_language current_language;
 
 // Color  FE29
 #define Color_White       0xFFFF
+#define Color_Cyan        0x07FF
+#define Color_Green       0x07E0
+#define Color_Gray        0x8410
 #define Color_Yellow      0xFE29
 #define Color_Blue        0x19FF
 #define Color_Red         0xF44F
@@ -870,7 +882,7 @@ void HMI_MaxJerkXYZE();
 void HMI_StepXYZE();
 
 
-void DWIN_Draw_Signed_Float(uint8_t size, uint16_t bColor, uint8_t iNum, uint8_t fNum, uint16_t x, uint16_t y, long value);
+void DWIN_Draw_Signed_Float(uint8_t size, uint16_t bColor, uint8_t iNum, uint8_t fNum, uint16_t x, uint16_t y, long value, uint16_t color = Color_White);
 
 // SD Card
 void HMI_SDCardInit();

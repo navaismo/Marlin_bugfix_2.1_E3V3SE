@@ -80,12 +80,26 @@ namespace HostPrint {
     DWIN_Draw_String(false, false, font6x12, 0x07FF, Color_Bg_Black, 139, 107, F("Progress"));
   }
   void finish_fields() {
-    for (uint8_t i = 0; i < 4; ++i) draw_field(i, true);
+    // Reuse the normal row cursor/deadline. Let the native completion graphics
+    // settle before drawing the rows, rather than queueing all four at once.
+    field = 4;
+    next_field = millis() + 80;
+  }
+  void update_finish() {
+    if (field < 4 || field >= 8) return;
+    if (checkkey != M117Info || !HMI_flag.done_confirm_flag) {
+      field = 0;
+      return;
+    }
+    if (LcdDraw::active() || PENDING(millis(), next_field)) return;
+    draw_field(field++ - 4, true);
+    next_field = millis() + 80;
   }
   void refresh(const bool force) {
     if (checkkey != ThumbPrint) return;
     if (LcdDraw::active()) return;
     if (force) {
+      field = 0; // A new card or return from Tune cancels pending finish rows.
       for (uint8_t i = 0; i < 4; ++i) draw_field(i, true);
       next_field = millis() + 1250;
     }
@@ -168,6 +182,8 @@ void GcodeSuite::M9000() {
           || (checkkey != MainMenu && checkkey != SelectFile && checkkey != ThumbPrint && checkkey != M117Info)) return;
       HostPrint::clear_status();
     #endif
+    HMI_flag.done_confirm_flag = false;
+    TERN_(DWIN_LCD_BEEP, PrintDoneSound::cancel());
     Clear_Thumb_UpperArea();
     Clear_Title_Bar();
     Goto_ThumbPrint();

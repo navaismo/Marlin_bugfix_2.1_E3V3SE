@@ -69,8 +69,7 @@ def main() -> int:
     # The OctoPrint Pinput_Shaping workflow option includes its complete build
     # configuration. M495/M496 dispatch requires FT_MOTION in this checkout.
     if wanted.get("PINPUT_RESONANCE_EVENTS"):
-        for macro in ("FT_MOTION", "INPUT_SHAPING_X", "INPUT_SHAPING_Y",
-                      "RESONANCE_TEST", "EMERGENCY_PARSER"):
+        for macro in ("FT_MOTION", "RESONANCE_TEST", "EMERGENCY_PARSER"):
             if not wanted.get(macro, define_enabled(macro)):
                 print(f"PINPUT_RESONANCE_EVENTS requires {macro}; enabling {macro}")
             wanted[macro] = True

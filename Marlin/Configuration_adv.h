@@ -1287,8 +1287,8 @@
  *
  * Tune with M593 D<factor> F<frequency>
  */
-#define INPUT_SHAPING_X
-#define INPUT_SHAPING_Y
+// #define INPUT_SHAPING_X
+// #define INPUT_SHAPING_Y
 //#define INPUT_SHAPING_Z
 //#define DWIN_INPUT_SHAPING_MENU // Legacy X/Y menu; automatically disabled with FT_MOTION.
 #if ENABLED(FT_MOTION)
