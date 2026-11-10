@@ -31,6 +31,7 @@ extern bool serial_connection_active;
     bool show_status(const char *text);
     void clear_status();
     void draw_title();
+    uint16_t title_color();
     void update_title();
   }
 #endif
