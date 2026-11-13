@@ -1,0 +1,126 @@
+/* Marlin User Guide · V4 navy-black theme
+   Change these design tokens to customize the palette; layout and translations live in the original files.
+   No external UI libraries. This file deliberately overrides V3 without touching the core layout. */
+:root {
+  color-scheme: dark;
+  --bg: #080f1b;
+  --surface: #101d30;
+  --surface-raised: #14243a;
+  --ink: #edf5ff;
+  --muted: #9cb0ca;
+  --navy: #080f1b;
+  --teal: #64ccff;
+  --mint: #12354a;
+  --purple: #ab9aff;
+  --line: #263951;
+  --shadow: 0 19px 45px rgba(0,0,0,.20);
+  --highlight: #64ccff;
+}
+body { background: radial-gradient(ellipse 72vw 44vw at 54% 0%, #111f37 0%, transparent 75%),var(--bg); color:var(--ink); }
+::selection {background:#244f75;color:#fff;}
+a:focus-visible,button:focus-visible {outline-color:var(--highlight)}
+.skip-link{background:#162945;color:var(--ink);border:1px solid var(--line)}
+.site-header {background:rgba(8,17,30,.94);border-color:#263950;box-shadow:0 4px 24px rgba(0,0,0,.18)}
+.brand-symbol{background:#193450;color:#89dcff;box-shadow:inset 0 0 0 1px #2f4f6c}
+.brand strong{color:#f2f7ff}
+.brand-version,.repo-link span{color:var(--highlight)}
+.brand small{color:#8fa7c3}.brand small i{color:#5c718c}
+.repo-link{color:#d5e6fa}
+.lang-switch{background:#122137;border-color:#2b405a}
+.lang-switch button{color:#93a9c4}
+.lang-switch button:hover{color:#fff;background:#1a2d46}
+.lang-switch button.active{background:#25415e;color:#f5fbff;box-shadow:0 2px 10px #0005}
+.theme-toggle{background:#122137;border-color:#2b405a;color:#f5fbff}
+.theme-toggle:hover{background:#25415e}
+/* Printer hero: cinematic blue-black, no alterations to the supplied cutout. */
+.hero{background:radial-gradient(ellipse at 83% 57%,rgba(27,94,199,.34),transparent 46%),radial-gradient(ellipse at 48% 102%,rgba(14,49,97,.46),transparent 56%),linear-gradient(114deg,#050d19 0%,#0a1830 57%,#06101e 100%);border-bottom:1px solid #244061}
+.hero h1{color:#fff}.hero h1 em{color:#7fd8ff;text-shadow:0 0 36px rgba(28,142,219,.22)}
+.hero-copy>p{color:#b4c9e0}
+.hero-checks>span{color:#d6e9f9}.hero-checks>span:first-letter{color:#7bd8ff}
+.eyebrow{color:#82d9ff}.eyebrow-dot{background:#6cd1ff;box-shadow:0 0 0 5px #4bb6ed22}
+.hero-cta{background:linear-gradient(115deg,#76d9ff,#59baf5);color:#071c2b;box-shadow:0 8px 28px #31a7e125}
+.hero-cta:hover{background:#93e0ff}
+.hero-art .art-halo{border-color:#53baff25;background:radial-gradient(circle,#207cd325,transparent 70%);box-shadow:0 0 0 55px #2878c208,0 0 0 100px #2878c205}
+.hero-floating{background:rgba(12,31,53,.93);border-color:#4774a1a0;color:#edf5ff;box-shadow:0 14px 35px #02071188}
+.hero-floating small{color:#9abbd7}.mini-check{background:#64cfff;color:#062038}
+.kicker,.section-label,.menu-location-title{color:#7bd7ff}
+.section-heading h2,.content-section h2{color:#f1f7ff}
+.section-heading p,.content-section>.lead{color:var(--muted)}
+.mode-tab{background:#111e31;border-color:#2c3e59;box-shadow:0 5px 20px #0002}
+.mode-tab:hover{border-color:#65a9e0;background:#172b45;box-shadow:0 10px 27px #07132377}
+.mode-tab[aria-selected=true]{background:linear-gradient(132deg,#162e4b,#102238);border-color:#62beff;box-shadow:0 0 0 1px #4cb7ec44,0 13px 34px #071b33bb}
+.mode-tab strong{color:#eaf4ff}.mode-tab small{color:#96acc7}.tab-arrow{color:#829bb6}
+.mode-tab[aria-selected=true] .tab-arrow{color:#7edbff}
+.only-icon{background:#2c2853;color:#baabff}.sd-icon{background:#41301e;color:#f3c17c}.host-icon{background:#143d4c;color:#78d8ec}
+.mode-tab[data-mode="only"][aria-selected="true"]{background:linear-gradient(115deg,#201e41,#14263e);border-color:#9488ff;box-shadow:0 0 0 1px #8d7cfc33,0 14px 31px #070c1ccc}
+.choice-tag{background:linear-gradient(115deg,#7368dd,#ab8aff);color:#fff;box-shadow:0 8px 20px #6954d03b}
+.selection-hint{color:#adc3db}
+.toc-card{background:#101c2f;border-color:var(--line);box-shadow:0 12px 32px #0003}
+.toc-heading,.version-eyebrow{color:#8199b7}
+.toc nav a{color:#a6b9d1}.toc nav a:hover,.toc nav a:focus{background:#1c3552;color:#a2e3ff}
+.toc nav a:first-child{background:#193653;color:#80d7ff}
+.toc-divider{border-color:#2a3f55}.toc-help{color:#8bd9ff}
+.mode-intro{background:linear-gradient(146deg,#142337,#0f1b2d 75%);border-color:#31455d;box-shadow:var(--shadow)}
+.mode-intro:after{background:#1c4f753f}
+.mode-intro h2{color:#f7fbff}.mode-intro p{color:#aec0d7}
+.status-pill{background:#163f35;color:#a2f2cc}.status-pill.warning{background:#3b321c;color:#ffdc99}
+.branch-row span{color:#90a4bd}.branch-row a{background:#1a2a41;border-color:#34465f;color:#adddff}
+.branch-row a:hover{border-color:#65c7ff;color:#dcf4ff}
+.notice{background:#142a40;border-left-color:#58bcff;color:#c1d8ee}
+.notice.warn{background:#2c291e;border-left-color:#d5aa64;color:#f4d8a6}
+.section-number,.step-index{background:#153852;color:#82d9ff}
+.step,.info-card,.shot-card,.accordion,.menu-guide-card{background:#101d30;border-color:var(--line);box-shadow:0 4px 21px #0002}
+.step h3,.info-card h3,.feature-grid .info-card h3,.visual-explainer h3,.shot-card h3,.menu-guide-heading h3{color:#f2f7ff}
+.step p,.info-card p,.visual-explainer p,.shot-card p,.menu-guide-copy>p{color:#a6bad3}
+.info-card .card-emoji,.feature-grid .card-emoji{background:#192e44}
+.info-card .tip{color:#8bd7f4;border-color:#293e55}
+.action-link{background:#14273b;border-color:#36516b;color:#a5deff}
+.action-link:hover{background:#193551;border-color:#60b9f2}
+.action-link.primary{background:#53baf3;border-color:#53baf3;color:#071726}
+.action-link.primary:hover{background:#84d4ff;border-color:#84d4ff}
+.simple-note{color:#adbed4;background:#101e31;border-color:#2c4055}
+.simple-note strong{color:#b9dfff}
+.visual-preview{background:#0c182a;border-color:#2b415a}
+.visual-preview.light{background:#172637}
+.visual-preview .caption,.visual-preview.light .caption{color:#adc0d8}
+.visual-explainer a,.accordion-text a{color:#8adfff}
+.accordion summary{background:#14243b;color:#e5effc}
+.accordion[open] summary{background:#182e49}
+.accordion .accordion-text,.accordion-text p{color:#abc0d8}
+.shot-card{background:#121f32}
+.concept-label{background:#273b53;color:#c2d2e7}
+.skin-image{border-color:#354a64;box-shadow:0 15px 28px #0005}
+.skin-preview{color:#8adfff}.skin-preview:hover .skin-image{border-color:#64ccff}
+.contrib{background:linear-gradient(125deg,#102a40,#122338);border-color:#294662}
+.contrib h3{color:#f2f7ff}.contrib p{color:#afc3d8}.contrib-mark{background:#193d55;color:#83d5ff}
+.footer{background:#060d18;border-color:#1e3046}
+.footer strong{color:#d9e6f7}.footer .dot{color:#65c5f6}.footer p{color:#8da5c1}.footer-links a{color:#b9cce2}
+.footer-links a:hover{color:#8cddff}
+/* LCD menu guides: rich, readable dark panels with clearly identified paths. */
+.guide-optional{background:#2e2653;color:#c5b7ff}
+.menu-location{background:#102b40;border-color:#27506a}
+.menu-breadcrumb span{background:#1b3449;border-color:#345771;color:#d7eafc}
+.menu-breadcrumb b{color:#71c7ff}
+.menu-guide-tip{color:#85d7ec}
+.menu-photo{background:radial-gradient(circle at 50% 46%,#183556,#0a1524 78%)}
+.menu-photo-empty{color:#cbdcf1}.menu-photo-empty span{color:#84d7ff}.menu-photo-empty small{color:#94afcb}
+.menu-photo-open{background:#091525eb;border-color:#6089ba88;color:#ecf6ff}
+/* Highlight the Host Only memory saving, but keep the recommendation separate from status. */
+.memory-spotlight{background:linear-gradient(115deg,#20213e,#112940);border-color:#514d81}
+.memory-spotlight-icon{background:#332e62;color:#b8a9ff}
+.memory-spotlight strong{color:#d7d0ff}.memory-spotlight p{color:#b5bad9}
+/* CacomixtlePad: richer blue-black exhibition banner, contrasting with standard cards. */
+.pad-showcase{background:radial-gradient(ellipse at 88% 15%,#43366b88,transparent 50%),radial-gradient(ellipse at 14% 84%,#16567e66,transparent 58%),linear-gradient(125deg,#0c1c35,#0c1529 80%);border:1px solid #425075;box-shadow:0 26px 60px #02060ec9}
+.pad-kicker{color:#95d9ff}.pad-kicker span{color:#ba9fff}
+.pad-app-icon{background:linear-gradient(130deg,#866edb,#4abcf4)}
+.pad-lead{color:#c3d5e9}.pad-points span{color:#cce8ff;background:#23446675;border-color:#6285a644}
+.pad-actions .action-link.primary{background:#79d5ff;color:#051a29}
+.pad-preview-caption{color:#c8d5f0}.live-dot{background:#65d3ff;box-shadow:0 0 0 4px #52c9ff24}
+.pad-device{border-color:#2d4160;background:#071427;box-shadow:0 20px 43px #0009,inset 0 0 0 1px #ffffff1a}
+.pad-display{background:linear-gradient(145deg,#162a46,#0a1a30 65%,#211e40);border-color:#4b6c914d}
+.pad-play{color:#e6f8ff;background:linear-gradient(145deg,#6e67e866,#32a8e466);border-color:#77d3ff88}
+.pad-demo-placeholder p{color:#a9c2db}.pad-demo-placeholder code{color:#91ddff}
+@media(max-width:760px){
+  .site-header{background:#081321f5}
+  .hero{background:radial-gradient(ellipse at 50% 78%,#123669 0%,transparent 63%),linear-gradient(115deg,#050d19,#091a32)}
+}

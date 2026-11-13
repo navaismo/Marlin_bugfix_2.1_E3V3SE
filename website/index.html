@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#081321">
+  <meta name="description" content="Friendly step-by-step Marlin 2.1.x setup guide for the Creality Ender-3 V3 SE. SD, OctoPrint and Host-only options.">
+  <title>Ender-3 V3 SE | Marlin Setup Guide</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="theme-navy.css" id="dark-theme">
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#guide">Skip to guide</a>
+  <header class="site-header">
+    <div class="shell header-inner">
+      <a class="brand" href="#top" aria-label="Marlin Ender-3 V3 SE">
+        <span class="brand-symbol" aria-hidden="true"><svg viewBox="0 0 40 40" width="28" height="28" fill="none"><path d="M20 3 35 11.5v17L20 37 5 28.5v-17L20 3Z" stroke="currentColor" stroke-width="2.4"/><path d="m10 24 10-16 10 16-10-7-10 7Zm3 4h14" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <span><strong>Marlin <span class="brand-version">2.1.x</span></strong><small>ENDER-3 V3 SE <i aria-hidden="true">/</i> KRAPLAX &amp; NAVAISMO</small></span>
+      </a>
+      <nav class="header-actions" aria-label="Language and resources">
+        <a class="repo-link" href="https://github.com/navaismo/Marlin_bugfix_2.1_E3V3SE" target="_blank" rel="noopener noreferrer" id="header-github">GitHub <span aria-hidden="true">↗</span></a>
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Cambiar al tema claro" title="Cambiar al tema claro"><span aria-hidden="true">☀</span></button>
+        <div class="lang-switch" role="group" aria-label="Select language">
+          <button type="button" data-lang="es" aria-label="Español" title="Español">🇲🇽 <span>ES</span></button>
+          <button type="button" data-lang="ru" aria-label="Русский" title="Русский">🇷🇺 <span>RU</span></button>
+          <button type="button" data-lang="en" aria-label="English" title="English">🇺🇸 <span>EN</span></button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="shell hero-inner">
+        <div class="hero-copy">
+          <span class="eyebrow"><span class="eyebrow-dot"></span> <span data-i18n="heroTag">LA GUÍA QUE TE ACOMPAÑA</span></span>
+          <h1 data-i18n="heroTitle">Tu impresora.<br><em>Una mejor experiencia.</em></h1>
+          <p data-i18n="heroDesc">Instala Marlin, prepara tu impresora y descubre sus funciones. Sin perderte entre comandos ni archivos complicados.</p>
+          <div class="hero-checks"><span>✓ <span data-i18n="heroOne">Paso a paso</span></span><span>✓ <span data-i18n="heroTwo">Para principiantes</span></span><span>✓ <span data-i18n="heroThree">3 formas de imprimir</span></span></div>
+          <a class="hero-cta" href="#versions"><span data-i18n="heroButton">Elegir mi versión</span> <span aria-hidden="true">↓</span></a>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <div class="art-halo"></div>
+          <img class="printer-hero-image" src="assets/ender3-v3se-hero.png" alt="" width="1312" height="1199" fetchpriority="high">
+          <div class="hero-floating"><span class="mini-check">✓</span><span><strong>Marlin 2.1.x</strong><small data-i18n="heroReady">Listo para empezar</small></span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="shell chooser" id="versions" aria-labelledby="chooser-title">
+      <div class="section-heading chooser-heading"><span class="kicker" data-i18n="chooserKicker">PRIMERO, LO IMPORTANTE</span><h2 id="chooser-title" data-i18n="chooserTitle">¿Cómo quieres imprimir?</h2><p data-i18n="chooserDesc">Elige la forma en que usarás tu impresora. La guía se adapta a tu elección.</p></div>
+      <div class="mode-tabs" role="tablist" aria-label="Firmware variants">
+        <button class="mode-tab" id="tab-only" role="tab" aria-controls="guide" aria-selected="false" data-mode="only"><span class="choice-tag">EDITOR’S CHOICE</span><span class="tab-icon only-icon">⌘</span><span><strong data-i18n="onlyTab">Solo Host</strong><small data-i18n="onlySub">OctoPrint · sin impresiones SD</small></span><span class="tab-arrow">↗</span></button>
+        <button class="mode-tab" id="tab-sd" role="tab" aria-controls="guide" aria-selected="true" data-mode="sd"><span class="tab-icon sd-icon">▣</span><span><strong data-i18n="sdTab">Solo SD</strong><small data-i18n="sdSub">Imprime desde la tarjeta</small></span><span class="tab-arrow">↗</span></button>
+        <button class="mode-tab" id="tab-host" role="tab" aria-controls="guide" aria-selected="false" data-mode="host"><span class="tab-icon host-icon">◉</span><span><strong data-i18n="hostTab">Host + SD</strong><small data-i18n="hostSub">OctoPrint y tarjeta SD</small></span><span class="tab-arrow">↗</span></button>
+      </div>
+      <div class="selection-hint" id="selection-hint" role="status" aria-live="polite"></div>
+    </section>
+
+    <div class="shell page-grid" id="guide" role="tabpanel" aria-labelledby="tab-sd" tabindex="0">
+      <aside class="toc" aria-label="On this page"><div class="toc-card"><span class="toc-heading" data-i18n="tocHeading">EN ESTA GUÍA</span><nav id="toc-links"></nav><div class="toc-divider"></div><a class="toc-help" href="https://github.com/navaismo/Marlin_bugfix_2.1_E3V3SE/issues" target="_blank" rel="noopener noreferrer"><span>✳</span><span data-i18n="tocHelp">¿Necesitas ayuda?</span> ↗</a></div></aside>
+      <div class="page-content" id="guide-content" aria-live="polite"></div>
+    </div>
+  </main>
+
+  <footer class="footer"><div class="shell footer-inner"><div><strong>Marlin 2.1.x <span class="dot">·</span> Ender-3 V3 SE</strong><p data-i18n="footerText">Hecho por la comunidad, para la comunidad. Proyecto liderado por Kraplax (RU) y Navaismo (MX).</p></div><div class="footer-links"><a href="https://github.com/navaismo/Marlin_bugfix_2.1_E3V3SE" target="_blank" rel="noopener noreferrer">GitHub ↗</a><a href="https://github.com/navaismo/Marlin_bugfix_2.1_E3V3SE/wiki" target="_blank" rel="noopener noreferrer">Wiki ↗</a></div></div></footer>
+  <dialog class="skin-dialog" id="skin-dialog" aria-labelledby="skin-dialog-title">
+    <div class="skin-dialog-header">
+      <strong id="skin-dialog-title"></strong>
+      <div class="skin-dialog-actions">
+        <a id="skin-dialog-original" target="_blank" rel="noopener noreferrer" data-i18n="skinFullSize">Abrir imagen completa ↗</a>
+        <button type="button" id="skin-dialog-close" data-i18n="skinClose">Cerrar</button>
+      </div>
+    </div>
+    <img id="skin-dialog-image" alt="">
+  </dialog>
+</body>
+</html>
