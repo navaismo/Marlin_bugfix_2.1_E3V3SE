@@ -13,6 +13,11 @@ below predates that one-line change. No new physical stability result or
 post-disable memory measurement is claimed. Current overviews are in README.md
 and the paired plugin README.
 
+The optional [full-screen drawing extension](m9001-fullscreen.md) adds an
+explicitly negotiated, separate host canvas for calibration screens. The
+thumbnail architecture and historical measurements below describe the original
+print-card mode and remain unchanged for existing clients.
+
 ## Architecture and scope
 
 The native Creality MAIN artwork, encoder navigation, ThumbTune, pause/continue,

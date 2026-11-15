@@ -9,7 +9,9 @@ static bool allowed = true, blocked = false, automatic = true;
 static std::deque<uint8_t> rx;
 namespace LcdDrawIO {
 uint32_t now() { return clock_ms; }
-bool allowed() { return ::allowed; }
+bool allowed(bool) { return ::allowed; }
+bool begin_fullscreen() { return ::allowed; }
+void end_fullscreen() { std::cout << "CLOSED_UI\n"; }
 uint8_t send(const uint8_t *p, uint8_t n) {
   if (blocked) return 0;
   std::cout << "F ";

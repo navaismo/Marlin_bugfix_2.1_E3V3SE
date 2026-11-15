@@ -44,7 +44,7 @@ ENCODER_DiffState event=ENCODER_DIFF_NO;
 ENCODER_DiffState get_encoder_state(){return event;}
 struct Selection{uint8_t now=0;bool inc(int n){if(now+1>=n)return false;++now;return true;}
  bool dec(){if(!now)return false;--now;return true;}}select_display,select_prepare;
-enum {Prepare,Display_Menu,Max_LCD_Bright,Dimm_Bright,DimmTime,MainMenu,SelectFile,ThumbPrint,M117Info};
+enum {Prepare,Display_Menu,Max_LCD_Bright,Dimm_Bright,DimmTime,MainMenu,SelectFile,ThumbPrint,M117Info,HostCanvas};
 int checkkey=Display_Menu;
 constexpr int MROWS=5,ICON_Contact=1,ICON_PrintSize=2,ICON_Hardware_version=3,ICON_PrintTime=4,
  ICON_WriteEEPROM=5,font8x16=1,Color_White=1,Color_Bg_Black=0,Select_Color=2,VALUERANGE_X=180,

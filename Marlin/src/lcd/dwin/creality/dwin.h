@@ -224,6 +224,9 @@ enum processID : uint8_t {
   ThumbPrint_window,
 #endif
   CalibrationError,
+  #if ENABLED(M9001_DRAW_PROTOCOL)
+    HostCanvas,
+  #endif
 };
 
 enum DC_language{
@@ -928,6 +931,10 @@ void dwinInitScreen();
   void Goto_ThumbPrint(const bool reset_progress=true);
 #endif
 void DWIN_Update();
+#if ENABLED(M9001_DRAW_PROTOCOL)
+  void DWIN_HostCanvas();
+  void HMI_HostCanvas();
+#endif
 void EachMomentUpdate();
 #if !HAS_FILAMENT_SENSOR
   void Check_Filament_Update(void);

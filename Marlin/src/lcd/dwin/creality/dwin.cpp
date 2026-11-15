@@ -11679,6 +11679,21 @@ void HMI_Init()
 
 void MarlinUI::init_lcd() { HMI_Init(); }
 
+#if ENABLED(M9001_DRAW_PROTOCOL)
+  void DWIN_HostCanvas() {
+    HostPrint::clear_status();
+    OctoRefresh = false;
+    HMI_flag.Refresh_bottom_flag = true;
+    checkkey = HostCanvas;
+    DWIN_Draw_Rectangle(1, Color_Bg_Black, 0, 0, 239, 319);
+    DWIN_UpdateLCD();
+  }
+  void HMI_HostCanvas() {
+    // Leaving this display never pauses, resumes, or cancels printer movement.
+    if (get_encoder_state() == ENCODER_DIFF_ENTER) LcdDrawIO::end_fullscreen();
+  }
+#endif
+
 void DWIN_Update()
 {
   #if ALL(DWIN_LCD_BEEP, SDSUPPORT)
@@ -11689,7 +11704,7 @@ void DWIN_Update()
   #endif
   TERN_(DWIN_LCD_BEEP, PrintDoneSound::tick());
   #if ENABLED(M9001_DRAW_PROTOCOL)
-    if (LcdDraw::active()) { DWIN_HandleScreen(); return; }
+    if (LcdDraw::active() || checkkey == HostCanvas) { DWIN_HandleScreen(); return; }
   #endif
   TERN_(SDSUPPORT, HMI_SDCardUpdate()); // SD card update
   #if HAS_MEDIA
@@ -12749,6 +12764,11 @@ void DWIN_HandleScreen()
   // }
   switch (checkkey)
   {
+  #if ENABLED(M9001_DRAW_PROTOCOL)
+    case HostCanvas:
+      HMI_HostCanvas();
+      break;
+  #endif
   #if ENABLED(ADVANCED_PAUSE_FEATURE)
     case AdvancedPause:
       HMI_AdvancedPause();

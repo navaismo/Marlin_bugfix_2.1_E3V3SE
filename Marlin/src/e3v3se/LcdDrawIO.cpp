@@ -4,14 +4,33 @@
 #include "LcdDraw.h"
 #include "../MarlinCore.h"
 #include "../module/planner.h"
+#if ENABLED(RESONANCE_TEST)
+  #include "../feature/resonance/resonance_generator.h"
+#endif
 #include "../lcd/dwin/creality/dwin.h"
 #include "../core/serial.h"
 
 namespace LcdDrawIO {
   uint32_t now() { return millis(); }
-  bool allowed() {
+  bool allowed(const bool fullscreen) {
     // Thermal autostart alone is not host printing. Movement commands preempt drawing.
-    return checkkey == ThumbPrint && !marlin.printingIsPaused() && !marlin.wait_for_user && !planner.has_blocks_queued();
+    return checkkey == (fullscreen ? HostCanvas : ThumbPrint) && marlin.isRunning()
+        && !marlin.printingIsPaused() && !marlin.wait_for_user && !planner.has_blocks_queued()
+        && !TERN0(RESONANCE_TEST, rtg.isActive());
+  }
+  bool begin_fullscreen() {
+    // Never replace print controls, setup workflows, or a safety dialog.
+    if ((checkkey != MainMenu && checkkey != M117Info && checkkey != HostCanvas)
+        || !marlin.isRunning() || marlin.printingIsPaused() || marlin.wait_for_user
+        || planner.has_blocks_queued() || TERN0(RESONANCE_TEST, rtg.isActive())) return false;
+    DWIN_HostCanvas();
+    return true;
+  }
+  void end_fullscreen() {
+    if (checkkey == HostCanvas) {
+      DWIN_Draw_Rectangle(1, Color_Bg_Black, 0, 0, 239, 319);
+      Goto_MainMenu();
+    }
   }
   uint8_t send(const uint8_t *frame, const uint8_t length) {
     const int free = LCD_SERIAL.availableForWrite();

@@ -57,7 +57,7 @@ namespace HostPrint {extern uint32_t total_minutes;void progress_caption();void 
 enum ENCODER_DiffState {ENCODER_DIFF_NO,ENCODER_DIFF_CW,ENCODER_DIFF_CCW,ENCODER_DIFF_ENTER};
 ENCODER_DiffState event=ENCODER_DIFF_NO;
 ENCODER_DiffState Encoder_ReceiveAnalyze(){auto e=event;event=ENCODER_DIFF_NO;return e;}
-enum {MainMenu,SelectFile,Prepare,Control,Level,Info,ThumbPrint,ThumbTune,ThumbPrint_window,M117Info};
+enum {MainMenu,SelectFile,Prepare,Control,Level,Info,ThumbPrint,ThumbTune,ThumbPrint_window,M117Info,HostCanvas};
 int checkkey=MainMenu;
 struct Selection {int now=0;void reset(){now=0;}void set(int n){now=n;}bool inc(int max){if(now>=max-1)return false;++now;return true;}bool dec(){if(!now)return false;--now;return true;}};
 Selection select_page,select_prepare,select_control,select_cextr,select_print;
@@ -134,9 +134,9 @@ code+='\n'+host[a:b]
 for name in ('Clear_Below_Area','Draw_Print_ProgressBar','Goto_ThumbPrint','HMI_PauseOrStop','Goto_ThumbFinish'):
     code+='\n'+function(s,'void '+name+'(')
 io=(ROOT/'Marlin/src/e3v3se/LcdDrawIO.cpp').read_text()
-code+='\nstruct {bool paused=false,wait_for_user=false;bool printJobOngoing(){return true;}bool printingIsPaused(){return paused;}} marlin;'
+code+='\nstruct {bool paused=false,wait_for_user=false;bool isRunning(){return true;}bool printJobOngoing(){return true;}bool printingIsPaused(){return paused;}} marlin;'
 code+='\nstruct {bool queued=false;bool has_blocks_queued(){return queued;}} planner;'
-code+='\nnamespace LcdDrawIO {'+function(io,'bool allowed()')+'}'
+code+='\nnamespace LcdDrawIO {'+function(io,'bool allowed(').replace('const bool fullscreen', 'const bool fullscreen=false')+'}'
 code+=r'''
 #define PROGRESS_SCALE 1
 struct {char key=0;uint32_t value=0;const char *string_arg=nullptr;

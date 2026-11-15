@@ -322,6 +322,11 @@ printing; this protocol is not compatible with the old per-pixel sender.
 
 ### M9001 v2 architecture
 
+An optional [full-screen extension](docs/m9001-fullscreen.md) lets a host render
+its own 240 x 320 calibration screens without opening the print card or adding
+native decorations. It requires explicit `M9001 QF` discovery and a full-screen
+BEGIN packet; existing thumbnail clients keep their current layout and protocol.
+
 The host handles image decoding, resize/letterbox to 96×96, RGB565 conversion,
 horizontal runs, vertical merging and color grouping. Marlin receives drawing
 operations, not an image-sized buffer. Black pixels are skipped after clearing;
