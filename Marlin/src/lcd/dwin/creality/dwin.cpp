@@ -10613,6 +10613,7 @@ void HMI_ThumbPrint()
       select_tune.reset();
       HMI_flag.Refresh_bottom_flag = false; // Flag refresh bottom parameter
       index_tune = MROWS;
+      thumb_index_tune = ThumbMROWS; // select_tune was reset: reset the scroll window too
       Draw_ThumbTune_Menu();
       break;
     case 1: // Press Pause
@@ -10834,6 +10835,14 @@ void HMI_Tune()
       HMI_ValueStruct.E_Temp = thermalManager.degTargetHotend(0);
       LIMIT(HMI_ValueStruct.E_Temp, HEATER_0_MINTEMP, thermalManager.hotend_max_target(0));
       DWIN_Draw_IntValue(true, true, 0, font8x16, Color_White, Select_Color, 3, VALUERANGE_X, MBASE(TUNE_CASE_TEMP + MROWS - index_tune) + PRINT_SET_OFFSET, HMI_ValueStruct.E_Temp);
+      EncoderRate.enabled = true;
+      break;
+
+    case TUNE_CASE_FLOW: // Flow rate (was drawn but had no handler in the non-thumbnail Tune menu)
+      checkkey = EFlow;
+      HMI_ValueStruct.E_Flow = planner.flow_percentage[0];
+      LIMIT(HMI_ValueStruct.E_Flow, FLOW_MINVAL, FLOW_MAXVAL);
+      DWIN_Draw_IntValue(true, true, 0, font8x16, Color_White, Select_Color, 3, VALUERANGE_X, MBASE(TUNE_CASE_FLOW + MROWS - index_tune) + PRINT_SET_OFFSET, HMI_ValueStruct.E_Flow);
       EncoderRate.enabled = true;
       break;
 
@@ -12917,6 +12926,9 @@ void DWIN_HandleScreen()
     break;
   case Tune:
     HMI_Tune();
+    break;
+  case EFlow:
+    HMI_EFlow();
     break;
 #if HAS_PREHEAT
   case PLAPreheat:
