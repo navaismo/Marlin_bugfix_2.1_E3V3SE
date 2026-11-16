@@ -239,6 +239,40 @@ uint8_t index_file = MROWS,
         index_select = 0;
 bool dwin_abort_flag = false; // Flag to reset feedrate, return to Home
 
+#if ENABLED(DWIN_PRINT_DONE_SOUND)
+  namespace PrintDoneSound {
+    bool enabled = false; // Completion alert is independent of encoder clicks.
+    static uint8_t phase = 0;
+    static millis_t deadline = 0;
+
+    void cancel() {
+      #if PIN_EXISTS(BEEPER)
+        if (phase) WRITE(BEEPER_PIN, LOW);
+      #endif
+      phase = 0;
+    }
+
+    void start() {
+      if (!enabled || phase) return;
+      phase = 6;
+      deadline = millis();
+    }
+
+    void tick() {
+      if (!enabled) { cancel(); return; }
+      if (!phase || PENDING(millis(), deadline)) return;
+      // Fixed-frequency confirmation: short, short, long (80 / 80 / 240 ms),
+      // with 80 ms gaps. No delays, tone queue, samples or serial traffic.
+      const bool sounding = !(phase & 1);
+      #if PIN_EXISTS(BEEPER)
+        WRITE(BEEPER_PIN, sounding ? HIGH : LOW);
+      #endif
+      deadline = millis() + (phase == 2 ? 240 : 80);
+      --phase;
+    }
+  }
+#endif
+
 constexpr float default_max_feedrate[] = DEFAULT_MAX_FEEDRATE;
 
 #if ALL(SKEW_CORRECTION, DWIN_SKEW_MENU)
@@ -555,7 +589,7 @@ static void Auto_in_out_feedstock(bool dir) // 0 returns material, 1 feeds
           strncpy(visibleText, shift_name + scrollOffset, 30); // copy the text to shift left
           visibleText[30] = '\0';
           // Draw the string
-          DWIN_Draw_String(false, false, DWIN_FONT_HEAD, Color_Yellow, Color_Bg_Black, 4, 4, visibleText);
+          DWIN_Draw_String(false, false, DWIN_FONT_HEAD, HostPrint::title_color(), Color_Bg_Black, 4, 4, visibleText);
           
           // Inc and reset
           scrollOffset++;
@@ -3766,8 +3800,7 @@ static bool G29_small(void) //
     #if ENABLED(OCTOPRINT_PLUGIN)
       OctoRefresh = true;
       hasThumbnail = true; 
-      Clear_Title_Bar();
-      Draw_OctoTitle(title);
+      HostPrint::draw_title();
     #endif
     
     checkkey = ThumbPrint;
@@ -3814,6 +3847,94 @@ static bool G29_small(void) //
 
   }
 
+#endif
+
+#if ENABLED(OCTOPRINT_PLUGIN)
+  namespace HostPrint {
+    static millis_t status_until;
+    static bool status_active;
+
+    void clear_status() { status_active = false; }
+    uint16_t title_color() { return status_active ? Color_Blue : Color_Yellow; }
+
+    static bool is_cancel_message(const char *text) {
+      while (*text == ' ' || *text == '\t') ++text;
+      size_t len = strlen(text);
+      while (len && (text[len - 1] == ' ' || text[len - 1] == '\t'
+                    || text[len - 1] == '.' || text[len - 1] == '!')) --len;
+      // Match complete notices, including the usual host cancel-script text.
+      // A generic mention of Cancel must remain an informational M117.
+      #define CANCEL_NOTICE(S) (len == sizeof(S) - 1 && !strncasecmp(text, S, len))
+      return CANCEL_NOTICE("Print was cancelled") || CANCEL_NOTICE("Print was canceled")
+          || CANCEL_NOTICE("Print cancelled") || CANCEL_NOTICE("Print canceled")
+          || CANCEL_NOTICE("Printing cancelled") || CANCEL_NOTICE("Printing canceled")
+          || CANCEL_NOTICE("Impresion cancelada") || CANCEL_NOTICE("Impresión cancelada")
+          || CANCEL_NOTICE("IMPRESIÓN CANCELADA");
+      #undef CANCEL_NOTICE
+    }
+
+    bool cancel_status(const char * const text) {
+      if (!is_cancel_message(text)) return false;
+      const bool active = hasThumbnail || OctoRefresh || isPaused
+                       || marlin.printJobOngoing() || marlin.printingIsPaused();
+      clear_status();
+      OctoRefresh = isPaused = HMI_flag.pause_flag = HMI_flag.pause_action = false;
+      HMI_flag.print_finish = HMI_flag.done_confirm_flag = false;
+      TERN_(M9001_DRAW_PROTOCOL, LcdDraw::cancel());
+      TERN_(DWIN_PRINT_DONE_SOUND, PrintDoneSound::cancel());
+      if (active) {
+        SERIAL_ECHOLNPGM("M9000 cancel-job");
+        marlin.end_waiting();
+        ui.abort_print();
+      }
+      select_page.set(0);
+      Goto_MainMenu();
+      return true;
+    }
+
+    void draw_title() {
+      if (status_active && ELAPSED(millis(), status_until)) status_active = false;
+      scrollOffset = 0;
+      lastScrollTime = millis();
+      Clear_Title_Bar();
+      if (status_active) {
+        strncpy(visibleText, shift_name, sizeof(visibleText) - 1);
+        visibleText[sizeof(visibleText) - 1] = '\0';
+        DWIN_Draw_String(false, false, DWIN_FONT_HEAD, Color_Blue, Color_Bg_Black, 4, 4, visibleText);
+      }
+      else
+        Draw_OctoTitle(title);
+    }
+
+    bool show_status(const char * const text) {
+      if (!hasThumbnail || !(OctoRefresh || isPaused || marlin.printJobOngoing() || marlin.printingIsPaused())) return false;
+      // Reuse the scrolling title buffer; keep the original job title intact.
+      strncpy(shift_name, text, sizeof(shift_name) - 1);
+      shift_name[sizeof(shift_name) - 1] = '\0';
+      status_until = millis() + 15000UL;
+      status_active = true;
+      if (checkkey == ThumbPrint && !TERN0(M9001_DRAW_PROTOCOL, LcdDraw::active())) draw_title();
+      return true; // Native menus and safety prompts retain their own display.
+    }
+
+    void update_title() {
+      if (status_active && ELAPSED(millis(), status_until) && checkkey == ThumbPrint && !TERN0(M9001_DRAW_PROTOCOL, LcdDraw::active())) {
+        status_active = false;
+        draw_title();
+      }
+    }
+
+    void set_paused(const bool paused) {
+      const bool changed = isPaused != paused;
+      isPaused = paused;
+      HMI_flag.pause_flag = paused;
+      if (changed && checkkey == ThumbPrint) {
+        OctoRefresh = true;
+        draw_title();
+        if (paused) ICON_Continue(); else ICON_Pause();
+      }
+    }
+  }
 #endif
 
 void Goto_PrintProcess()
@@ -3888,6 +4009,8 @@ void Goto_MainMenu()
     ui.set_remaining_time(0);   // Reset remaining time
     ui.set_total_layers(0);     // Reset total layers
     #if ENABLED(OCTOPRINT_PLUGIN)
+      HostPrint::clear_status();
+      isPaused = HMI_flag.pause_flag = false;
       ui.set_print_time(0);     // Reset print time
       OctoRefresh = false;
     #endif
@@ -6704,6 +6827,8 @@ void HMI_PauseOrStop()
           isPaused = false;
           SERIAL_ECHOLNPGM("M9000 cancel-job");
           hostui.cancel();
+          select_page.set(0);
+          Goto_MainMenu();
 
         }
         else
@@ -7328,36 +7453,44 @@ void Draw_Display_Menu()
   HMI_flag.Refresh_bottom_flag = false; // Flag refresh bottom parameter
 
   // Back option
-  Draw_Back_First();
+  const uint8_t scroll = select_display.now > MROWS ? select_display.now - MROWS : 0;
+  if (!scroll) Draw_Back_First(select_display.now == 0);
   // Title
   Draw_Title(F("Display Settings"));
 
-  DWIN_Draw_Label(MBASE(1), F("Mute/Unmute Beeper"));
-  Draw_Menu_Line(1, ICON_Contact);
+  const uint8_t beep_row = 1 - scroll;
+  DWIN_Draw_Label(MBASE(beep_row), F("Mute/Unmute Beeper"));
+  Draw_Menu_Line(beep_row, ICON_Contact);
 
   #if ENABLED(DWIN_DIMM_MENU)
     // There's no graphical asset for this label, so we just write it as string
-    DWIN_Draw_Label(MBASE(2), F("Max Brightness(%)"));
-    Draw_Menu_Line(2, ICON_PrintSize);
-    DWIN_Draw_IntValue(true, true, 0, font8x16, Color_White, Color_Bg_Black, 3, VALUERANGE_X, MBASE(2) + 3, ((MAX_SCREEN_BRIGHTNESS - 164) * 100) / 66);
+    DWIN_Draw_Label(MBASE(2 - scroll), F("Max Brightness(%)"));
+    Draw_Menu_Line(2 - scroll, ICON_PrintSize);
+    DWIN_Draw_IntValue(true, true, 0, font8x16, Color_White, Color_Bg_Black, 3, VALUERANGE_X, MBASE(2 - scroll) + 3, ((MAX_SCREEN_BRIGHTNESS - 164) * 100) / 66);
 
     // There's no graphical asset for this label, so we just write it as string
-    DWIN_Draw_Label(MBASE(3), F("Dimm Brightness(%)"));
-    Draw_Menu_Line(3, ICON_Hardware_version);
-    DWIN_Draw_IntValue(true, true, 0, font8x16, Color_White, Color_Bg_Black, 3, VALUERANGE_X, MBASE(3) + 3, ((DIMM_SCREEN_BRIGHTNESS - 164) * 100) / 66);
+    DWIN_Draw_Label(MBASE(3 - scroll), F("Dimm Brightness(%)"));
+    Draw_Menu_Line(3 - scroll, ICON_Hardware_version);
+    DWIN_Draw_IntValue(true, true, 0, font8x16, Color_White, Color_Bg_Black, 3, VALUERANGE_X, MBASE(3 - scroll) + 3, ((DIMM_SCREEN_BRIGHTNESS - 164) * 100) / 66);
 
     // There's no graphical asset for this label, so we just write it as string
-    DWIN_Draw_Label(MBASE(4), F(" Mins Before Dimm"));
-    Draw_Menu_Line(4, ICON_PrintTime);
-    DWIN_Draw_IntValue(true, true, 0, font8x16, Color_White, Color_Bg_Black, 3, VALUERANGE_X, MBASE(4) + 3, TURN_OFF_TIME);
-
-    DWIN_ICON_Show(HMI_flag.language, LANGUAGE_Store, 60, MBASE(5) + JPN_OFFSET);
-    Draw_Menu_Line(5, ICON_WriteEEPROM);
+    DWIN_Draw_Label(MBASE(4 - scroll), F(" Mins Before Dimm"));
+    Draw_Menu_Line(4 - scroll, ICON_PrintTime);
+    DWIN_Draw_IntValue(true, true, 0, font8x16, Color_White, Color_Bg_Black, 3, VALUERANGE_X, MBASE(4 - scroll) + 3, TURN_OFF_TIME);
+    constexpr uint8_t done_item = 5, store_item = 5 + ENABLED(DWIN_PRINT_DONE_SOUND);
   #else
-
-    DWIN_ICON_Show(HMI_flag.language, LANGUAGE_Store, 60, MBASE(2) + JPN_OFFSET);
-    Draw_Menu_Line(2, ICON_WriteEEPROM);
-  #endif  
+    constexpr uint8_t done_item = 2, store_item = 2 + ENABLED(DWIN_PRINT_DONE_SOUND);
+  #endif
+  #if ENABLED(DWIN_PRINT_DONE_SOUND)
+    DWIN_Draw_Label(MBASE(done_item - scroll), F("Print done sound"));
+    Draw_Menu_Line(done_item - scroll, ICON_Contact);
+    Draw_Chkb_Line(done_item - scroll, PrintDoneSound::enabled);
+  #endif
+  if (store_item <= MROWS + scroll) {
+    DWIN_ICON_Show(HMI_flag.language, LANGUAGE_Store, 60, MBASE(store_item - scroll) + JPN_OFFSET);
+    Draw_Menu_Line(store_item - scroll, ICON_WriteEEPROM);
+  }
+  if (select_display.now) Draw_Menu_Cursor(select_display.now - scroll);
 }
 
 void HMI_Display_Menu()
@@ -7370,17 +7503,22 @@ void HMI_Display_Menu()
   if (encoder_diffState == ENCODER_DIFF_CW)
   {
     #if ENABLED(DWIN_DIMM_MENU)
-      const int16_t max_items = 5;
+      const int16_t max_items = 5 + ENABLED(DWIN_PRINT_DONE_SOUND);
     #else
-      const int16_t max_items = 2;
+      const int16_t max_items = 2 + ENABLED(DWIN_PRINT_DONE_SOUND);
     #endif
-    if (select_display.inc(1 + max_items))
-      Move_Highlight(1, select_display.now);
+    if (select_display.inc(1 + max_items)) {
+      if (select_display.now > MROWS) Draw_Display_Menu();
+      else Move_Highlight(1, select_display.now);
+    }
   }
   else if (encoder_diffState == ENCODER_DIFF_CCW)
   {
-    if (select_display.dec())
-      Move_Highlight(-1, select_display.now);
+    const bool scrolled = select_display.now > MROWS;
+    if (select_display.dec()) {
+      if (scrolled) Draw_Display_Menu();
+      else Move_Highlight(-1, select_display.now);
+    }
   }
   else if (encoder_diffState == ENCODER_DIFF_ENTER)
   {
@@ -7414,12 +7552,25 @@ void HMI_Display_Menu()
       EncoderRate.enabled = true;
       break;
   
+    case 5 + ENABLED(DWIN_PRINT_DONE_SOUND):
+      settings.save();
+      break;
+    #if ENABLED(DWIN_PRINT_DONE_SOUND)
     case 5:
-      settings.save();
+    #endif
   #else
-    case 2:
+    case 2 + ENABLED(DWIN_PRINT_DONE_SOUND):
       settings.save();
+      break;
+    #if ENABLED(DWIN_PRINT_DONE_SOUND)
+    case 2:
+    #endif
   #endif
+      #if ENABLED(DWIN_PRINT_DONE_SOUND)
+        PrintDoneSound::enabled = !PrintDoneSound::enabled;
+        if (!PrintDoneSound::enabled) PrintDoneSound::cancel();
+        Draw_Chkb_Line(select_display.now, PrintDoneSound::enabled);
+      #endif
       break;
     default:
       break;    
@@ -10304,7 +10455,7 @@ void HMI_ThumbPrint()
         break;
       case 1:
         ICON_Tune();
-        if (marlin.printingIsPaused())
+        if (TERN(OCTOPRINT_PLUGIN, isPaused, marlin.printingIsPaused()))
         {
           ICON_Continue();
         }
@@ -10314,7 +10465,7 @@ void HMI_ThumbPrint()
         }
         break;
       case 2:
-        if (marlin.printingIsPaused())
+        if (TERN(OCTOPRINT_PLUGIN, isPaused, marlin.printingIsPaused()))
         {
 
           ICON_Continue();
@@ -10336,13 +10487,13 @@ void HMI_ThumbPrint()
       {
       case 0:
         ICON_Tune();
-        if (marlin.printingIsPaused())
+        if (TERN(OCTOPRINT_PLUGIN, isPaused, marlin.printingIsPaused()))
           ICON_Continue();
         else
           ICON_Pause();
         break;
       case 1:
-        if (marlin.printingIsPaused())
+        if (TERN(OCTOPRINT_PLUGIN, isPaused, marlin.printingIsPaused()))
           ICON_Continue();
         else
           ICON_Pause();
@@ -11437,6 +11588,12 @@ void MarlinUI::init_lcd() { HMI_Init(); }
 
 void DWIN_Update()
 {
+  #if ALL(DWIN_PRINT_DONE_SOUND, SDSUPPORT)
+    static bool sd_done_seen = false;
+    if (HMI_flag.print_finish && !sd_done_seen) PrintDoneSound::start();
+    sd_done_seen = HMI_flag.print_finish;
+  #endif
+  TERN_(DWIN_PRINT_DONE_SOUND, PrintDoneSound::tick());
   HMI_SDCardUpdate(); // SD card update
   if (!HMI_flag.disallow_recovery_flag)
   {
@@ -11782,6 +11939,7 @@ void Remove_card_window_check(void)
 
 void EachMomentUpdate()
 {
+  HostPrint::update_title();
   TERN_(PREHEAT_ALERT, Preheat_alert());
     static bool heat_dir = false, heat_dir_bed = false, high_dir = false;
   static uint8_t heat_index = BG_NOZZLE_MIN, bed_heat_index = BG_BED_MIN;
@@ -12257,7 +12415,8 @@ void Show_G_Pic(void)
         select_file.reset();
         // Start choice and print SD file
         HMI_flag.heat_flag = true;
-        HMI_flag.print_finish = false;
+        HMI_flag.done_confirm_flag = HMI_flag.print_finish = false;
+        TERN_(DWIN_PRINT_DONE_SOUND, PrintDoneSound::cancel());
         HMI_ValueStruct.show_mode = 0;
         // Rock 20210819
         TERN_(POWER_LOSS_RECOVERY, recovery.info.sd_printing_flag = true);
@@ -13194,6 +13353,11 @@ void HMI_Auto_Bed_PID(void)
     // finishc job, clear controls and allow go back main window
   void Goto_ThumbFinish()
   {
+    HostPrint::clear_status();
+    if (!HMI_flag.done_confirm_flag) {
+      HMI_flag.done_confirm_flag = true;
+      TERN_(DWIN_PRINT_DONE_SOUND, PrintDoneSound::start());
+    }
     OctoRefresh = false; // stop octoprint updates
     checkkey = M117Info;
     Clear_Below_Area();
@@ -13305,6 +13469,7 @@ void HMI_Auto_Bed_PID(void)
 // Function to send string to LCD
 void DWIN_Show_M117(char *str)
 {
+  if (HostPrint::cancel_status(str) || HostPrint::show_status(str)) return;
   #if ENABLED(OCTOPRINT_PLUGIN)
     OctoRefresh = false; // stop octoprint updates
   #endif

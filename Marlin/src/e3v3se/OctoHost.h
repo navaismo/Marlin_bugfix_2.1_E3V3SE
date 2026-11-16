@@ -18,3 +18,15 @@ extern bool serial_connection_active;
 
 // True when host prompts/actions should be sent: always for SD profiles, only after the host connected otherwise.
 #define HOST_LINK_UP() TERN(OCTOPRINT_PLUGIN, serial_connection_active, true)
+
+#if ENABLED(OCTOPRINT_PLUGIN)
+namespace HostPrint {
+  void clear_status();
+  uint16_t title_color();
+  void draw_title();
+  bool show_status(const char *text);
+  bool cancel_status(const char *text);
+  void update_title();
+  void set_paused(bool paused);
+}
+#endif

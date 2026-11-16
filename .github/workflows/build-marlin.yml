@@ -73,6 +73,10 @@ on:
         description: "POWER_LOSS_RECOVERY + DWIN_PLR_MENU (SD recovery and advanced LCD menu; uses memory)"
         type: boolean
         default: false
+      print_done_sound:
+        description: "DWIN_PRINT_DONE_SOUND (completion sound and LCD switch; runtime default off)"
+        type: boolean
+        default: true
       preheat_alert:
         description: "PREHEAT_ALERT (beep when LCD preheating is complete)"
         type: boolean
@@ -124,6 +128,7 @@ jobs:
             OCTOPRINT_PLUGIN=${{ inputs.octoprint_plugin }} \
             ONE_CLICK_PRINT=${{ inputs.one_click_print }} \
             POWER_LOSS_RECOVERY=${{ inputs.power_loss_recovery }} \
+            DWIN_PRINT_DONE_SOUND=${{ inputs.print_done_sound }} \
             PREHEAT_ALERT=${{ inputs.preheat_alert }} \
             SKEW_CORRECTION=${{ inputs.skew_correction }} \
             X_ROUTINE_AUTO_OFFSET=${{ inputs.x_routine_auto_offset }}

@@ -2210,6 +2210,8 @@
 #endif
 
 //
+#define DWIN_PRINT_DONE_SOUND // Compile Display Settings > Print done sound; runtime default off.
+
 // Additional options for DGUS / DWIN displays
 //
 #if HAS_DGUS_LCD

@@ -5,6 +5,7 @@ bool serial_connection_active = false;
 
 #if ENABLED(OCTOPRINT_PLUGIN)
 
+#include "../MarlinCore.h"
 #include "../gcode/gcode.h"
 #include "../gcode/parser.h"
 #include "../lcd/marlinui.h"
@@ -56,7 +57,7 @@ static void copy_title(char *dst, const size_t dstlen, const char *src) {
 void GcodeSuite::M9000() {
   if (parser.seen('A')) {
     serial_connection_active = parser.value_bool();
-    if (serial_connection_active) Goto_MainMenu();
+    if (serial_connection_active && !marlin.printJobOngoing()) Goto_MainMenu();
   }
 
   #if ENABLED(DWIN_RENDER_THUMBNAIL)
@@ -67,12 +68,17 @@ void GcodeSuite::M9000() {
     if (parser.seen('T')) ui.set_print_time(60UL * parser.value_ulong());
   #endif
 
+  if (parser.seenval('R')) HostPrint::set_paused(parser.value_bool());
+
   if (parser.seen('P'))
     ui.set_progress((PROGRESS_SCALE) > 1 ? parser.value_float() * (PROGRESS_SCALE) : parser.value_byte());
 
   if (parser.seen('N')) copy_title(title, sizeof(title), parser.string_arg);
 
   if (parser.boolval('S')) {
+    HMI_flag.done_confirm_flag = false;
+    HostPrint::clear_status();
+    TERN_(DWIN_PRINT_DONE_SOUND, PrintDoneSound::cancel());
     Clear_Thumb_UpperArea();
     Clear_Title_Bar();
     Goto_ThumbPrint();

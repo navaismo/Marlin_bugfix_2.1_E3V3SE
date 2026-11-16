@@ -83,16 +83,17 @@ Upstream code flows in untouched, the machine configuration is generated from it
 
 | Branch | Hardware | Purpose |
 | --- | --- | --- |
-| `c13_sd` | C13 (STM32F103RE), SD card | Main line and default branch. Upstream-first architecture with the C13 SD profile. |
-| `c13_octoprint` | C13 (STM32F103RE), serial host (OctoPrint) | `c13_sd` plus the host layer, MeatPack and the OctoPrint plugin protocol; `ONE_CLICK_PRINT` is off. |
-| `c14_sd` | C14 (STM32F401RE), SD card | C14 SD profile; uses `BOARD_CREALITY_F401RE` and the `STM32F401RE_creality` environment. |
-| `c14_octoprint` | C14 (STM32F401RE), serial host (OctoPrint) | **This branch.** `c14_sd` plus the host layer, MeatPack and the OctoPrint plugin protocol; `ONE_CLICK_PRINT` is off. |
-| `legacy/for_E3V3SE`, `legacy/for_Octoprint` | C13 | Pre-architecture branches, kept for reference only. |
-| `legacy/for_STM32F401`, `legacy/for_Octoprint_F401` | C14 (STM32F401) | Pre-architecture branches, kept for reference only. |
+| `c13_pure_octoprint` | C13 (STM32F103RE), host only | **Editor's Choice for OctoPrint.** M9001 v2, host image processing, native menus; SD printing excluded. Pair with plugin `main_cleanup`. |
+| `c14_pure_octoprint` | C14 (STM32F401RE), host only | **Editor's Choice for OctoPrint.** Same protocol/UI as C13 pure, with the C14 pin map and bootloader layout. Pair with plugin `main_cleanup`. |
+| `c13_sd` | C13 (STM32F103RE), SD card | SD-first standard firmware; default branch. |
+| `c14_sd` | C14 (STM32F401RE), SD card | SD-first standard firmware with the C14 pin map. |
+| `c13_octoprint` | C13 (STM32F103RE), SD + host | Standard firmware with the legacy M9001 thumbnail protocol. |
+| `c14_octoprint` | C14 (STM32F401RE), SD + host | Standard firmware with the C14 pin map and legacy M9001 thumbnail protocol. |
+| `legacy/*` | C13/C14 | Historical branches retained for reference. |
 
 `c13_sd` is the default branch. The `legacy/` branches are frozen and no longer receive upstream merges.
 
-Each branch carries its own copy of the documentation, so notes follow the code they describe.
+Each branch carries its own copy of the documentation, so notes follow the code they describe. See the [2026-11-15 port and memory report](docs/releases/2026-11-15.md).
 
 ## Project structure
 
@@ -188,6 +189,7 @@ Some options depend on others. For example, `ONE_CLICK_PRINT` requires `NO_SD_AU
 | OctoPrint plugin layer | `OCTOPRINT_PLUGIN` | `Configuration.h` (`c13_octoprint` only) |
 | One-click print | `ONE_CLICK_PRINT` | `Configuration_adv.h` |
 | Power-loss recovery and LCD menu (off by default) | `POWER_LOSS_RECOVERY`, `DWIN_PLR_MENU` | `Configuration_adv.h` |
+| Print completion sound / LCD switch | `DWIN_PRINT_DONE_SOUND` | `Configuration_adv.h` (build default off on SD; LCD switch default off everywhere) |
 | Preheat completion alert | `PREHEAT_ALERT` | `Configuration.h` |
 | Thumbnail rendering | `DWIN_RENDER_THUMBNAIL` | `Configuration.h` |
 | Z height after homing menu | `DWIN_ZHOME_MENU` | `Configuration.h` |
@@ -199,6 +201,8 @@ The table lists switches, not a statement of the current state; check the define
 **Enhanced PLR is disabled by default in all four branches to save flash and RAM.** Enable both `POWER_LOSS_RECOVERY` and `DWIN_PLR_MENU` in `Configuration_adv.h`, or select **POWER_LOSS_RECOVERY + DWIN_PLR_MENU** in the GitHub Actions build dialog. This single workflow option is off by default and enables/disables recovery and the advanced LCD submenu together. The LCD switch and `M413` only control recovery when it was included at build time; they cannot enable a feature compiled out of the firmware. Recovery handles files printed from the printer's SD card, including on the OctoPrint branches; streamed host jobs are not recoverable with PLR.
 
 `PREHEAT_ALERT` sounds three short beeps when the nozzle and bed reach the targets selected from the LCD's **Prepare → Preheat** menu (PLA/TPU, plus PETG/ABS with `EXTRA_PREHEAT_LABELS`). It is off by default and can be enabled in the GitHub Actions build dialog. Editing or saving presets does not arm the alert; cooling down, changing heater targets, or starting a print cancels it. The beeps run without blocking the LCD or temperature management.
+
+**Print completion sound:** compile `DWIN_PRINT_DONE_SOUND` to include **Prepare → Display Settings → Print done sound**. The GitHub Actions checkbox is **off by default on `c13_sd` and `c14_sd`**, and on by default on the OctoPrint branches. The LCD switch itself always starts **off**; enable it and use **Store** or `M500` to persist it. `M502` disables it. The fixed-pitch buzzer plays short-short-long (80/80/240 ms with 80 ms gaps), without a sample buffer, heap allocation or blocking delays. It handles SD completion even in a native menu, and host completion through `M9000 F1`. Knob clicks remain independent. Both settings share the existing EEPROM byte; the layout/version is unchanged. With the build flag off, the completion menu and playback state are excluded.
 
 `BED_LEVEL_VISUALIZER` adds **Leveling → Bed Level Map** to the Creality DWIN LCD. It displays the current bilinear bed mesh as a filled isometric surface with interpolated colors: blue below zero, green at zero, and red above zero. A mesh of 6×6 measured points forms 5×5 surface cells; all 36 measurements are used. The map title is centered in yellow in the header. The legend shows the color scale in millimeters; the header shows minimum, maximum, total height range, population standard deviation and the original bed-level assessment from `v1.0.9.8_1f`. Statistics use three decimal places and integer-based formatting, so they remain visible without floating-point printf support. The view omits the mesh-size banner and fixed origin label. Reference axes X, Y and Z are drawn behind the heatmap using the same projection, with their labels outside the colored surface. Vertical displacement is exaggerated automatically so the shape is visible. Single-pixel scan bands overlap at their far edge to avoid gaps on panels with exclusive rectangle endpoints. The QR links to the original bed-leveling help at `https://bit.ly/navaismo-bed-leveling`, preserving the URL's case and a white quiet zone. It is also available when there is no mesh.
 
@@ -322,6 +326,8 @@ The `c14_octoprint` branch (C14 OctoPrint host) ships a manual workflow, [`build
 Each toggle only overrides the matching define for that single build; nothing is committed back to the repository. To make a choice permanent, edit the profile as described in [Configuration profiles](#configuration-profiles). Check the reported memory usage against the [Memory budget](#memory-budget) before flashing, and enable `DWIN_INPUT_SHAPING_MENU` only with `FT_MOTION` disabled, and `DWIN_SKEW_MENU` only together with `SKEW_CORRECTION`. Selecting FT_Motion forces the legacy input shaping menu off for that build.
 
 ## Memory budget
+
+Current `c14_octoprint` build (2026-11-15): **23,156 bytes static RAM** / **240,232 bytes application Flash**. See the [six-variant memory and validation report](docs/releases/2026-11-15.md).
 
 Flash and RAM are hard limits on each MCU. The C14 build currently uses 44.3% of RAM, above the project's 40% design target; the build-size baseline is a regression guard, not a claim that the target has been met. Per-environment baselines are stored in `buildroot/share/e3v3se/baseline.json`; the `build` guardrail fails when firmware grows beyond its recorded baseline.
 

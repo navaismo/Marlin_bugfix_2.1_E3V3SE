@@ -55,13 +55,9 @@
     "test/README.md"
   ],
   "build": {
-    "STM32F103RET6_creality": {
-      "flash": 233980,
-      "ram": 29224
-    },
     "STM32F401RE_creality": {
-      "flash": 238408,
-      "ram": 29220
+      "ram": 23156,
+      "flash": 240232
     }
   }
 }

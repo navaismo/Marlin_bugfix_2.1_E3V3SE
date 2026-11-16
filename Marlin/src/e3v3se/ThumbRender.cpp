@@ -105,10 +105,10 @@ struct ThumbRun {
   uint16_t color;
 };
 
-// Sized from real quantized 96x96 thumbnails (worst measured: ~1420 runs).
+// Bound scratch RAM independently of image complexity with 512-run batches.
 // Flush before starting a row that could exceed the remaining capacity.
 // This preserves every pixel, sacrificing only palette reuse across batches.
-static constexpr uint16_t MAX_THUMB_RUNS = 1536;
+static constexpr uint16_t MAX_THUMB_RUNS = 512;
 static ThumbRun thumb_runs[MAX_THUMB_RUNS];
 static uint8_t thumb_run_emitted[(MAX_THUMB_RUNS + 7) / 8];
 
