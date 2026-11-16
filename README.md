@@ -1,5 +1,12 @@
 # Marlin for the Creality Ender-3 V3 SE
 
+<!-- marlin-installation-guide -->
+> [!TIP]
+> **New to Marlin?** Set up your Ender-3 V3 SE, choose your firmware, and explore its features with our step-by-step guide.
+>
+> [**Get started →**](https://navaismo.github.io/Marlin_bugfix_2.1_E3V3SE/) · English · Español · Русский
+<!-- /marlin-installation-guide -->
+
 An upstream-first Marlin 2.1.x bugfix fork for the **Creality Ender-3 V3 SE**.
 
 The goal of this repository is simple: **pull upstream Marlin at any time without regressions**. All fork-specific behavior is isolated behind a small, auditable boundary, and the machine configuration is generated from pristine upstream files plus a reviewed profile.
