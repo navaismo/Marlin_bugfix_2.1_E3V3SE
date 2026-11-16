@@ -1,4 +1,5 @@
 #pragma once
+#define HAS_MEDIA 1
 
 #include <cstdint>
 #include <cstdio>

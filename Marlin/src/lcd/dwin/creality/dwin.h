@@ -33,6 +33,15 @@
 
 #include "../../../libs/duration_t.h"
 
+#if ENABLED(DWIN_PRINT_DONE_SOUND)
+  namespace PrintDoneSound {
+    extern bool enabled;
+    void start();
+    void cancel();
+    void tick();
+  }
+#endif
+
 #if ANY(HAS_HOTEND, HAS_HEATED_BED, HAS_FAN) && PREHEAT_COUNT
   #define HAS_PREHEAT 1
   #if PREHEAT_COUNT < 2
