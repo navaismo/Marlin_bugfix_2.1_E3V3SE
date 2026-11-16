@@ -36,3 +36,7 @@ Read [`MEMORY.md`](./MEMORY.md) for the repository's branch map, custom-feature 
 - Host (OctoPrint) code lives in `Marlin/src/e3v3se/OctoHost.*` and is enabled only by `OCTOPRINT_PLUGIN` (profile `c13_octoprint`). `c13_sd` must keep stock upstream behavior. Gate host-only behavior with `HOST_LINK_UP()`, not new `serial_connection_active` copies.
 - Docs (`MEMORY.md`, this file, `.github/copilot-instructions.md`) are per-branch via git; update them on the branch you change.
 - After changing config defines run `config_profile.py --profile <name> derive`, then `check`, then update `baseline.json` (flash and boundary list) after review.
+
+## Current host-only variant (2026-11-15)
+
+This worktree is `c13_octorpint_cleanu_eva01`, the EVA-01 variant of `c13_pure_octoprint`, using active profile `c13_pure_octoprint`. SD printing is excluded; bootloader SD flashing remains available. Keep the four SD-capable standard variants distinct from these host-only variants.

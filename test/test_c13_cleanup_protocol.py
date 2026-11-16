@@ -17,7 +17,7 @@ def packet(kind, sid=1, body=b""):
     return "C " + kind + base64.b64encode(data).decode().replace("G", "_")
 
 
-def transfer(ops, sid=1):
+def transfer(ops, sid=1, fullscreen=False):
     batches, chunk = [], b""
     for op in ops:
         if len(chunk) + len(op) > 42:
@@ -26,7 +26,7 @@ def transfer(ops, sid=1):
         chunk += op
     if chunk:
         batches.append(chunk)
-    script = [packet("B", sid)]
+    script = [packet("B", sid, b"\1" if fullscreen else b"")]
     checksum = 0
     for i, chunk in enumerate(batches):
         script += [packet("D", sid, struct.pack(">H", i) + chunk), "T 60"]
@@ -180,6 +180,68 @@ class ProtocolTests(unittest.TestCase):
         cmd=packet("D",body=data)[2:]
         command="N2147483647 M9001 "+cmd+"*255"
         self.assertLessEqual(len(command),95)
+
+    def test_fullscreen_capability_keeps_original_query_unchanged(self):
+        self.assertEqual(self.run_script(["C Q"]).strip(),
+                         "L M9001 CAPS 2 42 240 320 00000000 0000")
+        self.assertIn("CAPS FULLSCREEN 1 42 240 320", self.run_script(["C QF"]))
+
+    def test_fullscreen_16bit_bottom_row_and_complete_coverage(self):
+        ops = [b"\0\0\0", b"\3" + struct.pack(">HHHH", 0, 0, 239, 319),
+               b"\0\x07\xe0", b"\3" + struct.pack(">HHHH", 0, 256, 239, 319)]
+        output = self.run_script(transfer(ops, fullscreen=True))
+        self.assertIn("DONE", output)
+        pixels, frames = framebuffer(output)
+        self.assertEqual(pixels[:240*256], [0] * (240*256))
+        self.assertEqual(pixels[240*256:], [0x07E0] * (240*64))
+        self.assertEqual(len(frames), 5)
+
+    def test_rect16_requires_explicit_fullscreen_and_atomic_bounds_validation(self):
+        for coords in ((0, 0, 240, 319), (0, 0, 239, 320), (10, 0, 9, 319),
+                       (0, 300, 239, 299), (0, 0, 65535, 65535)):
+            data = b"\0\0\0\3" + struct.pack(">HHHH", *coords)
+            output = self.run_script([packet("B", body=b"\1"),
+                                      packet("D", body=b"\0\0"+data), "T 100"])
+            self.assertIn("BOUNDS", output)
+            self.assertNotIn("F ", output)
+        rect = b"\3" + struct.pack(">HHHH", 0, 0, 239, 319)
+        for data in (b"\0\0\0"+rect, b"\0\0\0"+rect[:-1]):
+            output = self.run_script([packet("B"), packet("D", body=b"\0\0"+data), "T 100"])
+            self.assertIn("BOUNDS", output)
+            self.assertNotIn("F ", output)
+        output = self.run_script([packet("B", body=b"\1"),
+                                  packet("D", body=b"\0\0\0\0\0"+rect[:-1]), "T 100"])
+        self.assertIn("BOUNDS", output)
+        self.assertNotIn("F ", output)
+
+    def test_fullscreen_begin_mode_and_idempotence(self):
+        for body in (b"\0", b"\2", b"\1\0"):
+            output = self.run_script([packet("B", body=body), "T 100"])
+            self.assertIn("FORMAT", output)
+            self.assertNotIn("ACK", output)
+        output = self.run_script([packet("B", body=b"\1"), packet("B", body=b"\1"),
+                                  packet("B"), packet("B", 2, b"\1")])
+        self.assertEqual(output.count("ACK"), 2)
+        self.assertIn("FORMAT", output)
+        self.assertIn("BUSY", output)
+
+    def test_fullscreen_release_is_session_specific_and_does_not_restart_drawing(self):
+        script = transfer([b"\0\0\0", b"\3" + struct.pack(">HHHH", 0, 0, 239, 319)], fullscreen=True)
+        output = self.run_script(script+[packet("R", 2), packet("R"), packet("R"), packet("B", body=b"\1")])
+        self.assertIn("SESSION", output)
+        self.assertEqual(output.count("CLOSED_UI"), 2)
+        self.assertIn("ABORTED", output)
+        self.assertEqual(len(framebuffer(output)[1]), 3)
+
+    def test_fullscreen_preemption_timeout_and_new_session(self):
+        for action in ("G G 28", "G M 495", "G M 496", "X", "A 0", "T 5001"):
+            output = self.run_script([packet("B", body=b"\1"), action, "T 100"])
+            self.assertIn("ABORTED", output)
+            self.assertNotIn("DONE", output)
+        output = self.run_script(["A 0", packet("B", body=b"\1"), "A 1"] +
+                                 transfer([b"\0\0\0"], sid=2, fullscreen=True))
+        self.assertIn("BUSY", output)
+        self.assertIn("DONE 00000002", output)
 
 if __name__ == "__main__":
     unittest.main()

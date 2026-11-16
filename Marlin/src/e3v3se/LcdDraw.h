@@ -1,7 +1,8 @@
 #pragma once
 #include <stdint.h>
 
-// M9001 v2 draws only the upper print-card region (y=25..122). No framebuffer.
+// M9001 v2: bounded print-card drawing, or explicitly negotiated full-screen drawing.
+// Both modes stream operations without a framebuffer.
 namespace LcdDraw {
   constexpr uint8_t PAYLOAD = 42;
   bool active();
@@ -13,7 +14,9 @@ namespace LcdDraw {
 
 namespace LcdDrawIO {
   uint32_t now();
-  bool allowed();
+  bool allowed(bool fullscreen=false);
+  bool begin_fullscreen();
+  void end_fullscreen();
   uint8_t send(const uint8_t *frame, uint8_t length);
   int read();
   void reply(const char *state, uint32_t sid, uint16_t seq);

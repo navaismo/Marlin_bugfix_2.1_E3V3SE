@@ -20,6 +20,15 @@ requiring encoder input. Modal screens are not overwritten. MAIN, new-card and
 finish paths clear pending messages; idle still uses the native info/Back window.
 The Progress caption remains disabled.
 
+M117 title messages now use blue, including scrolling, and restore the yellow
+filename after 15 seconds. Complete `Print cancelled/canceled`, `Printing
+cancelled/canceled` and `Impresion/Impresión cancelada` notices request host
+cancellation through the existing cancel path, abort the print through MarlinUI,
+clear paused/render/message state and return to MAIN. Matching ignores ASCII
+case, surrounding spaces and trailing periods/exclamation marks. Other messages
+remain informational. Repeated notices while idle return to MAIN without sending
+another cancellation request.
+
 ## Validation
 
 - test_dwin_host_status.py compiles the actual title/pause/M117/encoder functions

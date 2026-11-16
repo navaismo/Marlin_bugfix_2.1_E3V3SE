@@ -1,4 +1,4 @@
-// GPLv3. Bounded host print-card executor, independent of native navigation.
+// GPLv3. Bounded host drawing executor; full-screen ownership is explicit.
 #ifdef LCD_DRAW_NATIVE_TEST
   #define ENABLED(V) 0
 #else
@@ -14,6 +14,7 @@ namespace LcdDraw {
     uint32_t sid, last_crc, stream_crc, deadline, session_end, wire_until;
     uint16_t seq;
     uint8_t data[PAYLOAD], length, pos, phase, frames, fence, fence_len, strip, filling;
+    bool fullscreen;
   } state;
   static_assert(sizeof(state) <= 88, "Drawing state exceeds the C13 RAM budget.");
 
@@ -67,6 +68,11 @@ namespace LcdDraw {
   }
   static uint8_t op_size(const uint8_t *p, uint8_t remain) {
     if (*p == 0) return remain >= 3 ? 3 : 0; // COLOR RGB565
+    if (*p == 3) { // RECT16 x0,y0,x1,y1, big-endian uint16_t coordinates
+      if (!state.fullscreen || remain < 9) return 0;
+      return word16(p + 1) <= word16(p + 5) && word16(p + 5) < 240
+          && word16(p + 3) <= word16(p + 7) && word16(p + 7) < 320 ? 9 : 0;
+    }
     if (*p == 2) { // STRIP x,y,count,RGB565... (high-entropy fallback)
       if (remain < 6 || !p[3] || p[3] > 19 || remain < 4 + 2 * p[3]) return 0;
       return p[1] + p[3] <= 240 && p[2] >= 25 && p[2] <= 122 ? 4 + 2 * p[3] : 0;
@@ -78,6 +84,7 @@ namespace LcdDraw {
   void command(const char *args) {
     while (*args == ' ') ++args;
     if (!strcmp(args, "Q")) { LcdDrawIO::reply("CAPS 2 42 240 320", 0, 0); return; }
+    if (!strcmp(args, "QF")) { LcdDrawIO::reply("CAPS FULLSCREEN 1 42 240 320", 0, 0); return; }
     if (!*args) { reply("FORMAT"); return; }
     const char kind = *args++;
     uint8_t packet[54];
@@ -89,13 +96,20 @@ namespace LcdDraw {
     const uint32_t sid = word32(packet + 1);
     if (!sid) { reply("FORMAT"); return; }
     const uint32_t now = LcdDrawIO::now();
-    if (kind == 'B' && n == 9) {
+    if (kind == 'B' && n != 9 && n != 10) { reply("FORMAT"); return; }
+    if (kind == 'B' && (n == 9 || n == 10)) {
+      const bool fullscreen = n == 10;
+      if (fullscreen && packet[5] != 1) { reply("FORMAT"); return; }
       if (sid == state.sid && state.phase == IDLE) { reply("ABORTED"); return; }
       if (sid == state.sid && (active() || state.phase == DONE)) {
+        if (fullscreen != state.fullscreen) { reply("FORMAT"); return; }
         reply(state.phase == DONE ? "DONE" : state.phase == WAIT ? "ACK" : "BUSY");
         return;
       }
-      if (active() || !LcdDrawIO::allowed()) { LcdDrawIO::reply("BUSY", sid, 0); return; }
+      if (active() || (fullscreen ? !LcdDrawIO::begin_fullscreen() : !LcdDrawIO::allowed(false))) {
+        LcdDrawIO::reply("BUSY", sid, 0); return;
+      }
+      state.fullscreen = fullscreen;
       state.sid = sid; state.seq = 0; state.stream_crc = 0xFFFFFFFFUL;
       state.last_crc = 0; state.length = state.pos = 0;
       state.phase = WAIT;
@@ -103,6 +117,12 @@ namespace LcdDraw {
       reply("ACK"); return;
     }
     if (sid != state.sid) { reply("SESSION"); return; }
+    if (kind == 'R' && n == 9 && state.fullscreen) {
+      cancel();
+      state.phase = IDLE;
+      LcdDrawIO::end_fullscreen();
+      reply("CLOSED"); return;
+    }
     if (kind == 'A' && n == 9) { cancel(); return; }
     if (kind == 'E' && n == 15) {
       if (word16(packet + 5) != state.seq
@@ -143,7 +163,7 @@ namespace LcdDraw {
   void tick() {
     if (!active()) return;
     const uint32_t now = LcdDrawIO::now();
-    if (!LcdDrawIO::allowed() || (state.phase != SETTLE && due(now, state.deadline)) || due(now, state.session_end)) { cancel(); return; }
+    if (!LcdDrawIO::allowed(state.fullscreen) || (state.phase != SETTLE && due(now, state.deadline)) || due(now, state.session_end)) { cancel(); return; }
     if (state.phase == DRAW) {
       const uint8_t *p = state.data + state.pos;
       if (*p == 0) {
@@ -165,6 +185,11 @@ namespace LcdDraw {
           state.filling = 0;
           if (++state.strip == p[3]) { state.strip = 0; state.pos += 4 + 2 * p[3]; }
         }
+      }
+      else if (*p == 3) {
+        const uint8_t f[] = {0xAA, 0x5B, p[1], p[2], p[3], p[4], p[5], p[6], p[7], p[8], 0xCC, 0x33, 0xC3, 0x3C};
+        if (!frame(f, sizeof(f), now)) return;
+        state.pos += 9;
       }
       else {
         const uint8_t f[] = {0xAA, 0x5B, 0, p[1], 0, p[2], 0, p[3], 0, p[4], 0xCC, 0x33, 0xC3, 0x3C};

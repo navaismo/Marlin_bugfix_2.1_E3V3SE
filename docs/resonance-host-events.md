@@ -1,11 +1,12 @@
 # M495 host events (PIS:RT versions 1 and 2)
 
-## Enabling the Pinput_Shaping flow on c13_octoprint
+## Pinput_Shaping defaults in the pure OctoPrint branches
 
-`RESONANCE_TEST` and `PINPUT_RESONANCE_EVENTS` are **disabled by default**.
-FT Motion and the branch's X/Y shaping configuration are retained. To use
-the OctoPrint Pinput_Shaping resonance-test flow, enable this complete set in
-`Marlin/Configuration_adv.h`:
+`RESONANCE_TEST` and `PINPUT_RESONANCE_EVENTS` are **enabled by default**
+in `c13_pure_octoprint` and `c14_pure_octoprint`, including their manual build
+workflows. FT Motion and its shaper algorithms are included; legacy
+`INPUT_SHAPING_X/Y` are independent and remain disabled. The flow requires this
+complete set in `Marlin/Configuration_adv.h`:
 
 | Option | Purpose |
 | --- | --- |
@@ -22,25 +23,25 @@ required by resonance testing. The workflow leaves their settings unchanged.
 After changing the configuration, regenerate and check the active profile:
 
 ```sh
-python3 buildroot/share/e3v3se/config_profile.py --profile c13_octoprint derive
-python3 buildroot/share/e3v3se/config_profile.py --profile c13_octoprint check
+python3 buildroot/share/e3v3se/config_profile.py --profile c13_pure_octoprint derive
+python3 buildroot/share/e3v3se/config_profile.py --profile c13_pure_octoprint check
 pio run -e STM32F103RET6_creality
 ```
 
 The OctoPrint build workflow exposes one **RESONANCE_TEST +
-PINPUT_RESONANCE_EVENTS** checkbox, off by default. Selecting it enables
+PINPUT_RESONANCE_EVENTS** checkbox, on by default in the pure branches. Selecting it enables
 both flags, FT Motion and the emergency parser. It overrides an
 unchecked FT Motion input and forces the legacy LCD shaping menu off.
 Leaving it unchecked disables resonance testing and host events without
 changing the existing X/Y shaping settings. This document and workflow
-describe `c13_octoprint`; no SD-branch workflow option is introduced.
+describe the pure OctoPrint branches; no SD-branch workflow option is introduced.
 
 Once an enabled build is installed, use the read-only capability query
-`M495 Q2` to check for `echo:PIS:RT:READY:2`. With the default build,
+`M495 Q2` to check for `echo:PIS:RT:READY:2`. If both flags are disabled for a custom build,
 M495/M496 are unavailable and no READY event is returned. Ordinary transport
 `ok` is never proof that the resonance protocol is available.
 
-### Default-off configuration validation (2026-11-05)
+### Historical standard C13 default-off validation (2026-11-05)
 
 Both `STM32F103RET6_creality` builds passed with FT Motion and X/Y shaping
 enabled and optional progress disabled:
