@@ -1913,7 +1913,8 @@ void MarlinSettings::postprocess() {
      // Save LCD Beeper settings
     #if ENABLED(DWIN_LCD_BEEP)
     {
-      uint8_t beep = toggle_LCDBeep;
+      uint8_t beep = toggle_LCDBeep & 1;
+      TERN_(DWIN_PRINT_DONE_SOUND, beep |= PrintDoneSound::enabled ? 2 : 0);
       EEPROM_WRITE(beep);
 
       // uint8_t prealert = toggle_PreHAlert;
@@ -3175,7 +3176,11 @@ void MarlinSettings::postprocess() {
       {
         uint8_t beep;
         EEPROM_READ(beep); //Read LCD_Beeper state
-        toggle_LCDBeep = (beep > 0) ? 1 : 0;
+        toggle_LCDBeep = beep & 1;
+        #if ENABLED(DWIN_PRINT_DONE_SOUND)
+          PrintDoneSound::enabled = beep & 2;
+          PrintDoneSound::cancel();
+        #endif
 
         // uint8_t prealert;
         // EEPROM_READ(prealert); //Read LCD_Beeper state
@@ -3749,6 +3754,10 @@ void MarlinSettings::reset() {
   //
   // Buzzer enable/disable
   //
+  #if ENABLED(DWIN_PRINT_DONE_SOUND)
+    PrintDoneSound::enabled = false;
+    PrintDoneSound::cancel();
+  #endif
   #if ENABLED(SOUND_MENU_ITEM)
     ui.sound_on = ENABLED(SOUND_ON_DEFAULT);
   #endif

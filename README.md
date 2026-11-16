@@ -84,16 +84,17 @@ Upstream code flows in untouched, the machine configuration is generated from it
 
 | Branch | Hardware | Purpose |
 | --- | --- | --- |
-| `c13_sd` | C13 (STM32F103RE), SD card | Main line and default branch. Upstream-first architecture with the C13 SD profile. |
-| `c13_octoprint` | C13 (STM32F103RE), serial host (OctoPrint) | **This branch.** `c13_sd` plus the host layer, MeatPack and the OctoPrint plugin protocol; `ONE_CLICK_PRINT` is off. |
-| `c14_sd` | C14 (STM32F401RE), SD card | C14 SD profile; uses `BOARD_CREALITY_F401RE` and the `STM32F401RE_creality` environment. |
-| `c14_octoprint` | C14 (STM32F401RE), serial host (OctoPrint) | `c14_sd` plus the host layer, MeatPack and the OctoPrint plugin protocol; `ONE_CLICK_PRINT` is off. |
-| `legacy/for_E3V3SE`, `legacy/for_Octoprint` | C13 | Pre-architecture branches, kept for reference only. |
-| `legacy/for_STM32F401`, `legacy/for_Octoprint_F401` | C14 (STM32F401) | Pre-architecture branches, kept for reference only. |
+| `c13_pure_octoprint` | C13 (STM32F103RE), host only | **Editor's Choice for OctoPrint.** M9001 v2, host image processing, native menus; SD printing excluded. Pair with plugin `main_cleanup`. |
+| `c14_pure_octoprint` | C14 (STM32F401RE), host only | **Editor's Choice for OctoPrint.** Same protocol/UI as C13 pure, with the C14 pin map and bootloader layout. Pair with plugin `main_cleanup`. |
+| `c13_sd` | C13 (STM32F103RE), SD card | SD-first standard firmware; default branch. |
+| `c14_sd` | C14 (STM32F401RE), SD card | SD-first standard firmware with the C14 pin map. |
+| `c13_octoprint` | C13 (STM32F103RE), SD + host | Standard firmware with the legacy M9001 thumbnail protocol. |
+| `c14_octoprint` | C14 (STM32F401RE), SD + host | Standard firmware with the C14 pin map and legacy M9001 thumbnail protocol. |
+| `legacy/*` | C13/C14 | Historical branches retained for reference. |
 
 `c13_sd` is the default branch. The `legacy/` branches are frozen and no longer receive upstream merges.
 
-Each branch carries its own copy of the documentation, so notes follow the code they describe.
+Each branch carries its own copy of the documentation, so notes follow the code they describe. See the [2026-11-15 port and memory report](docs/releases/2026-11-15.md).
 
 ## Project structure
 
@@ -185,6 +186,7 @@ Some options depend on others. `OCTOPRINT_PLUGIN` relies on `HOST_ACTION_COMMAND
 | OctoPrint plugin layer | `OCTOPRINT_PLUGIN` | `Configuration.h` (on in this branch) |
 | One-click print | `ONE_CLICK_PRINT` | `Configuration_adv.h` (off in this branch) |
 | Power-loss recovery and LCD menu (off by default) | `POWER_LOSS_RECOVERY`, `DWIN_PLR_MENU` | `Configuration_adv.h` |
+| Print completion sound / LCD switch | `DWIN_PRINT_DONE_SOUND` | `Configuration_adv.h` (build default off on SD; LCD switch default off everywhere) |
 | Preheat completion alert | `PREHEAT_ALERT` | `Configuration.h` |
 | Resonance sweeps (off by default) | `RESONANCE_TEST` | `Configuration_adv.h` |
 | Pinput_Shaping resonance host events (OctoPrint; off by default) | `PINPUT_RESONANCE_EVENTS` | `Configuration_adv.h` |
@@ -198,6 +200,8 @@ The table lists switches, not a statement of the current state; check the define
 **Enhanced PLR is disabled by default in all four branches to save flash and RAM.** Enable both `POWER_LOSS_RECOVERY` and `DWIN_PLR_MENU` in `Configuration_adv.h`, or select **POWER_LOSS_RECOVERY + DWIN_PLR_MENU** in the GitHub Actions build dialog. This single workflow option is off by default and enables/disables recovery and the advanced LCD submenu together. The LCD switch and `M413` only control recovery when it was included at build time; they cannot enable a feature compiled out of the firmware. Recovery handles files printed from the printer's SD card, including on the OctoPrint branches; streamed host jobs are not recoverable with PLR.
 
 `PREHEAT_ALERT` sounds three short beeps when the nozzle and bed reach the targets selected from the LCD's **Prepare → Preheat** menu (PLA/TPU, plus PETG/ABS with `EXTRA_PREHEAT_LABELS`). It is off by default and can be enabled in the GitHub Actions build dialog. Editing or saving presets does not arm the alert; cooling down, changing heater targets, or starting a print cancels it. The beeps run without blocking the LCD or temperature management.
+
+**Print completion sound:** compile `DWIN_PRINT_DONE_SOUND` to include **Prepare → Display Settings → Print done sound**. The GitHub Actions checkbox is **off by default on `c13_sd` and `c14_sd`**, and on by default on the OctoPrint branches. The LCD switch itself always starts **off**; enable it and use **Store** or `M500` to persist it. `M502` disables it. The fixed-pitch buzzer plays short-short-long (80/80/240 ms with 80 ms gaps), without a sample buffer, heap allocation or blocking delays. It handles SD completion even in a native menu, and host completion through `M9000 F1`. Knob clicks remain independent. Both settings share the existing EEPROM byte; the layout/version is unchanged. With the build flag off, the completion menu and playback state are excluded.
 
 `BED_LEVEL_VISUALIZER` adds **Leveling → Bed Level Map** to the Creality DWIN LCD. It displays the current bilinear bed mesh as a filled isometric surface with interpolated colors: blue below zero, green at zero, and red above zero. A mesh of 6×6 measured points forms 5×5 surface cells; all 36 measurements are used. The map title is centered in yellow in the header. The legend shows the color scale in millimeters; the header shows minimum, maximum, total height range, population standard deviation and the original bed-level assessment from `v1.0.9.8_1f`. Statistics use three decimal places and integer-based formatting, so they remain visible without floating-point printf support. The view omits the mesh-size banner and fixed origin label. Reference axes X, Y and Z are drawn behind the heatmap using the same projection, with their labels outside the colored surface. Vertical displacement is exaggerated automatically so the shape is visible. Single-pixel scan bands overlap at their far edge to avoid gaps on panels with exclusive rectangle endpoints. The QR links to the original bed-leveling help at `https://bit.ly/navaismo-bed-leveling`, preserving the URL's case and a white quiet zone. It is also available when there is no mesh.
 
@@ -248,8 +252,6 @@ To build this branch for the plugin's resonance-test flow, enable all of the fol
 ```cpp
 #define FT_MOTION
 // Keep at least one FTM_SHAPER_* algorithm enabled (the branch already provides them).
-#define INPUT_SHAPING_X
-#define INPUT_SHAPING_Y
 #define RESONANCE_TEST
 #define PINPUT_RESONANCE_EVENTS
 #define EMERGENCY_PARSER
@@ -257,7 +259,7 @@ To build this branch for the plugin's resonance-test flow, enable all of the fol
 
 The exact flag is **`PINPUT_RESONANCE_EVENTS`**. `PINPUT_RESONANCE_PROGRESS` is optional and remains disabled. The firmware requires a 32-bit CPU; M495/M496 dispatch in this checkout also requires `FT_MOTION` at compile time. `INPUT_SHAPING_X/Y` compile the standard-motion shapers; FT Motion's shaper algorithms remain configured through `FTM_SHAPER_*` and `M493`. Selecting a shaping mode with `M493` alone does not compile in resonance testing or host events.
 
-In this OctoPrint branch's GitHub Actions workflow, select **RESONANCE_TEST + PINPUT_RESONANCE_EVENTS**. This single option defaults to off and enables both flags together with FT Motion, X/Y shaping and the emergency parser for that build. It takes precedence over an unchecked FT Motion option and disables the legacy LCD shaping menu.
+In this OctoPrint branch's GitHub Actions workflow, select **RESONANCE_TEST + PINPUT_RESONANCE_EVENTS**. This single option defaults to off and enables both flags together with FT Motion and the emergency parser for that build. It takes precedence over an unchecked FT Motion option and disables the legacy LCD shaping menu.
 
 After installing an enabled build, the plugin can query `M495 Q2` and must receive `echo:PIS:RT:READY:2` before using the host-armed flow. A start with `I<id> S W` performs homing and positioning, emits `HOMED` and `ARMED_WAIT`, and waits without exciting the axis. The plugin starts sensor acquisition, verifies fresh samples, then sends `M495 I<id> R`. `ARM_ACK` and `START` identify activation; `COMPLETE` follows actual motion drain. Without ARM, the pending session expires after 30 seconds. `M496` cancels the test. `M495 Q` and starts without W retain the version 1 flow.
 
@@ -342,6 +344,8 @@ The `c13_octoprint` branch (C13 OctoPrint host) ships a manual workflow, [`build
 Each toggle overrides the matching feature and its documented dependencies for that single build; nothing is committed back to the repository. To make a choice permanent, edit the profile as described in [Configuration profiles](#configuration-profiles). Check the reported memory usage against the [Memory budget](#memory-budget) before flashing, and enable `DWIN_INPUT_SHAPING_MENU` only with `FT_MOTION` disabled, and `DWIN_SKEW_MENU` only together with `SKEW_CORRECTION`. Selecting FT_Motion or the Pinput_Shaping resonance option forces the legacy input shaping menu off for that build.
 
 ## Memory budget
+
+Current `c13_octoprint` build (2026-11-15): **28,276 bytes static RAM** / **247,788 bytes application Flash**. See the [six-variant memory and validation report](docs/releases/2026-11-15.md).
 
 Flash and RAM are hard limits on the STM32F103RE (512 KB flash, 64 KB RAM). The reviewed baseline is stored in `buildroot/share/e3v3se/baseline.json`; the `build` guardrail fails when firmware grows beyond it. Check usage after enabling or adding a feature.
 

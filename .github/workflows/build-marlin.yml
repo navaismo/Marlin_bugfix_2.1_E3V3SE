@@ -71,13 +71,17 @@ on:
         type: boolean
         default: false
       pinput_resonance_events:
-        description: "RESONANCE_TEST + PINPUT_RESONANCE_EVENTS (Pinput_Shaping; enables FT_MOTION and X/Y shaping)"
+        description: "RESONANCE_TEST + PINPUT_RESONANCE_EVENTS (Pinput_Shaping; enables FT_MOTION)"
         type: boolean
         default: false
       power_loss_recovery:
         description: "POWER_LOSS_RECOVERY + DWIN_PLR_MENU (SD recovery and advanced LCD menu; uses memory)"
         type: boolean
         default: false
+      print_done_sound:
+        description: "DWIN_PRINT_DONE_SOUND (completion sound and LCD switch; runtime default off)"
+        type: boolean
+        default: true
       preheat_alert:
         description: "PREHEAT_ALERT (beep when LCD preheating is complete)"
         type: boolean
@@ -130,6 +134,7 @@ jobs:
             ONE_CLICK_PRINT=${{ inputs.one_click_print }} \
             PINPUT_RESONANCE_EVENTS=${{ inputs.pinput_resonance_events }} \
             POWER_LOSS_RECOVERY=${{ inputs.power_loss_recovery }} \
+            DWIN_PRINT_DONE_SOUND=${{ inputs.print_done_sound }} \
             PREHEAT_ALERT=${{ inputs.preheat_alert }} \
             RESONANCE_TEST=${{ inputs.pinput_resonance_events }} \
             SKEW_CORRECTION=${{ inputs.skew_correction }} \

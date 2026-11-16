@@ -1,0 +1,25 @@
+{
+  "scope": "Archived controlled experiment, not a new SD/v2 hybrid build",
+  "phase_a": {
+    "data": 704,
+    "bss": 22000,
+    "ram": 22704,
+    "flash": 209204,
+    "flash_allocated_load_sections": 209804,
+    "linker_stack_heap_reservation": 1536,
+    "vector_address": "0x8007000"
+  },
+  "phase_b": {
+    "data": 704,
+    "bss": 21888,
+    "ram": 22592,
+    "flash": 210660,
+    "flash_allocated_load_sections": 211260,
+    "linker_stack_heap_reservation": 1536,
+    "vector_address": "0x8007000"
+  },
+  "delta_ram": -112,
+  "delta_flash": 1456,
+  "source_commit": "a5d05d7cf4",
+  "source_path": "docs/c13-cleanup/memory.json"
+}

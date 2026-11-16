@@ -11,7 +11,6 @@ the OctoPrint Pinput_Shaping resonance-test flow, enable this complete set in
 | --- | --- |
 | `FT_MOTION` | Compiles FT Motion and the M495/M496 dispatcher entries in this checkout |
 | At least one `FTM_SHAPER_*` algorithm | Supplies FT Motion input-shaping support; the branch already enables these algorithms |
-| `INPUT_SHAPING_X`, `INPUT_SHAPING_Y` | Includes both standard-motion X/Y shapers for the supported plugin build configuration |
 | `RESONANCE_TEST` | Includes the native sweep generator and command handler |
 | `PINPUT_RESONANCE_EVENTS` | Enables M495 capability queries, session events and the v2 host-arming flow |
 | `EMERGENCY_PARSER` | Required by resonance testing for M496 cancellation; already enabled in this branch |
@@ -28,7 +27,7 @@ pio run -e STM32F103RET6_creality
 
 The OctoPrint build workflow exposes one **RESONANCE_TEST +
 PINPUT_RESONANCE_EVENTS** checkbox, off by default. Selecting it enables
-both flags, FT Motion, X/Y shaping and the emergency parser. It overrides an
+both flags, FT Motion and the emergency parser. It overrides an
 unchecked FT Motion input and forces the legacy LCD shaping menu off.
 Leaving it unchecked disables resonance testing and host events without
 changing the existing X/Y shaping settings. This document and workflow
