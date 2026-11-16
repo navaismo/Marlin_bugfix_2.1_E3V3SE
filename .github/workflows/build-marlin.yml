@@ -1,8 +1,8 @@
 name: Build E3V3SE Firmware
 
-# c13_octoprint_cleanup branch (C13, host-only printing). The committed configuration of this branch is the
+# c13_pure_octoprint branch (C13, host-only printing). The committed configuration of this branch is the
 # starting point, and the inputs below override features and their dependencies for this build.
-# Defaults match the branch: plugin and MeatPack on, one-click print and resonance tests off.
+# Defaults include MeatPack, plugin support, completion sound, Pinput resonance events and M9001 transport.
 on:
   workflow_dispatch:
     inputs:
@@ -61,7 +61,11 @@ on:
       pinput_resonance_events:
         description: "RESONANCE_TEST + PINPUT_RESONANCE_EVENTS (Pinput_Shaping; enables FT_MOTION)"
         type: boolean
-        default: false
+        default: true
+      print_done_sound:
+        description: "DWIN_PRINT_DONE_SOUND (completion sound and LCD switch; runtime default off)"
+        type: boolean
+        default: true
       preheat_alert:
         description: "PREHEAT_ALERT (beep when LCD preheating is complete)"
         type: boolean
@@ -110,7 +114,9 @@ jobs:
             FT_MOTION=${{ inputs.ft_motion }} \
             MEATPACK_ON_SERIAL_PORT_1=${{ inputs.meatpack }} \
             OCTOPRINT_PLUGIN=true \
+            M9001_DRAW_PROTOCOL=true \
             PINPUT_RESONANCE_EVENTS=${{ inputs.pinput_resonance_events }} \
+            DWIN_PRINT_DONE_SOUND=${{ inputs.print_done_sound }} \
             PREHEAT_ALERT=${{ inputs.preheat_alert }} \
             RESONANCE_TEST=${{ inputs.pinput_resonance_events }} \
             SKEW_CORRECTION=${{ inputs.skew_correction }} \

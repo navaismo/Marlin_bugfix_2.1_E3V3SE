@@ -2,14 +2,16 @@
 """Replay the production completion sound, menu, EEPROM and SD/host entry points."""
 from pathlib import Path
 import os
+import re
 import subprocess
 import tempfile
 from test_dwin_input_shaping import function
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(os.environ.get('DWIN_TEST_ROOT', Path(__file__).resolve().parents[1]))
 source = (ROOT / 'Marlin/src/lcd/dwin/creality/dwin.cpp').read_text()
 settings = (ROOT / 'Marlin/src/module/settings.cpp').read_text()
-host = (ROOT / 'Marlin/src/e3v3se/OctoHost.cpp').read_text()
+has_host = bool(re.search(r'^\s*#define\s+OCTOPRINT_PLUGIN\b', (ROOT / 'Marlin/Configuration.h').read_text(), re.M))
+host = (ROOT / 'Marlin/src/e3v3se/OctoHost.cpp').read_text() if has_host else ''
 start = source.index('  namespace PrintDoneSound {')
 end = source.index('\n#endif', start)
 sound = source[start:end]
@@ -23,6 +25,7 @@ prefix = r'''
 #include <vector>
 #include "Marlin/src/core/macros.h"
 #define DWIN_LCD_BEEP 1
+#define DWIN_PRINT_DONE_SOUND SOUND_ENABLED
 #define M9001_DRAW_PROTOCOL 1
 #define DWIN_RENDER_THUMBNAIL 1
 #define OCTOPRINT_PLUGIN 1
@@ -47,7 +50,7 @@ struct Selection{uint8_t now=0;bool inc(int n){if(now+1>=n)return false;++now;re
 enum {Prepare,Display_Menu,Max_LCD_Bright,Dimm_Bright,DimmTime,MainMenu,SelectFile,ThumbPrint,M117Info,HostCanvas};
 int checkkey=Display_Menu;
 constexpr int MROWS=5,ICON_Contact=1,ICON_PrintSize=2,ICON_Hardware_version=3,ICON_PrintTime=4,
- ICON_WriteEEPROM=5,font8x16=1,Color_White=1,Color_Bg_Black=0,Select_Color=2,VALUERANGE_X=180,
+ ICON_WriteEEPROM=5,font8x16=1,font6x12=0,Color_White=1,Color_Yellow=4,Color_Bg_Black=0,Select_Color=2,VALUERANGE_X=180,
  LANGUAGE_Store=1,JPN_OFFSET=0,PREPARE_CASE_DISPLAY=9,LANGUAGE_LEVEL_FINISH=2,
  TITLE_X=0,TITLE_Y=0,LANGUAGE_Confirm=3,OK_BUTTON_X=10,Language_Max=1,PROGRESS_SCALE=1,DWIN_WIDTH=240;
 int MAX_SCREEN_BRIGHTNESS=230,DIMM_SCREEN_BRIGHTNESS=175,TURN_OFF_TIME=5;
@@ -78,6 +81,8 @@ void Move_Highlight(int,int row){assert(row>=0&&row<=MROWS);}
 void Draw_Prepare_Menu(){}void DWIN_UpdateLCD(){}
 void Clear_Below_Area(){}void Clear_Title_Bar(){}void Draw_Print_ProgressBar(){}
 void DWIN_Draw_Rectangle(int,int,int,int,int,int){}
+void DWIN_Draw_String(bool,bool,int,int,int,int,int,const char*){}
+void Draw_Print_Time(){}void Draw_Print_ProgressRemain(){}void Draw_Layer_Number(bool){}
 void Clear_Thumb_UpperArea(){}void Goto_ThumbPrint(){}void Draw_OctoTitle(const char*){}
 void Goto_MainMenu(){checkkey=MainMenu;}
 struct {void set_progress(int){}void set_current_layer(int){}int get_total_layer_count(){return 30;}
@@ -99,21 +104,23 @@ struct {char key=0;uint32_t value=0;const char *string_arg=nullptr;
  float value_float(){return value;}}parser;
 struct GcodeSuite{static void M9000();};
 '''
-code = prefix + sound
+code = prefix + '\n#if ENABLED(DWIN_PRINT_DONE_SOUND)\n' + sound + '\n#endif\n'
 # Compile the real save/load statements, preserving the serialized byte count.
-save = settings[settings.index('      // Reuse the existing byte:'):]
+save = settings[settings.index('      uint8_t beep = toggle_LCDBeep & 1;'):]
 save = save[:save.index('      // uint8_t prealert')]
 load = settings[settings.index('        uint8_t beep;'):]
 load = load[:load.index('        // uint8_t prealert')]
 code += '\nvoid save_beeper(){\n' + save + '\n}\nvoid load_beeper(){\n' + load + '\n}\n'
-reset = settings[settings.index('  #if ALL(DWIN_CREALITY_LCD, DWIN_LCD_BEEP)'):]
+reset = settings[settings.index('  #if ENABLED(DWIN_PRINT_DONE_SOUND)', settings.index('void MarlinSettings::reset()')):]
 reset = reset[reset.index('\n') + 1:reset.index('  #endif')]
-code += '\nvoid reset_beeper(){\n' + reset + '\n}\n'
-for name in ('Draw_Display_Menu', 'HMI_Display_Menu', 'DWIN_Update', 'Goto_ThumbFinish'):
+code += '\nvoid reset_beeper(){\n#if ENABLED(DWIN_PRINT_DONE_SOUND)\n' + reset + '\n#endif\n}\n'
+for name in ('Draw_Display_Menu', 'HMI_Display_Menu', 'DWIN_Update') + (('Goto_ThumbFinish',) if has_host else ()):
     code += '\n' + function(source, 'void ' + name + '(')
-code += '\n' + function(host, 'static void copy_title(')
-code += '\n' + function(host, 'void GcodeSuite::M9000(')
+if has_host:
+    code += '\n' + function(host, 'static void copy_title(')
+    code += '\n' + function(host, 'void GcodeSuite::M9000(')
 code += r'''
+#if ENABLED(DWIN_PRINT_DONE_SOUND)
 void drain(){for(int n=0;n<1000;++n){++now;PrintDoneSound::tick();}}
 int main(){
  // Legacy EEPROM values and all combinations of the two independent switches.
@@ -149,11 +156,13 @@ int main(){
  event=ENCODER_DIFF_CCW;for(int i=0;i<store_item+2;++i)HMI_Display_Menu();assert(!select_display.now);
  enter();assert(checkkey==Prepare&&select_prepare.now==PREPARE_CASE_DISPLAY);
  // Host uses actual M9000 S1/F1 paths; repeated F1 doesn't replay a completed alert.
+ #if HOST_VARIANT
  checkkey=MainMenu;parser.key='S';parser.value=1;GcodeSuite::M9000();
  parser.key='F';GcodeSuite::M9000();PrintDoneSound::tick();drain();
  assert(pins.size()==6&&HMI_flag.done_confirm_flag);GcodeSuite::M9000();drain();assert(pins.size()==6);
  checkkey=MainMenu;parser.key='S';GcodeSuite::M9000();assert(!HMI_flag.done_confirm_flag);
  parser.key='F';GcodeSuite::M9000();PrintDoneSound::tick();drain();assert(pins.size()==12);
+ #endif
  // SD completion is observed even in a menu and during host drawing ownership.
  #if SDSUPPORT
  PrintDoneSound::cancel();HMI_flag.print_finish=false;DWIN_Update();pins.clear();
@@ -163,16 +172,28 @@ int main(){
  drain();assert(pins.size()==6);HMI_flag.print_finish=true;DWIN_Update();drain();assert(pins.size()==12);
  #endif
 }
+#else
+int main(){
+ Draw_Display_Menu();assert(checks==0);
+ for(const auto &label:labels)assert(label!="Print done sound");
+ constexpr int store_item=DWIN_DIMM_MENU?5:2;
+ event=ENCODER_DIFF_CW;
+ for(int i=0;i<store_item+2;++i)HMI_Display_Menu();assert(select_display.now==store_item);
+ event=ENCODER_DIFF_ENTER;HMI_Display_Menu();assert(settings.saves==1);
+ stored=3;load_beeper();assert(toggle_LCDBeep==1);save_beeper();assert(stored==1);
+ assert(pins.empty());
+}
+#endif
 '''
 with tempfile.TemporaryDirectory(prefix='dwin-print-done-') as folder:
     cpp = Path(folder) / 'replay.cpp'
     binary = Path(folder) / 'replay'
     cpp.write_text(code)
-    for dimm, sd in ((0, 0), (1, 0), (0, 1), (1, 1)):
+    for dimm, sd, enabled in ((d,s,e) for d in (0,1) for s in (0,1) for e in (0,1)):
         subprocess.run([os.environ.get('CXX', 'clang++'), '-std=c++17', '-g',
                         '-fsanitize=address,undefined', '-fno-omit-frame-pointer',
-                        '-I', str(ROOT), f'-DDWIN_DIMM_MENU={dimm}', f'-DSDSUPPORT={sd}',
+                        '-I', str(ROOT), f'-DDWIN_DIMM_MENU={dimm}', f'-DSDSUPPORT={sd}', f'-DSOUND_ENABLED={enabled}', f'-DHOST_VARIANT={int(has_host)}',
                         str(cpp), '-o', str(binary)], check=True)
         subprocess.run([str(binary)], check=True,
                        env={**os.environ, 'ASAN_OPTIONS': 'detect_leaks=0'})
-        print(f'PASS completion sound / EEPROM / menu / host / SD: dimmer={dimm}, SD={sd}')
+        print(f'PASS completion sound / EEPROM / menu / host / SD: dimmer={dimm}, SD={sd}, sound={enabled}')

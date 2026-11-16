@@ -6,7 +6,7 @@ import subprocess
 import tempfile
 from test_dwin_input_shaping import function
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(os.environ.get('DWIN_TEST_ROOT', Path(__file__).resolve().parents[1]))
 s = (ROOT / 'Marlin/src/lcd/dwin/creality/dwin.cpp').read_text()
 prefix = r'''
 #include <cassert>
@@ -38,7 +38,7 @@ struct {int progress=6734,layer=17,total=40,remaining=600,resets=0;
 char title[50]="cube.gcode",shift_name[101]={},visibleText[31]={};
 uint8_t scrollOffset=0;uint32_t lastScrollTime=0;const int scrollDelay2=250;
 constexpr int MENU_CHAR_LIMIT=30,DWIN_FONT_HEAD=1,Color_Yellow=4,Color_Blue=3,Color_White=1,
- Color_Bg_Black=0,font8x16=1,LANGUAGE_Info=1,LANGUAGE_Back=2,TITLE_X=0,TITLE_Y=0,
+ Color_Bg_Black=0,font8x16=1,font6x12=0,LANGUAGE_Info=1,LANGUAGE_Back=2,TITLE_X=0,TITLE_Y=0,
  DWIN_WIDTH=240,MENU_CHR_W=8;
 struct Text {int x,y;std::string value;int color;};std::vector<Text> text;
 int title_clears=0,full_clears=0,pause_icons=0,continue_icons=0;
@@ -47,6 +47,7 @@ void Clear_Title_Bar(){++title_clears;}
 void Clear_Main_Window(){++full_clears;}
 void Draw_Mid_Status_Area(bool){}void DWIN_ICON_Show(int,int,int,int){}void Draw_Back_First(){}
 void Clear_Below_Area(){}void Draw_Print_ProgressBar(){}
+void Draw_Print_Time(){}void Draw_Print_ProgressElapsed(){}void Draw_Print_ProgressRemain(){}void Draw_Layer_Number(bool){}
 void ICON_Tune(){}void ICON_Stop(){}void ICON_Pause(){++pause_icons;}void ICON_Continue(){++continue_icons;}
 void DWIN_UpdateLCD(){}
 bool drawing=false;
@@ -63,6 +64,7 @@ ENCODER_DiffState get_encoder_state(){return event;}
 void Draw_ThumbTune_Menu(){}void ThumbPopup_PauseOrStop(){}
 void unchanged(){assert(ui.progress==6734&&ui.layer==17&&ui.total==40&&ui.remaining==600&&ui.resets==0);}
 void title_only(int from){for(unsigned i=from;i<text.size();++i)assert(text[i].y==4);}
+Text last_title(){for(auto i=text.rbegin();i!=text.rend();++i)if(i->y==4)return *i;assert(false);return {};}
 '''
 code = prefix
 for name in ('octo_make_name_without_ext', 'Draw_OctoTitle', 'octoUpdateScroll'):
@@ -99,11 +101,11 @@ int main(){
  // Do not replace Tune or safety prompts when a state notification/message arrives.
  checkkey=ThumbTune;before=text.size();DWIN_Show_M117(second);HostPrint::set_paused(false);
  assert(checkkey==ThumbTune&&text.size()==before);unchanged();
- Goto_ThumbPrint(false);assert(text[text.size()-1].value==second);unchanged();
+ Goto_ThumbPrint(false);assert(last_title().value==second);unchanged();
  checkkey=AdvancedPause;before=text.size();DWIN_Show_M117(first);
  HostPrint::set_paused(true);now+=15000;HostPrint::update_title();
  assert(checkkey==AdvancedPause&&text.size()==before);
- Goto_ThumbPrint(false);assert(text.back().value=="cube");unchanged();
+ Goto_ThumbPrint(false);assert(last_title().value=="cube");unchanged();
  // Long text is bounded, scrolls, and never overwrites the original filename.
  char long_message[220];memset(long_message,'x',219);long_message[219]=0;
  before=text.size();DWIN_Show_M117(long_message);assert(strlen(shift_name)==100&&text.back().value.size()==30);
@@ -123,7 +125,7 @@ int main(){
  OctoRefresh=false;isPaused=false;marlin.running=marlin.paused=false;
  DWIN_Show_M117(second);assert(checkkey==M117Info&&full_clears==1&&!OctoRefresh);unchanged();
  // Only complete cancellation notices trigger control actions.
- for(const char *notice:{"Print cancelled","print canceled!","Printing cancelled.",
+ for(const char *notice:{"Print was cancelled","Print was canceled","Print cancelled","print canceled!","Printing cancelled.",
      "PRINTING CANCELED","Impresion cancelada","Impresión cancelada","IMPRESIÓN CANCELADA"})
    assert(HostPrint::is_cancel_message(notice));
  for(const char *notice:{"Press Cancel","Print not cancelled","Cancel printing?", "Print cancelled?", "Print cancelled test"})

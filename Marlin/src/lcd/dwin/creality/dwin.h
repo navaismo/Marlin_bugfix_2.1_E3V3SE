@@ -33,7 +33,7 @@
 
 #include "../../../libs/duration_t.h"
 
-#if ENABLED(DWIN_LCD_BEEP)
+#if ENABLED(DWIN_PRINT_DONE_SOUND)
   namespace PrintDoneSound {
     extern bool enabled;
     void start();
