@@ -68,8 +68,9 @@
 
 // Choose the name from boards.h that matches your setup
 #ifndef MOTHERBOARD
-  #define MOTHERBOARD BOARD_CREALITY_V3_GD303
+  #define MOTHERBOARD BOARD_CREALITY_F401RE
 #endif
+#define E3V3SE_C14 // Ender-3 V3 SE C14 pin map
 #define CUSTOM_MACHINE_NAME "Ender-3 V3 SE"
 
 // @section serial

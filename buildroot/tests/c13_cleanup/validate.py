@@ -15,7 +15,7 @@ cases=[(name,[sys.executable,str(ROOT/'test'/(name+'.py'))],ROOT) for name in (
  'test_c13_cleanup_protocol','test_c13_cleanup_integration','test_c13_cleanup_ui','test_dwin_host_status','test_dwin_print_done_sound',
  'test_dwin_advanced_pause','test_dwin_pause_purge','test_dwin_thumbnail_progress',
  'test_dwin_runout_owner','test_dwin_calibration_error','test_dwin_move_exit','test_autooffset_safety')]
-cases += [('profile',[sys.executable,'buildroot/share/e3v3se/config_profile.py','--profile','c13_octoprint','check'],ROOT),
+cases += [('profile',[sys.executable,'buildroot/share/e3v3se/config_profile.py','--profile',(ROOT/'buildroot/share/e3v3se/active_profile').read_text().strip(),'check'],ROOT),
           ('eeprom',[sys.executable,'buildroot/share/e3v3se/check_eeprom_upgrade.py','--ref','244be9d8012cca3c4eb1efbfa084f1f9df0fa1d4','--output','docs/c13-cleanup/eeprom.json'],ROOT),
           ('plugin_host',[sys.executable,'-m','unittest','discover','-s','tests'],plugin),
           ('plugin_frontend',['node','tests/test_purge_frontend.js'],plugin)]

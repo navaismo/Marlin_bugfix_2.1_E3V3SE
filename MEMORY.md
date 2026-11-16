@@ -214,3 +214,11 @@ The Makefile/test runner supports `GIT_RESET_HARD`, which can run `git reset --h
   All 66 plugin tests pass in offline OctoPrint/Pillow, native UI/protocol checks
   pass. The existing Configuration_adv.h profile mismatch remains; config files
   match starting HEAD 5fa34e8388 and were not edited. See docs/c13-host-status.md.
+
+
+## Release preparation 2026-11-15
+
+- Active variant: `c14_pure_octoprint`. The two `pure_octoprint` variants are host-only and use M9001 v2; the standard OctoPrint variants retain the legacy protocol and SD support.
+- Completion audio is gated by `DWIN_PRINT_DONE_SOUND`, off by default in SD builds; the persisted LCD switch starts off in every variant. EEPROM serialization stays one byte.
+- Standard thumbnail scratch capacity is 512 runs, with the existing 96-runs-per-row pre-write bounds fix retained.
+- Legacy OctoPrint variants receive the title/pause/idle-cancel fixes without the v2 executor. See `docs/releases/2026-11-15.md` for measurements and hardware checks.

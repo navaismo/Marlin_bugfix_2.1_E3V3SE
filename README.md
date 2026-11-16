@@ -4,7 +4,7 @@ An upstream-first Marlin 2.1.x bugfix fork for the **Creality Ender-3 V3 SE**.
 
 The goal of this repository is simple: **pull upstream Marlin at any time without regressions**. All fork-specific behavior is isolated behind a small, auditable boundary, and the machine configuration is generated from pristine upstream files plus a reviewed profile.
 
-> This is `c13_octoprint_cleanup`: host-only development firmware for the **C13 (STM32F103RE)** board, paired with the **`main_cleanup`** branch of [OctoPrint-LCD_E3V3SE](https://github.com/navaismo/Octoprint-LCD_E3V3SE). SD printing is disabled; SD bootloader updates still work. This branch uses M9001 v2. Recent hardware tests reported printing timeouts and checksum mismatches; diagnosis is still open. For SD printing use `c13_sd`.
+> This is `c14_pure_octoprint`: host-only firmware for the **C14 (STM32F401RE)** board, paired with the **`main_cleanup`** branch of [OctoPrint-LCD_E3V3SE](https://github.com/navaismo/Octoprint-LCD_E3V3SE). SD printing is disabled; SD bootloader updates still work. This branch uses M9001 v2. Recent hardware tests reported printing timeouts and checksum mismatches; diagnosis is still open. For SD printing use `c13_sd`.
 
 ## Table of Contents
 
@@ -86,17 +86,17 @@ Upstream code flows in untouched, the machine configuration is generated from it
 
 | Branch | Hardware | Purpose |
 | --- | --- | --- |
-| `c13_sd` | C13 (STM32F103RE), SD card | Main line and default branch. Upstream-first architecture with the C13 SD profile. |
-| `c13_octoprint` | C13 (STM32F103RE), serial host (OctoPrint) | Stable base with the legacy thumbnail protocol. |
-| `c13_octoprint_cleanup` | C13 (STM32F103RE), host only | M9001 v2, host thumbnail processing, native menus and no SD printing. Pair with plugin `main_cleanup`. |
-| `c14_sd` | C14 (STM32F401RE), SD card | C14 SD profile; uses `BOARD_CREALITY_F401RE` and the `STM32F401RE_creality` environment. |
-| `c14_octoprint` | C14 (STM32F401RE), serial host (OctoPrint) | `c14_sd` plus the host layer, MeatPack and the OctoPrint plugin protocol; `ONE_CLICK_PRINT` is off. |
-| `legacy/for_E3V3SE`, `legacy/for_Octoprint` | C13 | Pre-architecture branches, kept for reference only. |
-| `legacy/for_STM32F401`, `legacy/for_Octoprint_F401` | C14 (STM32F401) | Pre-architecture branches, kept for reference only. |
+| `c13_pure_octoprint` | C13 (STM32F103RE), host only | **Editor's Choice for OctoPrint.** M9001 v2, host image processing, native menus; SD printing excluded. Pair with plugin `main_cleanup`. |
+| `c14_pure_octoprint` | C14 (STM32F401RE), host only | **Editor's Choice for OctoPrint.** Same protocol/UI as C13 pure, with the C14 pin map and bootloader layout. Pair with plugin `main_cleanup`. |
+| `c13_sd` | C13 (STM32F103RE), SD card | SD-first standard firmware; default branch. |
+| `c14_sd` | C14 (STM32F401RE), SD card | SD-first standard firmware with the C14 pin map. |
+| `c13_octoprint` | C13 (STM32F103RE), SD + host | Standard firmware with the legacy M9001 thumbnail protocol. |
+| `c14_octoprint` | C14 (STM32F401RE), SD + host | Standard firmware with the C14 pin map and legacy M9001 thumbnail protocol. |
+| `legacy/*` | C13/C14 | Historical branches retained for reference. |
 
 `c13_sd` is the default branch. The `legacy/` branches are frozen and no longer receive upstream merges.
 
-Each branch carries its own copy of the documentation, so notes follow the code they describe.
+Each branch carries its own copy of the documentation, so notes follow the code they describe. See the [2026-11-15 port and memory report](docs/releases/2026-11-15.md).
 
 ## Project structure
 
@@ -132,21 +132,21 @@ A profile is the difference between upstream's configuration files and the machi
 
 ```sh
 # Regenerate the profile after editing Configuration*.h by hand
-python3 buildroot/share/e3v3se/config_profile.py --profile c13_octoprint derive
+python3 buildroot/share/e3v3se/config_profile.py --profile c14_pure_octoprint derive
 
 # Verify the files equal upstream + profile
-python3 buildroot/share/e3v3se/config_profile.py --profile c13_octoprint check
+python3 buildroot/share/e3v3se/config_profile.py --profile c14_pure_octoprint check
 
 # Rebuild the files from upstream + profile (after taking upstream's versions)
-python3 buildroot/share/e3v3se/config_profile.py --profile c13_octoprint apply
+python3 buildroot/share/e3v3se/config_profile.py --profile c14_pure_octoprint apply
 
 # List upstream options that the profile disables (review after a merge)
-python3 buildroot/share/e3v3se/config_profile.py --profile c13_octoprint stale
+python3 buildroot/share/e3v3se/config_profile.py --profile c14_pure_octoprint stale
 ```
 
 Without `--profile`, the tools use the name stored in `buildroot/share/e3v3se/active_profile`.
 
-This development branch is `c13_octoprint_cleanup`, using the `c13_octoprint` profile with SD printing disabled. Native MAIN, encoder menus, OctoPrint ThumbTune and print controls remain. Print opens an upload-to-host message. M9001 v2 renders a bounded host print card; see [implementation and measurements](docs/c13-cleanup.md). Firmware updates still use the existing SD bootloader procedure.
+This host-only branch is `c14_pure_octoprint`, using the `c14_pure_octoprint` profile with SD printing disabled. Native MAIN, encoder menus, OctoPrint ThumbTune and print controls remain. Print opens an upload-to-host message. M9001 v2 renders a bounded host print card; see [implementation and measurements](docs/c13-cleanup.md). Firmware updates still use the existing SD bootloader procedure.
 
 ## Enabling and disabling features by hand
 
@@ -155,12 +155,12 @@ Features are plain Marlin defines. To toggle one, edit `Marlin/Configuration.h` 
 1. **Edit the define.** Comment it out (`//#define FEATURE`) to disable it, or remove the `//` to enable it. Options that carry a value keep it on the same line.
 2. **Regenerate the profile** for the branch you are on:
    ```sh
-   python3 buildroot/share/e3v3se/config_profile.py --profile c13_octoprint derive
-   python3 buildroot/share/e3v3se/config_profile.py --profile c13_octoprint check
+   python3 buildroot/share/e3v3se/config_profile.py --profile c14_pure_octoprint derive
+   python3 buildroot/share/e3v3se/config_profile.py --profile c14_pure_octoprint check
    ```
 3. **Build and check size**, then commit and run the guardrails:
    ```sh
-   pio run -e STM32F103RET6_creality
+   pio run -e STM32F401RE_creality
    python3 buildroot/share/e3v3se/check_profile.py build
    ```
 4. If flash or RAM grew on purpose, update the baseline with `check_profile.py build --update` after reviewing the change.
@@ -189,9 +189,10 @@ Some options depend on others. `OCTOPRINT_PLUGIN` relies on `HOST_ACTION_COMMAND
 | OctoPrint plugin layer | `OCTOPRINT_PLUGIN` | `Configuration.h` (on in this branch) |
 | One-click print | `ONE_CLICK_PRINT` | `Configuration_adv.h` (off in this branch) |
 | Power-loss recovery and LCD menu (off by default) | `POWER_LOSS_RECOVERY`, `DWIN_PLR_MENU` | `Configuration_adv.h` |
+| Print completion sound / LCD switch | `DWIN_PRINT_DONE_SOUND` | `Configuration_adv.h` (build default off on SD; LCD switch default off everywhere) |
 | Preheat completion alert | `PREHEAT_ALERT` | `Configuration.h` |
-| Resonance sweeps (off by default) | `RESONANCE_TEST` | `Configuration_adv.h` |
-| Pinput_Shaping resonance host events (OctoPrint; off by default) | `PINPUT_RESONANCE_EVENTS` | `Configuration_adv.h` |
+| Resonance sweeps | `RESONANCE_TEST` | `Configuration_adv.h` |
+| Pinput_Shaping resonance host events (OctoPrint) | `PINPUT_RESONANCE_EVENTS` | `Configuration_adv.h` |
 | Host thumbnail layout (required) | `DWIN_RENDER_THUMBNAIL` | `Configuration.h` |
 | Host print-card transport | `M9001_DRAW_PROTOCOL` | `Configuration_adv.h` (enabled with host-only OctoPrint) |
 | SD printing | `SDSUPPORT` | `Configuration.h` (off on cleanup) |
@@ -205,7 +206,7 @@ The table lists switches, not a statement of the current state; check the define
 
 `PREHEAT_ALERT` sounds three short beeps when the nozzle and bed reach the targets selected from the LCD's **Prepare → Preheat** menu (PLA/TPU, plus PETG/ABS with `EXTRA_PREHEAT_LABELS`). It is off by default and can be enabled in the GitHub Actions build dialog. Editing or saving presets does not arm the alert; cooling down, changing heater targets, or starting a print cancels it. The beeps run without blocking the LCD or temperature management.
 
-**Prepare → Display Settings → Print done sound** enables a short completion alert for SD prints and host prints (`M9000 F1`). It is off by default and independent of the knob's beep setting. Select **Store** or send `M500` to keep it after restart; `M502` disables it. The option shares the existing LCD beeper EEPROM byte, preserving the settings layout and older 0/1 values. SD completion is detected even when another native menu is open. Repeated host completion notifications do not replay the alert until a new job opens with `M9000 S1`.
+**Print completion sound:** compile `DWIN_PRINT_DONE_SOUND` to include **Prepare → Display Settings → Print done sound**. The GitHub Actions checkbox is **off by default on `c13_sd` and `c14_sd`**, and on by default on the OctoPrint branches. The LCD switch itself always starts **off**; enable it and use **Store** or `M500` to persist it. `M502` disables it. The fixed-pitch buzzer plays short-short-long (80/80/240 ms with 80 ms gaps), without a sample buffer, heap allocation or blocking delays. It handles SD completion even in a native menu, and host completion through `M9000 F1`. Knob clicks remain independent. Both settings share the existing EEPROM byte; the layout/version is unchanged. With the build flag off, the completion menu and playback state are excluded.
 
 The configured buzzer has a fixed pitch. Completion uses a short-short-long confirmation rhythm: 80 ms, 80 ms and 240 ms, with 80 ms gaps. Playback reuses the same small timer state, without audio samples, dynamic allocation, blocking delays or extra serial/LCD commands. The last pulse ends after a nominal 560 ms; the LCD update interval can extend it. This branch keeps SD printing disabled; the same completion option is available when building with SD support.
 
@@ -251,7 +252,7 @@ Factory defaults: X none at 37 Hz, Y 3HEI at 42 Hz. To change them, edit `FTM_DE
 
 ### Resonance tests with Pinput_Shaping (`M495` / `M496`)
 
-The OctoPrint [Pinput_Shaping plugin](https://github.com/navaismo/Octoprint-Pinput_Shaping) can synchronize accelerometer acquisition with the firmware's resonance sweep through `PINPUT_RESONANCE_EVENTS`. **`RESONANCE_TEST` and `PINPUT_RESONANCE_EVENTS` are both disabled by default in this branch.** FT Motion and the existing X/Y shaping settings are unchanged by these defaults.
+The OctoPrint [Pinput_Shaping plugin](https://github.com/navaismo/Octoprint-Pinput_Shaping) can synchronize accelerometer acquisition with the firmware's resonance sweep through `PINPUT_RESONANCE_EVENTS`. **Both the committed pure profile and the manual workflow enable `RESONANCE_TEST` and `PINPUT_RESONANCE_EVENTS` by default.** FT Motion and the existing X/Y shaping settings are unchanged by these defaults.
 
 To build this branch for the plugin's resonance-test flow, enable all of the following in `Marlin/Configuration_adv.h`, then regenerate the `c13_octoprint` profile:
 
@@ -265,7 +266,7 @@ To build this branch for the plugin's resonance-test flow, enable all of the fol
 
 The exact flag is **`PINPUT_RESONANCE_EVENTS`**. `PINPUT_RESONANCE_PROGRESS` is optional and remains disabled. The firmware requires a 32-bit CPU; M495/M496 dispatch in this checkout also requires `FT_MOTION` at compile time. `INPUT_SHAPING_X/Y` compile the independent standard-motion shapers and are not required by resonance testing. FT Motion's shaper algorithms remain configured through `FTM_SHAPER_*` and `M493`. Selecting a shaping mode with `M493` alone does not compile in resonance testing or host events.
 
-In this OctoPrint branch's GitHub Actions workflow, select **RESONANCE_TEST + PINPUT_RESONANCE_EVENTS**. This single option defaults to off and enables both flags together with FT Motion and the emergency parser for that build. It takes precedence over an unchecked FT Motion option and disables the legacy LCD shaping menu. It leaves `INPUT_SHAPING_X/Y` unchanged.
+In this OctoPrint branch's GitHub Actions workflow, select **RESONANCE_TEST + PINPUT_RESONANCE_EVENTS**. This single option defaults to on in the pure branches and enables both flags together with FT Motion and the emergency parser for that build. It takes precedence over an unchecked FT Motion option and disables the legacy LCD shaping menu. It leaves `INPUT_SHAPING_X/Y` unchanged.
 
 After installing an enabled build, the plugin can query `M495 Q2` and must receive `echo:PIS:RT:READY:2` before using the host-armed flow. A start with `I<id> S W` performs homing and positioning, emits `HOMED` and `ARMED_WAIT`, and waits without exciting the axis. The plugin starts sensor acquisition, verifies fresh samples, then sends `M495 I<id> R`. `ARM_ACK` and `START` identify activation; `COMPLETE` follows actual motion drain. Without ARM, the pending session expires after 30 seconds. `M496` cancels the test. `M495 Q` and starts without W retain the version 1 flow.
 
@@ -430,41 +431,40 @@ the plugin's rendering guide for packet fields and the full lifecycle.
 PlatformIO is the build system. Use a recent PlatformIO Core (6.2 or newer).
 
 ```sh
-pio run -e STM32F103RET6_creality    # C13 (c13_octoprint)
+pio run -e STM32F401RE_creality      # C14 pure OctoPrint
 ```
 
 Native unit tests and the upstream build tests are available through the Makefile (`make unit-test-all-local`, `make tests-all-local`).
 
 ### Building with GitHub Actions
 
-The `c13_octoprint` branch (C13 OctoPrint host) ships a manual workflow, [`build-marlin.yml`](.github/workflows/build-marlin.yml), that compiles the firmware on GitHub so no local toolchain is needed. Fork the repository first; Actions run in your own fork.
+The `c14_pure_octoprint` branch ships a manual workflow, [`build-marlin.yml`](.github/workflows/build-marlin.yml), that compiles the firmware on GitHub so no local toolchain is needed. Fork the repository first; Actions run in your own fork.
 
 1. Open your fork on GitHub, go to **Actions**, and select **Build E3V3SE Firmware**. If workflows are disabled in the fork, click **I understand my workflows, go ahead and enable them**.
-2. Click **Run workflow** and choose the `c13_octoprint` branch.
-3. Keep the environment at `STM32F103RET6_creality` and set the feature toggles you want (Z-offset routines, FT_Motion, DWIN menus, preheat labels and so on; the host thumbnail layout is required on cleanup). The defaults match the committed configuration of this branch: `OCTOPRINT_PLUGIN` and `MEATPACK_ON_SERIAL_PORT_1` on; `ONE_CLICK_PRINT`, `RESONANCE_TEST` and `PINPUT_RESONANCE_EVENTS` off. Select **RESONANCE_TEST + PINPUT_RESONANCE_EVENTS** to include the Pinput_Shaping resonance flow and its dependencies.
+2. Click **Run workflow** and choose the `c14_pure_octoprint` branch.
+3. Keep the environment at `STM32F401RE_creality` and set the feature toggles you want (Z-offset routines, FT_Motion, DWIN menus, preheat labels and so on; the host thumbnail layout is required on cleanup). The committed configuration and workflow defaults enable `MEATPACK_ON_SERIAL_PORT_1`, `OCTOPRINT_PLUGIN`, `DWIN_PRINT_DONE_SOUND`, `RESONANCE_TEST`, `PINPUT_RESONANCE_EVENTS` and `M9001_DRAW_PROTOCOL`. Pinput_Shaping also enables FT Motion and the emergency parser, leaving legacy X/Y shaping unchanged. `ONE_CLICK_PRINT` stays excluded. The completion sound menu preserves the saved LCD preference; its factory switch starts off.
 4. Click **Run workflow** and wait for the job to finish. The log ends with a RAM and flash usage report.
-5. Download the `firmware-c13_octoprint-STM32F103RET6_creality` artifact from the run summary. It contains the `firmware*.bin` file and is kept for 7 days.
+5. Download the `firmware-c14_pure_octoprint-STM32F401RE_creality` artifact from the run summary. It contains the `firmware*.bin` file and is kept for 7 days.
 
 Each toggle overrides the matching feature and its documented dependencies for that single build; nothing is committed back to the repository. To make a choice permanent, edit the profile as described in [Configuration profiles](#configuration-profiles). Check the reported memory usage against the [Memory budget](#memory-budget) before flashing, and enable `DWIN_INPUT_SHAPING_MENU` only with `FT_MOTION` disabled, and `DWIN_SKEW_MENU` only together with `SKEW_CORRECTION`. Selecting FT_Motion or the Pinput_Shaping resonance option forces the legacy input shaping menu off for that build.
 
 ## Memory budget
 
-The STM32F103RE has 64 KiB RAM. PlatformIO allows 495,616 bytes of application
-Flash after the bootloader reservation. The cleanup removes SD printing,
+Current `c14_pure_octoprint` build (2026-11-15): **18,104 bytes static RAM** / **221,552 bytes application Flash**. See the [six-variant memory and validation report](docs/releases/2026-11-15.md).
+
+This C14 target has a 65,536-byte RAM budget and 448,752 bytes of application Flash in PlatformIO. Historical C13 measurements below use the C13 linker limits. The cleanup removes SD printing,
 CardReader state, SD thumbnail parsers and their large run buffers from the
-linked firmware. Image analysis runs on OctoPrint. The executor has **76 bytes
-of persistent state**, including its 42-byte payload; it has no full framebuffer.
+linked firmware. Image analysis runs on OctoPrint. The current executor has a compile-time **88-byte state limit**, including its 42-byte payload and full-screen ownership flag; it has no full framebuffer.
 
 | Measured build | RAM bytes | RAM % | Flash bytes | Flash % |
 |---|---:|---:|---:|---:|
 | Original host firmware | 28260 | 43.1 | 245964 | 49.6 |
-| Last measured cleanup | 22620 | 34.5 | 211528 | 42.7 |
+| Historical C13 cleanup (2026-11-08) | 22620 | 34.5 | 211528 | 42.7 |
 
 That saves **5,640 bytes RAM** and **34,436 bytes Flash**. The last measurement
 is `firmware-20261108-191844.bin`, before the Progress label call was commented
-out; the current source has not been remeasured after that one-line change.
-Static RAM is not peak stack/heap usage. EEPROM V93 and the 0x7000 bootloader
-offset are unchanged; disabling SDSUPPORT does not disable bootloader SD updates.
+out. Current measurements are listed above and in the release report.
+Static RAM is not peak stack/heap usage. EEPROM V93 is retained. The linker vector is 0x8010000 on this board; disabling SDSUPPORT does not disable bootloader SD updates.
 
 For the same reference thumbnail, numbered traffic fell from **54,362 to 10,441
 bytes**, MeatPack traffic from **36,609 to 13,236 bytes**, and TJC frames from

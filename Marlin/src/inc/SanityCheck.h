@@ -4977,3 +4977,7 @@ static_assert(WITHIN(MULTISTEPPING_LIMIT, 1, 128) && IS_POWER_OF_2(MULTISTEPPING
     #error "M9001 v2 pacing is qualified for LCD_BAUDRATE 115200."
   #endif
 #endif
+
+#if ENABLED(DWIN_PRINT_DONE_SOUND) && !ALL(DWIN_CREALITY_LCD, DWIN_LCD_BEEP)
+  #error "DWIN_PRINT_DONE_SOUND requires the Creality LCD and DWIN_LCD_BEEP."
+#endif

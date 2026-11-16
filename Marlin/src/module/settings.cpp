@@ -1915,7 +1915,8 @@ void MarlinSettings::postprocess() {
     {
       // Reuse the existing byte: bit 0 encoder clicks, bit 1 print-done alert.
       // Legacy 0/1 values keep their click setting and leave the new alert off.
-      uint8_t beep = (toggle_LCDBeep & 1) | (PrintDoneSound::enabled ? 2 : 0);
+      uint8_t beep = toggle_LCDBeep & 1;
+      TERN_(DWIN_PRINT_DONE_SOUND, beep |= PrintDoneSound::enabled ? 2 : 0);
       EEPROM_WRITE(beep);
 
       // uint8_t prealert = toggle_PreHAlert;
@@ -3178,8 +3179,10 @@ void MarlinSettings::postprocess() {
         uint8_t beep;
         EEPROM_READ(beep); //Read LCD_Beeper state
         toggle_LCDBeep = beep & 1;
-        PrintDoneSound::enabled = beep & 2;
-        PrintDoneSound::cancel();
+        #if ENABLED(DWIN_PRINT_DONE_SOUND)
+          PrintDoneSound::enabled = beep & 2;
+          PrintDoneSound::cancel();
+        #endif
 
         // uint8_t prealert;
         // EEPROM_READ(prealert); //Read LCD_Beeper state
@@ -3753,7 +3756,7 @@ void MarlinSettings::reset() {
   //
   // Buzzer enable/disable
   //
-  #if ALL(DWIN_CREALITY_LCD, DWIN_LCD_BEEP)
+  #if ENABLED(DWIN_PRINT_DONE_SOUND)
     PrintDoneSound::enabled = false;
     PrintDoneSound::cancel();
   #endif

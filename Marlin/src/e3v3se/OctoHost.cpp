@@ -183,7 +183,7 @@ void GcodeSuite::M9000() {
       HostPrint::clear_status();
     #endif
     HMI_flag.done_confirm_flag = false;
-    TERN_(DWIN_LCD_BEEP, PrintDoneSound::cancel());
+    TERN_(DWIN_PRINT_DONE_SOUND, PrintDoneSound::cancel());
     Clear_Thumb_UpperArea();
     Clear_Title_Bar();
     Goto_ThumbPrint();

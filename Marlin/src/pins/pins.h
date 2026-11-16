@@ -806,7 +806,7 @@
 #elif MB(TRONXY_CXY_446_V10)
   #include "stm32f4/pins_TRONXY_CXY_446_V10.h"      // STM32F4                              env:TRONXY_CXY_446_V10 env:TRONXY_CXY_446_V10_usb_flash_drive
 #elif MB(CREALITY_F401RE)
-  #include "stm32f4/pins_CREALITY_F401.h"           // STM32F4                              env:STM32F401RE_creality
+  #include "../e3v3se/pins_CREALITY_F401RE.h"           // STM32F4                              env:STM32F401RE_creality
 #elif MB(BLACKPILL_CUSTOM)
   #include "stm32f4/pins_BLACKPILL_CUSTOM.h"        // STM32F4                              env:STM32F401CD_blackpill_stlink
 #elif MB(I3DBEEZ9_V1)
