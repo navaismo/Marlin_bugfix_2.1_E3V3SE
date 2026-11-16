@@ -185,7 +185,15 @@
  
    //#define SD_ABORT_NO_COOLDOWN          // Leave the heaters on after Stop Print (not recommended!)
  
-@@ -2395,6 +2409,7 @@
+@@ -2193,6 +2207,7 @@
+   //#define MARLIN_SNAKE
+   //#define GAMES_EASTER_EGG          // Add extra blank lines above the "Games" sub-menu
+ #endif
++//#define DWIN_PRINT_DONE_SOUND // Compile Display Settings > Print done sound; runtime default off.
+ 
+ //
+ // Additional options for DGUS / DWIN displays
+@@ -2395,6 +2410,7 @@
   * Requires a display with a controllable backlight
   */
  //#define LCD_BACKLIGHT_TIMEOUT_MINS 1  // (minutes) Timeout before turning off the backlight
@@ -193,7 +201,7 @@
  
  #if defined(DISPLAY_SLEEP_MINUTES) || defined(LCD_BACKLIGHT_TIMEOUT_MINS)
    #define EDITABLE_DISPLAY_TIMEOUT      // Edit sleep / backlight timeout with M255 S<minutes> and a menu item
-@@ -2464,6 +2479,28 @@
+@@ -2464,6 +2480,28 @@
    #endif
  #endif
  
@@ -222,7 +230,7 @@
  // @section extruder
  
  /**
-@@ -2578,7 +2615,11 @@
+@@ -2578,7 +2616,11 @@
    #define PROBING_MARGIN_LEFT PROBING_MARGIN
    #define PROBING_MARGIN_RIGHT PROBING_MARGIN+10
    #define PROBING_MARGIN_FRONT PROBING_MARGIN
@@ -234,7 +242,7 @@
  #endif
  
  #if ANY(MESH_BED_LEVELING, AUTO_BED_LEVELING_UBL)
-@@ -3463,6 +3504,10 @@
+@@ -3463,6 +3505,10 @@
    #define  X_SLAVE_ADDRESS 0x03
    #define  Y_SLAVE_ADDRESS 0x03
    #define  Z_SLAVE_ADDRESS 0x03
@@ -245,7 +253,7 @@
    //#define X2_SLAVE_ADDRESS 0
    //#define Y2_SLAVE_ADDRESS 0
    //#define Z2_SLAVE_ADDRESS 0
-@@ -3474,7 +3519,7 @@
+@@ -3474,7 +3520,7 @@
    //#define  U_SLAVE_ADDRESS 0
    //#define  V_SLAVE_ADDRESS 0
    //#define  W_SLAVE_ADDRESS 0
@@ -254,7 +262,7 @@
    //#define E1_SLAVE_ADDRESS 0
    //#define E2_SLAVE_ADDRESS 0
    //#define E3_SLAVE_ADDRESS 0
-@@ -4265,9 +4310,7 @@
+@@ -4265,9 +4311,7 @@
  #if ENABLED(GCODE_MACROS)
    #define GCODE_MACROS_SLOTS       5  // Up to 10 may be used
    #define GCODE_MACROS_SLOT_SIZE  50  // Maximum length of a single macro
@@ -264,7 +272,7 @@
  #endif
  
  /**
-@@ -4562,9 +4605,7 @@
+@@ -4562,9 +4606,7 @@
  #if ENABLED(FREEZE_FEATURE)
    //#define FREEZE_PIN   -1   // Override the default (KILL) pin here
    #define FREEZE_STATE  LOW   // State of pin indicating freeze
@@ -274,7 +282,7 @@
    /**
     * Command P000 (REALTIME_REPORTING_COMMANDS and EMERGENCY_PARSER) or
     * FREEZE_PIN (FREEZE_FEATURE) initiates a soft feed hold that keeps
-@@ -4577,9 +4618,7 @@
+@@ -4577,9 +4619,7 @@
     * NOTE: Affects Laser PWM but DOES NOT pause Spindle, Fans, Heaters or other devices.
     */
    //#define SOFT_FEED_HOLD

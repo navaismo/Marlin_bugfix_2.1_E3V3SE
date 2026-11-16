@@ -146,3 +146,11 @@ The Makefile/test runner supports `GIT_RESET_HARD`, which can run `git reset --h
 - Native regressions cover manual/workflow feature combinations, menu edits and bounds, Stepper delay/enabled/damping state, ISR restoration and synchronization. Physical resonance tuning still requires printer testing.
 - The Stepper frequency setter now casts only the enabled delay calculation, preserving the integer off sentinel on 32-bit timers instead of converting it through float. Regression coverage includes 16-bit and 32-bit timer types.
 - Visibility regression `test/test_dwin_input_shaping_visibility.py` enters via the real Control and Motion handlers, records the actual label/icon drawing calls, checks viewport bounds and post-draw visibility, and returns from the real submenu. It covers image/text labels, optional jerk/skew rows and menu disabled. The redundant Skew drawing call using a pixel Y as a row was removed. Skew menu measurement variables also have definitions initialized from the configured XY defaults, fixing the existing link failure when its menu is selected.
+
+
+## Release preparation 2026-11-15
+
+- Active variant: `c14_sd`. The two `pure_octoprint` variants are host-only and use M9001 v2; the standard OctoPrint variants retain the legacy protocol and SD support.
+- Completion audio is gated by `DWIN_PRINT_DONE_SOUND`, off by default in SD builds; the persisted LCD switch starts off in every variant. EEPROM serialization stays one byte.
+- Standard thumbnail scratch capacity is 512 runs, with the existing 96-runs-per-row pre-write bounds fix retained.
+- Legacy OctoPrint variants receive the title/pause/idle-cancel fixes without the v2 executor. See `docs/releases/2026-11-15.md` for measurements and hardware checks.
