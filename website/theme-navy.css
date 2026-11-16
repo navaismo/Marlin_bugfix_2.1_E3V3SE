@@ -91,6 +91,8 @@ a:focus-visible,button:focus-visible {outline-color:var(--highlight)}
 .concept-label{background:#273b53;color:#c2d2e7}
 .skin-image{border-color:#354a64;box-shadow:0 15px 28px #0005}
 .skin-preview{color:#8adfff}.skin-preview:hover .skin-image{border-color:#64ccff}
+.reading-progress{background:rgba(100,204,255,.16)}
+.reading-progress-fill{background:linear-gradient(90deg,#56b9ff,#9c8bff);box-shadow:0 0 12px rgba(100,204,255,.55)}
 .contrib{background:linear-gradient(125deg,#102a40,#122338);border-color:#294662}
 .contrib h3{color:#f2f7ff}.contrib p{color:#afc3d8}.contrib-mark{background:#193d55;color:#83d5ff}
 .footer{background:#060d18;border-color:#1e3046}
@@ -112,7 +114,6 @@ a:focus-visible,button:focus-visible {outline-color:var(--highlight)}
 /* CacomixtlePad: richer blue-black exhibition banner, contrasting with standard cards. */
 .pad-showcase{background:radial-gradient(ellipse at 88% 15%,#43366b88,transparent 50%),radial-gradient(ellipse at 14% 84%,#16567e66,transparent 58%),linear-gradient(125deg,#0c1c35,#0c1529 80%);border:1px solid #425075;box-shadow:0 26px 60px #02060ec9}
 .pad-kicker{color:#95d9ff}.pad-kicker span{color:#ba9fff}
-.pad-app-icon{background:linear-gradient(130deg,#866edb,#4abcf4)}
 .pad-lead{color:#c3d5e9}.pad-points span{color:#cce8ff;background:#23446675;border-color:#6285a644}
 .pad-actions .action-link.primary{background:#79d5ff;color:#051a29}
 .pad-preview-caption{color:#c8d5f0}.live-dot{background:#65d3ff;box-shadow:0 0 0 4px #52c9ff24}
