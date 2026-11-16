@@ -71,31 +71,33 @@ ru: {
 
 /* Accurate LCD menu paths from Marlin/src/lcd/dwin/creality/dwin.cpp.
  * Labels intentionally stay in English because that is what the printer displays.
- * Drop approved real screenshots into docs/assets/screens/<id>.png to replace
- * these existing project GIFs (or the clearly marked placeholder). */
+ * Local videos live in website/assets/screens/<id>.mp4. Other cards use a
+ * local PNG, an existing project GIF, or a clearly marked placeholder. */
 const screenGuides = {
  basics: [
   {id:'auto-z',paths:[['Leveling','Start Auto Z-Offset']],demo:'LevelingMenu.gif'},
   {id:'bed-leveling',paths:[['Leveling','Start Bed Leveling']],demo:'LevelingMenu.gif'},
-  {id:'e-steps',paths:[['Control','Motion','Steps/mm','Steps/mm E']]},
-  {id:'motion',paths:[['Control','Motion','Max Speed'],['Control','Motion','Max Acceleration']]}
+  {id:'e-steps',paths:[['Control','Motion','Steps/mm','Steps/mm E']],video:'e-steps.mp4'},
+  {id:'motion',paths:[['Control','Motion','Max Speed'],['Control','Motion','Max Acceleration']],video:'motion.mp4'}
  ],
  extras: [
   {id:'display-settings',paths:[['Prepare','Display Settings']],demo:'DisplayMenu.gif',optional:false},
-  {id:'bed-map',paths:[['Leveling','Bed Level Map']],optional:true},
+  {id:'filament-change',paths:[['M600']],command:true,image:'filament-change-collage.svg',collage:true,optional:false},
+  {id:'bed-map',paths:[['Leveling','Bed Level Map']],video:'bed-map.mp4',optional:true},
   {id:'custom-extrude',paths:[['Prepare','Custom Extrude']],demo:'CExtrude.gif',optional:true},
   {id:'homing-height',paths:[['Prepare','Homing Height(mm)']],demo:'ZHeight.gif',optional:true},
   {id:'preheat-labels',paths:[['Prepare','Preheat PETG / ABS']],demo:'PreheatLabels.gif',optional:true},
   {id:'skew-correction',paths:[['Control','Motion','Skew Correction']],demo:'SkewFactor.gif',optional:true},
   {id:'legacy-shaping',paths:[['Control','Motion','Input Shaping']],demo:'InputShaping.gif',optional:true},
-  {id:'power-loss',paths:[['Control','Power-loss recovery']],optional:true}
+  {id:'power-loss',paths:[['Control','Power-loss recovery']],video:'power-loss.mp4',optional:true}
  ]
 };
 const menuCopy = {
  es:{
-  menuPath:'RUTA EN LA PANTALLA',optional:'SI SE HABILITÓ',visual:'Vista real del proyecto',openPhoto:'Ver imagen completa',missing:'CAPTURA PENDIENTE',missingDesc:'Añade una foto de este menú en la carpeta de capturas.',photoNote:'Las demostraciones disponibles vienen del repositorio. Puedes sustituir cada una con una captura de tu propia impresora.',
+  menuPath:'RUTA EN LA PANTALLA',commandLabel:'COMANDO DE ACTIVACIÓN',optional:'SI SE HABILITÓ',visual:'Vista real del proyecto',openPhoto:'Ampliar vista',missing:'CAPTURA PENDIENTE',missingDesc:'Añade una foto de este menú en la carpeta de capturas.',photoNote:'Las demostraciones combinan GIF del proyecto y videos reales de los menús. Pulsa una vista para ampliarla.',
   extraRows:[
    ['Ajustes de pantalla','Activa o silencia el sonido. Si habilitaste el control de brillo, también podrás ajustar su intensidad y atenuación.'],
+   ['Cambio de filamento (M600)','Cuando la impresión recibe M600, Marlin la pausa y abre Filament change. La pantalla guía la descarga del filamento usado; después pide insertar el nuevo y pulsar la perilla para continuar. Al terminar la purga, elige Purge more si aún quedan restos del material anterior o Resume para reanudar la impresión.'],
    ['Mapa visual de la cama','Consulta la forma de la superficie y sus colores. Este mapa es informativo; no realiza la nivelación por sí solo.'],
    ['Extrusión personalizada','Pide una cantidad concreta de filamento desde la pantalla, con la boquilla previamente caliente.'],
    ['Altura después del Home','Ajusta la altura Z mostrada después de realizar Home cuando esta opción adicional está disponible.'],
@@ -106,9 +108,10 @@ const menuCopy = {
   ]
  },
  en:{
-  menuPath:'LCD MENU PATH',optional:'IF ENABLED',visual:'Real project view',openPhoto:'Open full image',missing:'SCREENSHOT NEEDED',missingDesc:'Add a photo of this menu to the screenshots folder.',photoNote:'Available demonstrations come from the project repository. Replace any of them with a photo from your own printer.',
+  menuPath:'LCD MENU PATH',commandLabel:'ACTIVATION COMMAND',optional:'IF ENABLED',visual:'Real project view',openPhoto:'Enlarge view',missing:'SCREENSHOT NEEDED',missingDesc:'Add a photo of this menu to the screenshots folder.',photoNote:'Demonstrations include project GIFs and real menu videos. Select a preview to enlarge it.',
   extraRows:[
    ['Display settings','Mute or enable sound. With brightness control enabled, you can also adjust brightness and dimming.'],
+   ['Filament change (M600)','When a print receives M600, Marlin pauses it and opens Filament change. The display guides you through unloading the old filament, then asks you to insert the new filament and press the knob to continue. After purging, choose Purge more if any old material remains, or Resume to continue the print.'],
    ['Visual bed map','Inspect the bed surface and its colors. The map is informative; it does not perform leveling itself.'],
    ['Custom extrusion','Request a specific filament length from the LCD after heating the nozzle.'],
    ['Homing height','Adjust the Z height shown after homing when this extra option is built in.'],
@@ -119,9 +122,10 @@ const menuCopy = {
   ]
  },
  ru:{
-  menuPath:'ПУТЬ НА ЭКРАНЕ',optional:'ЕСЛИ ВКЛЮЧЕНО',visual:'Настоящий экран проекта',openPhoto:'Открыть изображение',missing:'НУЖЕН СНИМОК',missingDesc:'Добавьте фотографию этого меню в папку снимков экрана.',photoNote:'Доступные демонстрации взяты из репозитория проекта. Их можно заменить фотографиями вашего принтера.',
+  menuPath:'ПУТЬ НА ЭКРАНЕ',commandLabel:'КОМАНДА ЗАПУСКА',optional:'ЕСЛИ ВКЛЮЧЕНО',visual:'Настоящий экран проекта',openPhoto:'Увеличить',missing:'НУЖЕН СНИМОК',missingDesc:'Добавьте фотографию этого меню в папку снимков экрана.',photoNote:'Демонстрации включают GIF проекта и настоящие видео меню. Нажмите на предпросмотр, чтобы увеличить его.',
   extraRows:[
    ['Настройки экрана','Включите или выключите звук. При наличии функции яркости можно менять яркость и затемнение.'],
+   ['Смена филамента (M600)','При получении M600 Marlin приостанавливает печать и открывает Filament change. Экран показывает выгрузку старого филамента, затем просит вставить новый и нажать ручку для продолжения. После продувки выберите Purge more, если остались следы старого материала, или Resume, чтобы продолжить печать.'],
    ['Карта поверхности стола','Посмотрите форму стола и цветовую карту. Просмотр не запускает выравнивание.'],
    ['Настройка экструзии','Подавайте выбранную длину филамента через меню, предварительно нагрев сопло.'],
    ['Высота после Home','Настройте высоту Z после возврата в исходное положение, если эта функция добавлена в прошивку.'],
@@ -180,12 +184,13 @@ function prepareReveals(){
 }
 function screenshotCard(item){
  const t=menuCopy[lang];
- const local=`assets/screens/${item.id}.png`;
+ const local=`assets/screens/${item.image||item.id+'.png'}`;
  const fallback=item.demo?`https://raw.githubusercontent.com/navaismo/Marlin_bugfix_2.1_E3V3SE/c13_sd/media/${item.demo}`:'';
+ if(item.video)return `<div class="menu-photo"><button class="menu-photo-preview" type="button" aria-label="${esc(t.openPhoto)}" aria-haspopup="dialog"><video class="menu-photo-video" autoplay loop muted playsinline width="100%" preload="metadata" aria-label="${esc(t.visual)}: ${esc(item.id)}"><source src="assets/screens/${esc(item.video)}" type="video/mp4"></video></button><div class="menu-photo-empty" hidden><span aria-hidden="true">▧</span><strong>${esc(t.missing)}</strong><small>${esc(t.missingDesc)}</small></div><button class="menu-photo-open" type="button" aria-haspopup="dialog" hidden>${esc(t.openPhoto)} ↗</button></div>`;
  // Local screenshot is preferred. A verified source GIF is the fallback when available.
- return `<div class="menu-photo"><button class="menu-photo-preview" type="button" aria-label="${esc(t.openPhoto)}" aria-haspopup="dialog"><img class="menu-photo-img" src="${local}" data-fallback="${fallback}" alt="${esc(t.visual)}: ${esc(item.id)}" loading="lazy"></button><div class="menu-photo-empty" hidden><span aria-hidden="true">▧</span><strong>${esc(t.missing)}</strong><small>${esc(t.missingDesc)}</small></div><button class="menu-photo-open" type="button" aria-haspopup="dialog" hidden>${esc(t.openPhoto)} ↗</button></div>`;
+ return `<div class="menu-photo"><button class="menu-photo-preview" type="button" aria-label="${esc(t.openPhoto)}" aria-haspopup="dialog"><img class="menu-photo-img${item.collage?' menu-collage-img':''}" src="${local}" data-fallback="${fallback}" alt="${esc(t.visual)}: ${esc(item.id)}" loading="lazy"></button><div class="menu-photo-empty" hidden><span aria-hidden="true">▧</span><strong>${esc(t.missing)}</strong><small>${esc(t.missingDesc)}</small></div><button class="menu-photo-open" type="button" aria-haspopup="dialog" hidden>${esc(t.openPhoto)} ↗</button></div>`;
 }
-function lcdPaths(item){return `<div class="menu-location"><span class="menu-location-title">⌖ ${esc(menuCopy[lang].menuPath)}</span>${item.paths.map(path=>`<div class="menu-breadcrumb">${path.map((bit,i)=>`<span>${esc(bit)}</span>${i<path.length-1?'<b aria-hidden="true">›</b>':''}`).join('')}</div>`).join('')}</div>`}
+function lcdPaths(item){return `<div class="menu-location"><span class="menu-location-title">⌖ ${esc(item.command?menuCopy[lang].commandLabel:menuCopy[lang].menuPath)}</span>${item.paths.map(path=>`<div class="menu-breadcrumb">${path.map((bit,i)=>`<span>${esc(bit)}</span>${i<path.length-1?'<b aria-hidden="true">›</b>':''}`).join('')}</div>`).join('')}</div>`}
 function menuRows(items,info,basics=false){return `<div class="menu-guide-list">${items.map((item,i)=>{const [emoji,title,desc,tip]=basics?info[i]:['',...info[i],''];return `<article class="menu-guide-card"><div class="menu-guide-copy"><div class="menu-guide-heading">${basics?`<span class="guide-emoji" aria-hidden="true">${emoji}</span>`:''}<div><h3>${esc(title)}</h3>${item.optional?`<span class="guide-optional">${esc(menuCopy[lang].optional)}</span>`:''}</div></div><p>${esc(desc)}</p>${lcdPaths(item)}${basics&&tip?`<div class="menu-guide-tip">↳ ${esc(tip)}</div>`:''}</div>${screenshotCard(item)}</article>`}).join('')}</div>`}
 function wireMenuScreens(){
  $('#guide-content').querySelectorAll('.menu-photo-img').forEach(img=>{
@@ -199,6 +204,19 @@ function wireMenuScreens(){
   img.addEventListener('error',()=>{if(!fallbackUsed && img.dataset.fallback){fallbackUsed=true;img.src=img.dataset.fallback}else placeholder()});
   img.addEventListener('load',show);
   if(img.complete){if(img.naturalWidth)show();else if(img.src){if(img.dataset.fallback){fallbackUsed=true;img.src=img.dataset.fallback}else placeholder()}}
+ });
+ $('#guide-content').querySelectorAll('.menu-photo-video').forEach(video=>{
+  const photo=video.closest('.menu-photo');
+  const preview=photo.querySelector('.menu-photo-preview');
+  const open=photo.querySelector('.menu-photo-open');
+  const empty=photo.querySelector('.menu-photo-empty');
+  const placeholder=()=>{preview.hidden=true;open.hidden=true;empty.hidden=false};
+  const show=()=>{preview.hidden=false;open.hidden=false;empty.hidden=true};
+  video.muted=true;
+  video.addEventListener('loadeddata',show);
+  video.addEventListener('error',placeholder);
+  video.querySelector('source').addEventListener('error',placeholder);
+  if(video.readyState>=2)show();else if(video.error)placeholder();
  });
 }
 
@@ -246,20 +264,36 @@ $('#guide-content').addEventListener('click',event=>{
  const preview=event.target.closest('.skin-preview,.menu-photo-preview,.menu-photo-open,.pad-demo-preview');
  if(!preview || typeof skinDialog.showModal!=='function')return;
  event.preventDefault();
- const img=preview.matches('.menu-photo-open')?preview.closest('.menu-photo').querySelector('img'):preview.querySelector('img');
- if(!img?.naturalWidth)return;
- const source=img.currentSrc||img.src;
- $('#skin-dialog-title').textContent=preview.dataset.skinName||preview.closest('article')?.querySelector('h3')?.textContent||img.alt;
+ const media=preview.matches('.menu-photo-open')?preview.closest('.menu-photo').querySelector('img,video'):preview.querySelector('img,video');
+ const isVideo=media?.tagName==='VIDEO';
+ if(!media||(isVideo?media.readyState<2:!media.naturalWidth))return;
+ const source=media.currentSrc||media.src;
+ $('#skin-dialog-title').textContent=preview.dataset.skinName||preview.closest('article')?.querySelector('h3')?.textContent||media.alt||media.getAttribute('aria-label');
  const enlarged=$('#skin-dialog-image');
- enlarged.src=source;
- enlarged.alt=img.alt;
- enlarged.classList.toggle('animated-preview',new URL(source,location.href).pathname.toLowerCase().endsWith('.gif'));
+ const video=$('#skin-dialog-video');
+ enlarged.hidden=isVideo;
+ video.hidden=!isVideo;
+ if(isVideo){
+  video.muted=true;
+  video.src=source;
+ }else{
+  enlarged.src=source;
+  enlarged.alt=media.alt;
+  enlarged.classList.toggle('animated-preview',new URL(source,location.href).pathname.toLowerCase().endsWith('.gif'));
+ }
  const original=$('#skin-dialog-original');
  original.href=source;
  original.hidden=!preview.matches('.skin-preview');
  skinDialog.showModal();
+ if(isVideo)video.play().catch(()=>{});
 });
 $('#skin-dialog-close').addEventListener('click',()=>skinDialog.close());
+skinDialog.addEventListener('close',()=>{
+ const video=$('#skin-dialog-video');
+ video.pause();
+ video.removeAttribute('src');
+ video.load();
+});
 function wirePadGif(){
  const img=$('#guide-content .pad-demo-gif');
  if(!img)return;
