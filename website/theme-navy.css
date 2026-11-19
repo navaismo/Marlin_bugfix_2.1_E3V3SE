@@ -68,6 +68,7 @@ a:focus-visible,button:focus-visible {outline-color:var(--highlight)}
 .branch-row a:hover{border-color:#65c7ff;color:#dcf4ff}
 .notice{background:#142a40;border-left-color:#58bcff;color:#c1d8ee}
 .notice.warn{background:#2c291e;border-left-color:#d5aa64;color:#f4d8a6}
+.notice.critical{background:#3b111b;border-left-color:#ff5b6e;color:#ffb4bd}
 .section-number,.step-index{background:#153852;color:#82d9ff}
 .step,.info-card,.shot-card,.accordion,.menu-guide-card{background:#101d30;border-color:var(--line);box-shadow:0 4px 21px #0002}
 .step h3,.info-card h3,.feature-grid .info-card h3,.visual-explainer h3,.shot-card h3,.menu-guide-heading h3{color:#f2f7ff}
