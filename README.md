@@ -202,6 +202,8 @@ Some options depend on others. `OCTOPRINT_PLUGIN` relies on `HOST_ACTION_COMMAND
 
 The table lists switches, not a statement of the current state; check the define in the file to see whether it is on in your branch. Some menu options depend on a base feature (for example the input shaping menu needs the legacy shapers with `FT_MOTION` disabled).
 
+**C13 fan PWM:** the board pin header enables `FAN_SOFT_PWM` for the part-cooling fan, matching the stock firmware. `SOFT_PWM_SCALE` stays at 0, preserving the heater PWM frequency. Its effect on the fan noise reported in issue #44 still needs hardware confirmation.
+
 `POWER_LOSS_RECOVERY` with `DWIN_PLR_MENU` adds **Control → Power-loss recovery**, a submenu for enabling SD recovery, heating the bed/nozzle while awaiting confirmation, bed temperature boost, automatic-resume temperature (0 = off), Z clearance, purge length and checkpoint Z interval. Use **Store settings** in the submenu or `M500` to persist all options; `M501` reloads them and `M502` restores defaults. `Configuration_adv.h` supplies the initial defaults. Recovery takes priority over One Click Print at startup. See the [recovery behavior and validation guide](docs/power-loss-recovery.md).
 
 **Enhanced PLR is disabled by default in all four branches to save flash and RAM.** Enable both `POWER_LOSS_RECOVERY` and `DWIN_PLR_MENU` in `Configuration_adv.h`, or select **POWER_LOSS_RECOVERY + DWIN_PLR_MENU** in the GitHub Actions build dialog. This single workflow option is off by default and enables/disables recovery and the advanced LCD submenu together. The LCD switch and `M413` only control recovery when it was included at build time; they cannot enable a feature compiled out of the firmware. Recovery handles files printed from the printer's SD card, including on the OctoPrint branches; streamed host jobs are not recoverable with PLR.
@@ -352,7 +354,7 @@ Each toggle overrides the matching feature and its documented dependencies for t
 
 ## Memory budget
 
-Current `c13_octoprint` build (2026-11-15): **28,276 bytes static RAM** / **247,788 bytes application Flash**. See the [six-variant memory and validation report](docs/releases/2026-11-15.md).
+Current `c13_octoprint` build (2026-11-20, stock fan PWM): **28,260 bytes static RAM** / **245,628 bytes application Flash**. See the [six-variant memory and validation report](docs/releases/2026-11-15.md).
 
 Flash and RAM are hard limits on the STM32F103RE (512 KB flash, 64 KB RAM). The reviewed baseline is stored in `buildroot/share/e3v3se/baseline.json`; the `build` guardrail fails when firmware grows beyond it. Check usage after enabling or adding a feature.
 

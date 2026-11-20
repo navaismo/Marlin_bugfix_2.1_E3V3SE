@@ -159,3 +159,8 @@ The Makefile/test runner supports `GIT_RESET_HARD`, which can run `git reset --h
 - Completion audio is gated by `DWIN_PRINT_DONE_SOUND`, off by default in SD builds; the persisted LCD switch starts off in every variant. EEPROM serialization stays one byte.
 - Standard thumbnail scratch capacity is 512 runs, with the existing 96-runs-per-row pre-write bounds fix retained.
 - Legacy OctoPrint variants receive the title/pause/idle-cancel fixes without the v2 executor. See `docs/releases/2026-11-15.md` for measurements and hardware checks.
+
+## C13 stock fan PWM restoration (2026-11-20)
+
+- Enable `FAN_SOFT_PWM` when FAN0 exists, replacing the unused `FAN0_SOFT_PWM` and FAN1 guard. This restores the stock C13 part-cooling drive. Keep SOFT_PWM_SCALE 0, dithering off, existing heater/PID settings and all theme sources unchanged. Acoustic improvement needs hardware confirmation.
+- Validation: fresh C13 builds use RAM 28,276 → 28,260 bytes; Flash 247,788 → 245,628 bytes. Active profile, ARM feature guards and unchanged theme/config/heater sources pass. No hardware flashing.
