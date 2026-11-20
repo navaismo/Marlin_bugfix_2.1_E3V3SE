@@ -192,8 +192,8 @@
   #define FAN1_PIN                           PC1   // extruder fan
 #endif
 
-#if PIN_EXISTS(FAN1)
-  #define FAN0_SOFT_PWM
+#if PIN_EXISTS(FAN0)
+  #define FAN_SOFT_PWM                       // Match the stock C13 part-cooling fan drive
 #endif
 
 //

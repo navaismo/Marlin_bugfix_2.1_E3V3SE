@@ -222,3 +222,10 @@ The Makefile/test runner supports `GIT_RESET_HARD`, which can run `git reset --h
 - Completion audio is gated by `DWIN_PRINT_DONE_SOUND`, off by default in SD builds; the persisted LCD switch starts off in every variant. EEPROM serialization stays one byte.
 - Standard thumbnail scratch capacity is 512 runs, with the existing 96-runs-per-row pre-write bounds fix retained.
 - Legacy OctoPrint variants receive the title/pause/idle-cancel fixes without the v2 executor. See `docs/releases/2026-11-15.md` for measurements and hardware checks.
+
+## C13 stock fan PWM restoration (2026-11-20)
+
+- The C13 board header now enables `FAN_SOFT_PWM` when `FAN0` exists, replacing the unused `FAN0_SOFT_PWM` macro and the unrelated FAN1 guard. The original Creality firmware enables software fan PWM in its board header.
+- `SOFT_PWM_SCALE` remains 0 and `SOFT_PWM_DITHER` remains disabled; heater PWM settings and PID constants are unchanged. Issue #44 fan-noise improvement still requires confirmation on an affected printer.
+- Validation: C13 PlatformIO build and active profile pass. ARM preprocessing confirms the correct fan flag, FAN1 independence and FAN0 guard, with unchanged heater PWM/PID settings. Fresh before/after builds: RAM 18,120 → 18,104 bytes; Flash 228,016 → 225,856 bytes. No hardware test or flashing performed.
+- Port scope: C13 SD, standard OctoPrint, Pure and EVA-01. The three active C14 F401 headers already use `PIN_EXISTS(FAN0)` and `FAN_SOFT_PWM`; actual ARM preprocessing confirms software fan PWM with scale 0, so their worktrees are left unchanged.
