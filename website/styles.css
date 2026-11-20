@@ -94,6 +94,8 @@
 .menu-photo-video{display:block;width:100%;height:auto;max-height:310px;object-fit:contain;border-radius:7px}
 .menu-photo-img.menu-collage-img{height:auto;max-height:none}
 .notice.critical{border-left-color:#dc2626;background:#fef2f2;color:#991b1b;font-weight:700}
+.toc-klipper{margin-top:16px;align-items:flex-start}
+.toc-klipper-icon{display:block;width:19px;height:19px;flex:0 0 19px;object-fit:contain;margin-top:2px}
 .skin-dialog>video{display:block;width:100%;height:auto;max-height:calc(92dvh - 110px);object-fit:contain;background:#000}
 .skin-dialog>img[hidden],.skin-dialog>video[hidden]{display:none!important}
 @media(max-width:800px){.menu-photo-video{max-height:245px}}
