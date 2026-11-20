@@ -232,7 +232,12 @@ function mount(){
  document.documentElement.lang=lang;
  readingProgress.setAttribute('aria-label',progressLabels[lang]);
  updateThemeButton();
- document.querySelectorAll('[data-i18n]').forEach(el=>{let k=el.dataset.i18n;if(k==='heroTitle')el.innerHTML=tr(k);else el.textContent=tr(k)});
+ document.querySelectorAll('[data-i18n]').forEach(el=>{
+  const key=el.dataset.i18n;
+  const translation=translations[lang][key]??translations.es[key];
+  if(translation==null)return;
+  if(key==='heroTitle')el.innerHTML=translation;else el.textContent=translation;
+ });
  document.querySelectorAll('[data-lang]').forEach(el=>{let active=el.dataset.lang===lang;el.classList.toggle('active',active);el.setAttribute('aria-pressed',active?'true':'false')});
  document.querySelectorAll('[data-mode]').forEach(el=>{let active=el.dataset.mode===mode;el.setAttribute('aria-selected',active?'true':'false');el.tabIndex=active?0:-1});
  const m=modes[mode];$('#selection-hint').textContent=tr(m.selection);
